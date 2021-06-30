@@ -56,7 +56,7 @@ server <- function(input, output) {
     plot <- NULL
     ## Valores reativos para alterar vendedores ao selecionar
     r <- reactiveValues(value = "default")
-    df_soc_pand <- data.table::fread("perguntas_full.csv")
+    df_soc_pand <- data.table::fread("dados/perguntas_full.csv")
     hierarch <- c("EIXO", "TOPICS", "QUERIES")
     output$plot <- renderCollapsibleTree({
         p <- collapsibleTree::collapsibleTree(df_soc_pand, hierarchy = hierarch,

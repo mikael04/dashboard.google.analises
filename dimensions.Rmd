@@ -7,7 +7,7 @@ output: html_document
 library(dplyr)
 
 ## df_dimensions <- toda a base
-# df_dimensions <- data.table::fread("buscaCompleta2305.csv")
+df_dimensions <- data.table::fread("dados/buscaCompleta2305.csv")
 # fst::write_fst(df_dimensions, "dimensions_compressed", compress = 100)
 # 
 df_dimensions <- fst::read_fst("dimensions_compressed.fst")
