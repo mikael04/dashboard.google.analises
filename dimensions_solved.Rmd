@@ -1,0 +1,73 @@
+---
+title: "dimensions"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+
+## df_dimensions <- toda a base
+# df_dimensions <- data.table::fread("dimensions_extraction_23052021.csv", sep = "/")
+# fst::write_fst(df_dimensions, "dimensions_compressed", compress = 100)
+df_dimensions <- fst::read_fst("dimensions_compressed.fst")
+df_dimensions <- tibble::as_tibble(df_dimensions)
+
+df_dimensions_sample <- df_dimensions %>% 
+  dplyr::sample_frac(0.1)
+
+## df_dim_sort_alph <- toda a base com campos ordenados em ordem alfabética
+df_dim_sort_alph <- df_dimensions %>% 
+  dplyr::select(sort(tidyselect::peek_vars()))
+
+
+df_dim_sort_alph_sample <- df_dimensions_sample %>% 
+  dplyr::select(sort(tidyselect::peek_vars()))
+
+## df_dim_cut <- base com campos selecionados (provavelmente nem todos são importantes, esse campo tem 22 variáveis)
+## diferente do geral que tem 84
+df_dim_cut <- df_dimensions %>%
+  dplyr::select(id, year, doi, type, date, date_normal, date_inserted, clinical_trial_ids, altmetrics.score, open_access_categories, open_access_categories_v2, research_org_city_names, research_org_country_names, reference_ids,  title.preferred, abstract.preferred, publisher.name, publisher.name, metrics.times_cited, metrics.recent_citations, citations_count, journal.id, journal.title)
+## df_dim_cut <- base com campos selecionados (provavelmente nem todos são importantes, esse campo tem 22 variáveis)
+## diferente do geral que tem 84
+df_dim_cut_sample <- df_dimensions_sample %>%
+  dplyr::select(id, year, doi, type, date, date_normal, date_inserted, clinical_trial_ids, altmetrics.score, open_access_categories, open_access_categories_v2, research_org_city_names, research_org_country_names, reference_ids,  title.preferred, abstract.preferred, publisher.name, publisher.name, metrics.times_cited, metrics.recent_citations, citations_count, journal.id, journal.title)
+
+```
+
+## **Análise exploratória da base de dados extraída do dimensity**
+
+Apresentação das 20 primeiras linhas do banco com a remoção de boa parte das variáveis:
+
+Removendo campos, volume, pages, subtitles, researcher_ids, research_orgs, date_print, research_org_cities, research_org_countries, research_org_state_codes, research_org_state_names, mesh_headings, mesh_terms, journal_lists, funder_orgs, supporting_grant_ids, date_imported_gbq, patent_ids, publisher.id, conference.name, conference.location, category_sdg.codes, category_sdg.full, category_sdg_v1.codes, category_sdg_v1.full, date_online, citations_count, journal.issn)
+
+```{r datas, echo = F}
+#reactable::reactable(head(df_dimensions_cut, 20))
+```
+
+##### Muitos campos de data, qual usar?
+
+```{r date_fields, echo=FALSE}
+reactable::reactable(head(df_dimensions_sample %>%
+       dplyr::select(id, year, date, date_print, date_normal, date_inserted, date_imported_gbq, date_online), 20))
+
+df_date_count <- df_dimensions  %>%
+  dplyr::select(id, date_normal) %>%
+  dplyr::mutate(date_normal = lubridate::floor_date(date_normal, "month")) %>%
+  dplyr::group_by(date_normal) %>%
+  dplyr::filter(date_normal < lubridate::ymd("2021-05-23")) %>%
+  #dplyr::filter(date_normal > "2020-01-01") %>%
+  dplyr::summarise(count = n()) %>%
+  #dplyr::mutate(date_normal = lubridate::format_ISO8601(date_normal, precision = "ym")) %>%
+  dplyr::ungroup()
+
+p <- plotly::plot_ly(df_date_count, x = ~date_normal, y = ~count, mode = 'line', type = 'scatter') %>%
+  plotly::layout(title = "Evolução de publicações de COVID19 no tempo",
+                 xaxis = list(title = ""),
+                 yaxis = list(title = "Número de publicações"))
+# data.table::fwrite(df_date_count, "../data-raw/df_date_count.csv")
+# data.table::fwrite(df_date_count, "../data-raw/df_sample_date_count.csv")
+
+df_dimensions_date <- df_dimensions  %>%
+       dplyr::select(id, year, date, date_imported_gbq, date_inserted, date_normal, date_online, date_print)
+skimr::skim(df_dimensions_date)
+```

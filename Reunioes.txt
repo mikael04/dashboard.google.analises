@@ -1,0 +1,8 @@
+ O que ficou definido (André e Mikael - 19/05/21):
+- Conversar com Júlia e o resto do pessoal, sobre nova proposta de design, seria manter as abas em cima, manter os filtros na direita, tentar encaixar mais gráficos numa mesma visão e colocar um painel de controle na esquerda, que teria dois botões (ainda não sabemos onde vai a parte de perguntas), um para a visualização da dash, contendo a visualização dos artigos (distribuição, mapas, mapa de palavras e afins), seguindo a hierarquia de tópicos e querys e o segundo para perguntas.
+- As perguntas serão utilizadas no campo de texto, a pessoa busca por elementos chave e o campo de busca vai mostrando quais perguntas tem com aquelas palavras chave (em hierarquia, respeitando os tópicos e querys a quais as perguntas pertencem). Após a seleção da pergunta, a pessoa vai mandar "buscar" e receberá uma tabela com os artigos que respondem a pergunta que ela procurou.
+Pensar:
+- E se a pessoa quiser ver todas as perguntas?
+- Seria possível adicionar mais de uma pergunta/campo? Se sim, teríamos que calcular a cada pergunta ou criar um banco com todas as possibilidades
+
+PAT:
