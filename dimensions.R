@@ -171,5 +171,20 @@ if(plot){
   }
 }
 #########################################################################################
+## Análise exploratória funders e organização
+#########################################################################################
+df_dimensions_fund_org <- df_dimensions %>%
+  dplyr::select(funder_orgs, raw_affiliations, research_org_cities, research_org_city_names,
+                research_org_countries, research_org_country_names, research_org_state_codes,
+                research_org_state_names, research_orgs)
+
+
+skim_funder_orgs <- skimr::skim(df_dimensions_fund_org)
+
+data.table::fwrite(skim_funder_orgs, "dados/df_skim_funder_orgs.csv")
+
+#########################################################################################
 df_perguntas <- data.table::fread("dados/buscaCompleta2305.csv")
-  
+
+df_dim_sort_alph_sample_orgs <- df_dim_sort_alph_sample %>%
+  dplyr::select(funder_orgs, research_orgs)

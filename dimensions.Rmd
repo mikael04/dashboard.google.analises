@@ -359,3 +359,10 @@ set.seed(1234) # for reproducibility
 
 wordcloud2(data=df_r, size=.5, color='random-dark')
 ```
+
+#### **7. Organizações e funders**
+
+```{r org_fund, echo=F, eval = TRUE}
+df_skim_funder_orgs <- data.table::fread("dados/df_skim_funder_orgs.csv")
+df_skim_funder_orgs
+```
