@@ -1,75 +1,175 @@
 ## code to prepare `dimension` dataset goes here
 library(dplyr)
-# usethis::use_data(dimension, overwrite = TRUE)
 
-df_dimensions <- data.table::fread("data-raw/dimensionscompletoTOTAL.csv")
+plot <- F
+dashboard <- F
+#########################################################################################
+## Lendo arquivo de banco de dados
+#########################################################################################
+df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst")
+df_dimensions <- tibble::as_tibble(df_dimensions)
 
-df_dimensions <- as_tibble(df_dimensions)
+df_dimensions_sample <- df_dimensions %>% 
+  dplyr::sample_frac(0.1)
 
 ## df_dim_sort_alph <- toda a base com campos ordenados em ordem alfabética
 df_dim_sort_alph <- df_dimensions %>% 
   dplyr::select(sort(tidyselect::peek_vars()))
 
-## df_dim_cut <- base com campos selecionados (provavelmente nem todos são importantes, esse campo tem 22 variáveis)
-## diferente do geral que tem 93
-df_dim_cut <- df_dimensions %>%
-  dplyr::select(id, year, doi, type, date, date_normal, date_inserted, clinical_trial_ids, altmetrics.score, open_access_categories,
-                open_access_categories_v2, research_org_city_names, research_org_country_names, reference_ids, funding_details,
-                title.preferred, abstract.preferred, publisher.name, publisher.name, metrics.times_cited, metrics.recent_citations,
-                citations_count, journal.id, journal.title)
+
+df_dim_sort_alph_sample <- df_dimensions_sample %>% 
+  dplyr::select(sort(tidyselect::peek_vars()))
 
 
-typeof(df_dimensions$date)
-typeof(df_dimensions$date_print)
+#########################################################################################
+## Manipulando datas
+#########################################################################################
 
+df_date_count <- df_dimensions  %>%
+  dplyr::filter(date_normal < lubridate::ymd("2021-05-23")) %>%
+  dplyr::filter(date_normal > "2020-01-01") %>%
+  dplyr::select(id, date_normal) %>%
+  dplyr::mutate(date_normal = lubridate::floor_date(date_normal, "month")) %>%
+  dplyr::group_by(date_normal) %>%
+  dplyr::summarise(count = n()) %>%
+  #dplyr::mutate(date_normal = lubridate::format_ISO8601(date_normal, precision = "ym")) %>%
+  dplyr::ungroup()
 
-df_dimensions_sample <- head(df_dimensions, 50)
-
-## Checar se existe alguma linha que não esteja no padrão ("ano", "ano-mes", "ano-mes-dia")
-count(df_dimensions_sample[(stringr::str_count(df_dimensions_sample) != 10) && (stringr::str_count(df_dimensions_sample) != 7) && (stringr::str_count(df_dimensions_sample) != 4)])
-
-df_dimensions[(stringr::str_count(df_dimensions) == 10)]
-
-df_dimensions_sample <- df_dimensions_sample %>% 
-  mutate(date_ = case_when(
-    stringr::str_count(date) < 7 ~ "aaaa",
-    stringr::str_count(date) < 10 ~ "aaaa-mm",
-    TRUE ~ "aaaa-mm-dd"
-    )) %>%
-  dplyr::select(id, year, date, date_)
-
-## Já existem diferentes datas, qual é a correta?
-df_date <- df_dimensions %>%
-  select(id, year, doi, date, date_print, date_normal, date_inserted, date_imported_gbq, date_online)
-
-## Países
-sum(is.na(df_dimensions$research_org_countries))
-sum(df_dimensions$research_org_countries)
-sum(df_dimensions$research_org_cities != "")
-sum(df_dimensions$research_org_city_names != "")
-# 29771 linhas com cidades (cities id) faltantes / 29780 (city_name) - Total 46154 linhas
-sum(df_dimensions$research_org_countries != "")
-sum(df_dimensions$research_org_country_names != "")
-# 30081 linhas com países faltantes - Total 46154 linhas
-
-stringr::str_split(df_dimensions[df_dimensions$doi == "10.3760/cma.j.cn112138-20200328-00310"]$research_org_country_names, ",")
-
-skimr::skim(df_dimensions)
-
-
-unique_countrys <- unique(df_dim_cut$research_org_country_names)
-unique_countrys <- unique_countrys %>%
-  stringr::str_split(',')
-# unique_countrys <- stringr::str_replace_all(unique_countrys, "[^[:alnum:]]", "")
-list <- lapply(unique_countrys, stringr::str_replace_all, "[^[:alnum:]]", "")
-unique_values <- unique(rapply(list, function(x) head(x, 30)))
-
-dt_list <- purrr:map(list, data.table::as.data.table)
+# data.table::fwrite(df_date_count, "/ dados/df_date_count.csv")
+if(plot){
+  p <- plotly::plot_ly(df_date_count, x = ~date_normal, y = ~count, mode = 'line', type = 'scatter') %>%
+    plotly::layout(title = "Evolução de publicações de COVID19 no tempo",
+                   xaxis = list(title = ""),
+                   yaxis = list(title = "Número de publicações"))
+  if(dashboard){
+    p
+  }
+}
+#########################################################################################
+## Contando países
+#########################################################################################
+## Recebe apenas a coluna de paises
+df_paises <- df_dimensions %>%
+# df_paises <- df_dimensions_sample %>%
+  dplyr::select(id, research_org_country_names) %>%
+  dplyr::filter(research_org_country_names != "")
+paises <- df_paises$research_org_country_names
+## Separa em uma lista de mais de um elemento quando possui mais de um país
+paises_split <- paises %>%
+  stringr::str_split(., ';')
+## remove todos os caractéres menos letras e números
+#list <- lapply(paises, stringr::str_replace_all, ";", "0")
+## Apenas valores únicos, para listar todos os países (sem repetição)
+unique_values <- unique(rapply(paises_split, function(x) head(x, 30)))
+# 
+## Transforma em dataframe para manipulação
+dt_list <- purrr::map(paises_split, data.table::as.data.table)
 dt <- data.table::rbindlist(dt_list, fill = TRUE, idcol = T)
-dt_count <- dt %>%
-  dplyr::filter(V1 != '' & V1 != ' ') %>% 
+## Agrupa por país e conta quantas vezes aparece
+df_count <- dt %>%
+  dplyr::filter(V1 != '' & V1 != ' ') %>%
   dplyr::group_by(V1) %>%
   dplyr::summarise(count = n()) %>%
   dplyr::rename(Paises = V1) %>%
   dplyr::ungroup()
+
+df_count_ordered <- df_count %>%
+  dplyr::arrange(desc(count))
+
+## Plota gráfico
+if(plot){
+  if(dashboard){
+    p
+  }
+}
+data.table::fwrite(df_count_ordered, "dados/df_paises_count_ordered.csv")
+# caso queira trabalhar com a sample
+# data.table::fwrite(df_count_ordered, "dados/df_sample_count_ordered.csv")
+
+#########################################################################################
+## Publicações por categoria
+#########################################################################################
+df_dim_categories <- df_dimensions %>%
+  dplyr::select(id, categories.for_v1.first_level.codes) %>%
+  dplyr::filter(length(categories.for_v1.first_level.codes) > 2) %>%
+  dplyr::filter(stringr::str_detect(categories.for_v1.first_level.codes,"[0123456789]"))
+
+## Pega apenas a variável que quero para fazer contagem
+categoria <- df_dim_categories$categories.for_v1.first_level.codes
+  #dplyr::filter(stringr::str_detect(., "[[:digit:]]"))
+list_categ <- lapply(categoria, stringr::str_replace_all, "'", "")
+list_categ <- lapply(list_categ, stringr::str_replace_all, " ", "")
+list_categ <- lapply(list_categ, stringr::str_replace_all, "\\[", "")
+list_categ <- lapply(list_categ, stringr::str_replace_all, "\\]", "")
+#list_categ <- lapply(df_dim_categories, stringr::str_replace_all, "\\[", "")
+## Separa em uma lista de mais de um elemento quando possui mais de um país
+list_categ_split <- list_categ %>%
+  stringr::str_split(., ',')
+
+## remove todos os caractéres menos letras e números
+#list_categ <- lapply(paises, stringr::str_replace_all, ";", "0")
+## Apenas valores únicos, para listar todos os países (sem repetição)
+unique_values <- unique(rapply(list_categ_split, function(x) head(x, 5)))
+
+## Transforma em dataframe para manipulação
+dt_list <- purrr::map(list_categ_split, data.table::as.data.table)
+dt <- data.table::rbindlist(dt_list, fill = TRUE, idcol = T)
+## Agrupa por país e conta quantas vezes aparece
+df_categ_count <- dt %>%
+  dplyr::filter(V1 != '' & V1 != ' ') %>%
+  dplyr::group_by(V1) %>%
+  dplyr::summarise(count = n()) %>%
+  dplyr::rename(ID = V1) %>%
+  dplyr::mutate(ID = as.numeric(ID)) %>%
+  dplyr::ungroup()
+
+## Lê arquivo com nome das categorias
+df_nome_categ <- data.table::fread("dados/ANZSRC_FoR.csv") %>%
+  dplyr::rename(Category = FoR)
+
+## Agrupa para pegar nome, ajusta tabela
+df_categ <- dplyr::inner_join(df_categ_count, df_nome_categ, by='ID') %>%
+  dplyr::mutate(Category = paste0(ID, " - ", Category)) %>%
+  dplyr::select(Category, count) %>%
+  dplyr::rename(Count = count)
+
+df_categ_count_ordered <- df_categ %>%
+  dplyr::arrange(desc(Count))
+
+## Se quiser mostrar total na última linha, para uma tabela
+# df_categ_withTotal <- df_categ %>%
+#   ## Adicionando linha de total
+#   dplyr::bind_rows(summarise(.,
+#                              across(where(is.numeric), sum),
+#                              across(where(is.character), ~"TOTAL")))
+
+## Escrevendo tabela
+data.table::fwrite(df_categ_count_ordered, "dados/df_categ_count_ordered.csv")
+
+## Plota gráfico
+if(plot){
+  layout_axis_y <- list(
+    title = "",
+    showline = F,
+    showticklabels = T,
+    showgrid = F
+  )
+  layout_axis_x <- list(
+    title = "",
+    showline = F,
+    showticklabels = T,
+    showgrid = F,
+    tickformat = "digit"
+  )
+  m <- list(l=350, r=50, b=50, t=30, pad=4)
+  p <- plotly::plot_ly(df_categ, x = ~Count, y = ~reorder(Category, Count), type = 'bar')
+  p <- p %>%
+    plotly::layout(title = "Publicações por categoria", xaxis = layout_axis_x, yaxis = layout_axis_y, dragmode='pan', margin = m) %>%
+    plotly::config(modeBarButtonsToRemove = c("zoom2d", "select2d", "lasso2d", "autoScale2d", "toggleSpikelines"), displaylogo = FALSE)
+  if(dashboard){
+    p
+  }
+}
+#########################################################################################
+df_perguntas <- data.table::fread("dados/buscaCompleta2305.csv")
   

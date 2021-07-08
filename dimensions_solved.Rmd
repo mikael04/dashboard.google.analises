@@ -9,7 +9,7 @@ library(dplyr)
 ## df_dimensions <- toda a base
 # df_dimensions <- data.table::fread("dimensions_extraction_23052021.csv", sep = "/")
 # fst::write_fst(df_dimensions, "dimensions_compressed", compress = 100)
-df_dimensions <- fst::read_fst("dimensions_compressed.fst")
+df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst")
 df_dimensions <- tibble::as_tibble(df_dimensions)
 
 df_dimensions_sample <- df_dimensions %>% 
@@ -25,12 +25,12 @@ df_dim_sort_alph_sample <- df_dimensions_sample %>%
 
 ## df_dim_cut <- base com campos selecionados (provavelmente nem todos são importantes, esse campo tem 22 variáveis)
 ## diferente do geral que tem 84
-df_dim_cut <- df_dimensions %>%
-  dplyr::select(id, year, doi, type, date, date_normal, date_inserted, clinical_trial_ids, altmetrics.score, open_access_categories, open_access_categories_v2, research_org_city_names, research_org_country_names, reference_ids,  title.preferred, abstract.preferred, publisher.name, publisher.name, metrics.times_cited, metrics.recent_citations, citations_count, journal.id, journal.title)
-## df_dim_cut <- base com campos selecionados (provavelmente nem todos são importantes, esse campo tem 22 variáveis)
-## diferente do geral que tem 84
-df_dim_cut_sample <- df_dimensions_sample %>%
-  dplyr::select(id, year, doi, type, date, date_normal, date_inserted, clinical_trial_ids, altmetrics.score, open_access_categories, open_access_categories_v2, research_org_city_names, research_org_country_names, reference_ids,  title.preferred, abstract.preferred, publisher.name, publisher.name, metrics.times_cited, metrics.recent_citations, citations_count, journal.id, journal.title)
+# df_dim_cut <- df_dimensions %>%
+#   dplyr::select(id, year, doi, type, date, date_normal, date_inserted, clinical_trial_ids, altmetrics.score, open_access_categories, open_access_categories_v2, research_org_city_names, research_org_country_names, reference_ids,  title.preferred, abstract.preferred, publisher.name, publisher.name, metrics.times_cited, metrics.recent_citations, citations_count, journal.id, journal.title)
+# ## df_dim_cut <- base com campos selecionados (provavelmente nem todos são importantes, esse campo tem 22 variáveis)
+# ## diferente do geral que tem 84
+# df_dim_cut_sample <- df_dimensions_sample %>%
+#   dplyr::select(id, year, doi, type, date, date_normal, date_inserted, clinical_trial_ids, altmetrics.score, open_access_categories, open_access_categories_v2, research_org_city_names, research_org_country_names, reference_ids,  title.preferred, abstract.preferred, publisher.name, publisher.name, metrics.times_cited, metrics.recent_citations, citations_count, journal.id, journal.title)
 
 ```
 
@@ -51,11 +51,11 @@ reactable::reactable(head(df_dimensions_sample %>%
        dplyr::select(id, year, date, date_print, date_normal, date_inserted, date_imported_gbq, date_online), 20))
 
 df_date_count <- df_dimensions  %>%
+  dplyr::filter(date_normal < lubridate::ymd("2021-05-23")) %>%
+  dplyr::filter(date_normal > "2020-01-01") %>%
   dplyr::select(id, date_normal) %>%
   dplyr::mutate(date_normal = lubridate::floor_date(date_normal, "month")) %>%
   dplyr::group_by(date_normal) %>%
-  dplyr::filter(date_normal < lubridate::ymd("2021-05-23")) %>%
-  #dplyr::filter(date_normal > "2020-01-01") %>%
   dplyr::summarise(count = n()) %>%
   #dplyr::mutate(date_normal = lubridate::format_ISO8601(date_normal, precision = "ym")) %>%
   dplyr::ungroup()
