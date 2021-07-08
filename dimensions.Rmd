@@ -6,32 +6,32 @@ output: html_document
 ```{r setup, include=FALSE}
 library(dplyr)
 
-## df_dimensions <- toda a base
-# df_dimensions <- data.table::fread("buscaCompleta2305.csv")
-# fst::write_fst(df_dimensions, "dimensions_compressed", compress = 100)
+# # df_dimensions <- data.table::fread("dados/dimensions_extraction_23052021.csv")
+# # df_dimensions_search <- data.table::fread("dados/buscaCompleta2305.csv")
+# # fst::write_fst(df_dimensions, "dimensions_compressed", compress = 100)
+# # 
+# df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst")
+# df_dimensions <- tibble::as_tibble(df_dimensions)
 # 
-df_dimensions <- fst::read_fst("dimensions_compressed.fst")
-df_dimensions <- tibble::as_tibble(df_dimensions)
-
-df_dimensions_sample <- df_dimensions %>% 
-  dplyr::sample_frac(0.1)
-
-## df_dim_sort_alph <- toda a base com campos ordenados em ordem alfabética
-df_dim_sort_alph <- df_dimensions %>% 
-  dplyr::select(sort(tidyselect::peek_vars()))
-
-
-df_dim_sort_alph_sample <- df_dimensions_sample %>% 
-  dplyr::select(sort(tidyselect::peek_vars()))
+# df_dimensions_sample <- df_dimensions %>% 
+#   dplyr::sample_frac(0.1)
+# 
+# ## df_dim_sort_alph <- toda a base com campos ordenados em ordem alfabética
+# df_dim_sort_alph <- df_dimensions %>% 
+#   dplyr::select(sort(tidyselect::peek_vars()))
+# 
+# 
+# df_dim_sort_alph_sample <- df_dimensions_sample %>% 
+#   dplyr::select(sort(tidyselect::peek_vars()))
 
 ## df_dim_cut <- base com campos selecionados (provavelmente nem todos são importantes, esse campo tem 22 variáveis)
 ## diferente do geral que tem 84
-df_dim_cut <- df_dimensions %>%
-  dplyr::select(id, year, doi, type, date, date_normal, date_inserted, clinical_trial_ids, altmetrics.score, open_access_categories, open_access_categories_v2, research_org_city_names, research_org_country_names, reference_ids,  title.preferred, abstract.preferred, publisher.name, publisher.name, metrics.times_cited, metrics.recent_citations, citations_count, journal.id, journal.title)
+# df_dim_cut <- df_dimensions %>%
+#   dplyr::select(id, year, doi, type, date, date_normal, date_inserted, clinical_trial_ids, altmetrics.score, open_access_categories, open_access_categories_v2, research_org_city_names, research_org_country_names, reference_ids,  title.preferred, abstract.preferred, publisher.name, publisher.name, metrics.times_cited, metrics.recent_citations, citations_count, journal.id, journal.title)
 ## df_dim_cut <- base com campos selecionados (provavelmente nem todos são importantes, esse campo tem 22 variáveis)
 ## diferente do geral que tem 84
-df_dim_cut_sample <- df_dimensions_sample %>%
-  dplyr::select(id, year, doi, type, date, date_normal, date_inserted, clinical_trial_ids, altmetrics.score, open_access_categories, open_access_categories_v2, research_org_city_names, research_org_country_names, reference_ids,  title.preferred, abstract.preferred, publisher.name, publisher.name, metrics.times_cited, metrics.recent_citations, citations_count, journal.id, journal.title)
+# df_dim_cut_sample <- df_dimensions_sample %>%
+#   dplyr::select(id, year, doi, type, date, date_normal, date_inserted, clinical_trial_ids, altmetrics.score, open_access_categories, open_access_categories_v2, research_org_city_names, research_org_country_names, reference_ids,  title.preferred, abstract.preferred, publisher.name, publisher.name, metrics.times_cited, metrics.recent_citations, citations_count, journal.id, journal.title)
 
 ```
 
@@ -96,42 +96,6 @@ skimr::skim(df_dim_cut$metrics.times_cited)
 plotly::plot_ly(data = df_dim_cut, x = ~metrics.times_cited, type = 'histogram')
 ```
 
-```{r country_anal_setup, echo = F}
-## Recebe apenas a coluna de paises
-df_paises <- df_dimensions %>%
-  dplyr::select(id, research_org_country_names) %>%
-  dplyr::filter(research_org_country_names != "")
-paises <- df_paises$research_org_country_names
-## Separa em uma lista de mais de um elemento quando possui mais de um país
-paises_split <- paises %>%
-  stringr::str_split(., ';')
-## remove todos os caractéres menos letras e números
-#list <- lapply(paises, stringr::str_replace_all, ";", "0")
-## Apenas valores únicos, para listar todos os países (sem repetição)
-unique_values <- unique(rapply(paises_split, function(x) head(x, 30)))
-# 
-# ## Transforma em dataframe para manipulação
-# dt_list <- purrr::map(paises_split, data.table::as.data.table)
-# dt <- data.table::rbindlist(dt_list, fill = TRUE, idcol = T)
-# ## Agrupa por país e conta quantas vezes aparece
-# dt_count <- dt %>%
-#   dplyr::filter(V1 != '' & V1 != ' ') %>%
-#   dplyr::group_by(V1) %>%
-#   dplyr::summarise(count = n()) %>%
-#   dplyr::rename(Paises = V1) %>%
-#   dplyr::ungroup()
-# 
-# dt_count_ordered <- dt_count %>%
-#   dplyr::arrange(desc(count))
-# 
-# 
-# # data.table::fwrite(dt_count_ordered, "../data-raw/df_paises_count_ordered.csv")
-# # data.table::fwrite(dt_count_ordered, "../data-raw/df_sample_count_ordered.csv")
-# 
-
-```
-
-
 ### 2. Filtros laterais
 
 Ano - ```r sum(is.na(df_dimensions$year)  + is.null(df_dimensions$year))```  de  ```r nrow(df_dimensions)``` linhas em branco (NA, NULL)
@@ -183,7 +147,7 @@ plotly::plot_ly(data = df_dim_cut, x = ~year, nbinsx = 2, type = 'histogram')
 #### **2.2. Países trials ids**
 ```{r paises_anal_expl, echo=F, eval = TRUE}
 # skimr::skim(df_dim_cut$research_org_country_names)
-dt_paises_count_ordered <- data.table::fread("df_paises_count_ordered.csv")
+dt_paises_count_ordered <- data.table::fread("dados/df_paises_count_ordered.csv")
 dt_paises_count_top20 <- dt_paises_count_ordered %>%
   dplyr::slice_head(n = 20)
 
@@ -206,12 +170,7 @@ p <- p %>%
   plotly::layout(title = "Publicações por país", xaxis = layout_axis_x, yaxis = layout_axis_y, dragmode='pan') %>%
   plotly::config(modeBarButtonsToRemove = c("zoom2d", "select2d", "lasso2d", "autoScale2d", "toggleSpikelines"), displaylogo = FALSE)
 p
-# reactable::reactable(dt_count)
-# 
-# reactable::reactable(dt_count, defaultSortOrder = "asc",
-#                      columns = list (
-#                        Paises = reactable::colDef(defaultSortOrder = "asc")
-#                      ))
+
 ```
 
 
@@ -224,65 +183,14 @@ plotly::plot_ly(data = df_dim_cut, x = ~type, type = 'histogram')
 
 #### **3. Categorias**
 ```{r categories, echo=F, eval = TRUE}
-df_dim_categories <- df_dimensions %>%
-  dplyr::select(id, categories.bra_v1.values, categories.for_v1.first_level.codes, categories.for_v1.second_level.codes, categories.hra_v1.values, categories.hrcs_hc_v1.values, categories.hrcs_rac_v1.codes, categories.icrp_cso_v1.codes, categories.icrp_ct_v1.values, categories.rcdc_v1.values, categories.sdg_v1.codes, categories.uoa_v1.codes, category_bra.values, category_for.first_level.codes, category_for.second_level.codes, category_hra.values, category_hrcs_hc.values, category_hrcs_rac.codes, category_icrp_cso.codes, category_icrp_ct.values, category_rcdc.values, category_sdg.codes, category_uoa.codes)
 
-skimr::skim(df_dim_categories)
+df_categ_count <- data.table::fread("dados/df_categ_count_ordered.csv")
 
-df_dim_categories <- df_dim_categories %>%
-  dplyr::filter(length(categories.for_v1.first_level.codes) > 2) %>%
-  dplyr::select(id, categories.for_v1.first_level.codes) %>%
-  dplyr::filter(stringr::str_detect(categories.for_v1.first_level.codes,"[0123456789]"))
-#   dplyr::group_by(categories.for_v1.first_level.codes) %>%
-#   dplyr::summarise(count = n())
-# skimr::skim(df_dim_categories)
-# glimpse(df_dim_categories)
-# 
-# ## Pega apenas a variável que quero para fazer contagem
-# categoria <- df_dim_categories$categories.for_v1.first_level.codes #%>%
-#   #dplyr::filter(stringr::str_detect(., "[[:digit:]]"))
-# list_categ <- lapply(categoria, stringr::str_replace_all, "'", "")
-# list_categ <- lapply(list_categ, stringr::str_replace_all, " ", "")
-# list_categ <- lapply(list_categ, stringr::str_replace_all, "\\[", "")
-# list_categ <- lapply(list_categ, stringr::str_replace_all, "\\]", "")
-# #list_categ <- lapply(df_dim_categories, stringr::str_replace_all, "\\[", "")
-# ## Separa em uma lista de mais de um elemento quando possui mais de um país
-# list_categ_split <- list_categ %>%
-#   stringr::str_split(., ',')
-# 
-# ## remove todos os caractéres menos letras e números
-# #list_categ <- lapply(paises, stringr::str_replace_all, ";", "0")
-# ## Apenas valores únicos, para listar todos os países (sem repetição)
-# unique_values <- unique(rapply(list_categ_split, function(x) head(x, 5)))
-# 
-# ## Transforma em dataframe para manipulação
-# dt_list <- purrr::map(list_categ_split, data.table::as.data.table)
-# dt <- data.table::rbindlist(dt_list, fill = TRUE, idcol = T)
-# ## Agrupa por país e conta quantas vezes aparece
-# dt_count <- dt %>%
-#   dplyr::filter(V1 != '' & V1 != ' ') %>%
-#   dplyr::group_by(V1) %>%
-#   dplyr::summarise(count = n()) %>%
-#   dplyr::rename(Categorias = V1) %>%
-#   dplyr::ungroup()
-# 
-# dt_count_ordered <- dt_count %>%
-#   dplyr::arrange(desc(count))
-
-# data.table::fwrite(dt_count_ordered, "../data-raw/df_categ_count_ordered.csv")
-df_categ_count <- data.table::fread("df_categ_count_ordered.csv") %>%
-  dplyr::rename(ID = Categorias)
-df_nome_categ <- data.table::fread("ANZSRC_FoR.csv") %>%
-  dplyr::rename(Category = FoR)
-df_categ <- dplyr::inner_join(df_categ_count, df_nome_categ, by='ID') %>%
-  dplyr::mutate(Category = paste0(ID, " - ", Category)) %>%
-  dplyr::select(Category, count) %>%
-  dplyr::rename(Count = count)
-df_categ_withTotal <- df_categ %>%
-  ## Adicionando linha de total
-  dplyr::bind_rows(summarise(.,
-                      across(where(is.numeric), sum),
-                      across(where(is.character), ~"TOTAL")))
+# df_categ_withTotal <- df_categ %>%
+#   ## Adicionando linha de total
+#   dplyr::bind_rows(summarise(.,
+#                       across(where(is.numeric), sum),
+#                       across(where(is.character), ~"TOTAL")))
 
 library(plotly)
 ## Plot
@@ -384,4 +292,70 @@ Funders - ```r sum(is.na(df_dimensions$funder_orgs)  + is.null(df_dimensions$fun
 # sum(is.na(df_dimensions$funder_orgs)  + is.null(df_dimensions$funder_orgs)) + sum(df_dimensions$funder_orgs == "")
 skimr::skim(df_dimensions$funder_orgs)
 
+```
+
+#### **6. Tipo de publicação**
+
+```{r pub_type, echo=F, eval = TRUE}
+skimr::skim(df_dimensions$type)
+# df_dimensions_type_date <- df_dimensions %>%
+#   dplyr::filter(date_normal > "2020-01-01") %>%
+#   dplyr::mutate(date_normal = lubridate::floor_date(date_normal, "month")) %>%
+#   dplyr::select(id, date_normal, type) %>%
+#   dplyr::group_by(date_normal, type) %>%
+#   dplyr::filter(date_normal <= lubridate::ymd("2021-05-23")) %>%
+#   dplyr::summarise(count = n()) %>%
+#   dplyr::ungroup()
+
+# data.table::fwrite(df_dimensions_type_date, "dados/df_dimensions_type_date.csv")
+
+df_dimensions_type_date <- data.table::fread("dados/df_dimensions_type_date.csv")
+  
+p <- plotly::plot_ly(df_dimensions_type_date, x = ~date_normal, y = ~count, mode = 'line', type = 'scatter',
+                     color = ~type) %>%
+  plotly::layout(title = "Evolução de publicações, por tipo, no tempo",
+                 xaxis = list(title = "",
+                              type = 'date',
+                              tickformat = "%B<br>%Y"),
+                 yaxis = list(title = "Número de publicações")) %>%
+  plotly::config(modeBarButtonsToRemove = c("zoom2d", "select2d", "lasso2d", "autoScale2d",
+                                            "toggleSpikelines"), displaylogo = FALSE)
+p
+```
+
+#### **7. Mapa de palavras**
+
+```{r word_cloud, echo=F, eval = TRUE}
+# df_word_cloud <- df_dimensions_sample %>%
+#   dplyr::select(title.preferred, abstract.preferred)
+# 
+# df_word_cloud$title_clean <- gsub("[[:punct:]]", "", df_word_cloud$title.preferred)
+# df_word_cloud$abstract_clean <- gsub("[[:punct:]]", "", df_word_cloud$abstract.preferred)
+# df_word_cloud <- df_word_cloud %>%
+#   dplyr::select(title_clean, abstract_clean)
+# library(tm)
+# my_corpus <- VCorpus(VectorSource(df_word_cloud))
+# # my_corpus <- tm_map(my_corpus, removeWords, c(stopwords("english")))
+# myStopwords <- c(stopwords("english"), "the", "this", "can")
+# my_corpus <- tm_map(my_corpus, removeWords, myStopwords)
+# dtm <- TermDocumentMatrix(my_corpus) 
+# matrix <- as.matrix(dtm) 
+# words <- sort(rowSums(matrix),decreasing=TRUE) 
+# df <- data.frame(word = names(words),freq=words)
+# words <- c("the", "this", "can")
+# df_r <- df %>%
+#   filter(!word %in% words)
+
+# data.table::fwrite(df_r, "dados/df_word_cloud.csv")
+df_r <- data.table::fread("dados/df_word_cloud.csv")
+
+# library(wordcloud)
+library(wordcloud2)
+library(RColorBrewer)
+set.seed(1234) # for reproducibility
+# wordcloud(words = df_r$word, freq = df_r$freq, min.freq = 1,
+#           max.words=200, random.order=FALSE, rot.per=0.35,
+#           colors=brewer.pal(8, "Dark2"))
+
+wordcloud2(data=df_r, size=.5, color='random-dark')
 ```

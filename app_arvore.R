@@ -28,6 +28,8 @@ ui <- fluidPage(
     mainPanel(
         fluidRow(
             box(width = 12,
+                tags$p("O nó selecionado é:"),
+                verbatimTextOutput("no"),
                 withLoader(collapsibleTreeOutput("plot", height = "400px", width = 1600), type="image", loader="nyancat.gif"),
                 actionButton("act_plot", HTML("Plotar <br/> gráficos")),
                 actionBttn(
@@ -56,7 +58,7 @@ server <- function(input, output) {
     plot <- NULL
     ## Valores reativos para alterar vendedores ao selecionar
     r <- reactiveValues(value = "default")
-    df_soc_pand <- data.table::fread("perguntas_full.csv")
+    df_soc_pand <- data.table::fread("dados/perguntas_full.csv")
     hierarch <- c("EIXO", "TOPICS", "QUERIES")
     output$plot <- renderCollapsibleTree({
         p <- collapsibleTree::collapsibleTree(df_soc_pand, hierarchy = hierarch,
@@ -160,6 +162,50 @@ server <- function(input, output) {
     # output$graph2 <- renderPlot({
     #     random_ggplot()
     # })
+    # 
+    print(debug)
+    if(debug){
+        #print(node)
+        print(paste0("input[1] = ", input$node[1]))
+        print(paste0("input[2] = ", input$node[2]))
+        print(paste0("input[3] = ", input$node[3]))
+        print(paste0("input[4] = ", input$node[4]))
+    }
+    if(typeof(node) == "character"){
+        output$no <- renderText({paste0(node)})
+    }else{
+        if(input$node[4] == "NULL"){
+            if(input$node[3] == "NULL"){
+                if(debug) print(paste0("input$node[3] is null"))
+                if(input$node[2] == "NULL"){
+                    if(debug) print(paste0("input$node[2] is null"))
+                    if(input$node[1] == "NULL"){
+                        if(debug) print(paste0("input$node[1] is null"))
+                        if(debug) print("is.null node 1")
+                        node <- ("COVID19")
+                        if(debug) print(paste0("Nó selecionado: ", node))
+                    }else{
+                        if(debug) print("is.null node 2 else node 1")
+                        node <- input$node[1]
+                        if(debug) print(paste0("Nó selecionado: ", node))
+                    }
+                }else{
+                    if(debug) print("is.null node 3 else node 2")
+                    node <- input$node[1]
+                    if(debug) print(paste0("Nó selecionado: ", node))
+                }
+            }else{
+                if(debug) print("else node 3")
+                node <- input$node[1]
+                if(debug) print(paste0("Nó selecionado: ", node))
+            }
+        }else{
+            if(debug) print("else node 4")
+            node <- node[1]
+            if(debug) print(paste0("Nó selecionado: ", node))
+        }
+    }
+    output$no <- renderText({paste0(node)})
 }
 
 # Run the application 
