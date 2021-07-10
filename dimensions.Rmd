@@ -6,23 +6,23 @@ output: html_document
 ```{r setup, include=FALSE}
 library(dplyr)
 
-# # df_dimensions <- data.table::fread("dados/dimensions_extraction_23052021.csv")
-# # df_dimensions_search <- data.table::fread("dados/buscaCompleta2305.csv")
-# # fst::write_fst(df_dimensions, "dimensions_compressed", compress = 100)
-# # 
-# df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst")
-# df_dimensions <- tibble::as_tibble(df_dimensions)
-# 
-# df_dimensions_sample <- df_dimensions %>% 
-#   dplyr::sample_frac(0.1)
-# 
-# ## df_dim_sort_alph <- toda a base com campos ordenados em ordem alfabética
-# df_dim_sort_alph <- df_dimensions %>% 
-#   dplyr::select(sort(tidyselect::peek_vars()))
-# 
-# 
-# df_dim_sort_alph_sample <- df_dimensions_sample %>% 
-#   dplyr::select(sort(tidyselect::peek_vars()))
+# df_dimensions <- data.table::fread("dados/dimensions_extraction_23052021.csv")
+# df_dimensions_search <- data.table::fread("dados/buscaCompleta2305.csv")
+# fst::write_fst(df_dimensions, "dimensions_compressed", compress = 100)
+#
+df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst")
+df_dimensions <- tibble::as_tibble(df_dimensions)
+
+df_dimensions_sample <- df_dimensions %>%
+  dplyr::sample_frac(0.1)
+
+## df_dim_sort_alph <- toda a base com campos ordenados em ordem alfabética
+df_dim_sort_alph <- df_dimensions %>%
+  dplyr::select(sort(tidyselect::peek_vars()))
+
+
+df_dim_sort_alph_sample <- df_dimensions_sample %>%
+  dplyr::select(sort(tidyselect::peek_vars()))
 
 ## df_dim_cut <- base com campos selecionados (provavelmente nem todos são importantes, esse campo tem 22 variáveis)
 ## diferente do geral que tem 84
@@ -139,12 +139,12 @@ sum(is.na(df_dimensions$type)  + is.null(df_dimensions$type))
 
 #### **2.1. Ano**
 ```{r ano_anal_expl, echo=F, eval = TRUE}
-skimr::skim(df_dim_cut$year)
+#skimr::skim(df_dim_cut$year)
 
-plotly::plot_ly(data = df_dim_cut, x = ~year, nbinsx = 2, type = 'histogram')
+#plotly::plot_ly(data = df_dim_cut, x = ~year, nbinsx = 2, type = 'histogram')
 ```
 
-#### **2.2. Países trials ids**
+#### **2.2. Países e publicações**
 ```{r paises_anal_expl, echo=F, eval = TRUE}
 # skimr::skim(df_dim_cut$research_org_country_names)
 dt_paises_count_ordered <- data.table::fread("dados/df_paises_count_ordered.csv")
@@ -365,4 +365,7 @@ wordcloud2(data=df_r, size=.5, color='random-dark')
 ```{r org_fund, echo=F, eval = TRUE}
 df_skim_funder_orgs <- data.table::fread("dados/df_skim_funder_orgs.csv")
 df_skim_funder_orgs
+
+count_vazio = sum(stringr::str_detect(df_dimensions_fund_org$raw_affiliations, "vazio"))
+paste0("Temos ", count_vazio, " linhas em branco, na coluna de afiliações dos autores")
 ```
