@@ -3,9 +3,8 @@ library(dplyr)
 
 plot <- F
 dashboard <- F
-#########################################################################################
-## Lendo arquivo de banco de dados
-#########################################################################################
+## Lendo arquivo de banco de dados  ---------------------------------
+
 df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst")
 df_dimensions <- tibble::as_tibble(df_dimensions)
 
@@ -21,9 +20,8 @@ df_dim_sort_alph_sample <- df_dimensions_sample %>%
   dplyr::select(sort(tidyselect::peek_vars()))
 
 
-#########################################################################################
-## Manipulando datas
-#########################################################################################
+## Manipulando datas ---------------------------------
+
 
 df_date_count <- df_dimensions  %>%
   dplyr::filter(date_normal < lubridate::ymd("2021-05-23")) %>%
@@ -45,9 +43,11 @@ if(plot){
     p
   }
 }
-#########################################################################################
-## Contando países
-#########################################################################################
+
+rm(df_date_count, p)
+
+## Contando países ---------------------------------
+
 ## Recebe apenas a coluna de paises
 df_paises <- df_dimensions %>%
 # df_paises <- df_dimensions_sample %>%
@@ -86,9 +86,12 @@ data.table::fwrite(df_count_ordered, "dados/df_paises_count_ordered.csv")
 # caso queira trabalhar com a sample
 # data.table::fwrite(df_count_ordered, "dados/df_sample_count_ordered.csv")
 
-#########################################################################################
-## Publicações por categoria
-#########################################################################################
+rm(df_paises, paises, paises_split, unique_values, dt_list, dt,
+   df_count, df_count_ordered, p)
+
+
+## Publicações por categoria  ---------------------------------
+
 df_dim_categories <- df_dimensions %>%
   dplyr::select(id, categories.for_v1.first_level.codes) %>%
   dplyr::filter(length(categories.for_v1.first_level.codes) > 2) %>%
@@ -170,6 +173,113 @@ if(plot){
     p
   }
 }
-#########################################################################################
+
+rm(df_dim_categories, categoria, list_categ, list_categ_split,
+   unique_values, dt_list, dt,
+   df_categ_count, df_nome_categ, df_categ, df_categ_count_ordered,
+   layout_axis_x, layout_axis_y, m, p)
+
+
+## Análise exploratória funders e organização ---------------------------------
+
+df_dimensions_fund_org <- df_dimensions %>%
+  dplyr::select(funder_orgs, raw_affiliations, research_org_cities, research_org_city_names,
+                research_org_countries, research_org_country_names, research_org_state_codes,
+                research_org_state_names, research_orgs)
+
+
+skim_funder_orgs <- skimr::skim(df_dimensions_fund_org)
+
+data.table::fwrite(skim_funder_orgs, "dados/df_skim_funder_orgs.csv")
+stringr::str_detect(df_dimensions_fund_org_sample$raw_affiliations, "vazio")
+sum(stringr::str_detect(df_dimensions_fund_org$raw_affiliations, "vazio"))
+sum(stringr::str_detect(df_dimensions_fund_org$raw_affiliations, "\\|"))
+sum(stringr::str_detect(df_dimensions_fund_org_sample$raw_affiliations, " "))
+df_fund_org_sample_n_vazio <- df_dimensions_fund_org_sample %>%
+  dplyr::filter(!stringr::str_detect(df_dimensions_fund_org_sample$raw_affiliations, "vazio"))
+
+rm(df_dimensions_fund_org, skim_funder_orgs, df_fund_org_sample_n_vazio)
+
+## Mapa de palavras ---------------------------------
+
+df_word_cloud <- df_dimensions_sample %>%
+  dplyr::select(title.preferred, abstract.preferred)
+
+df_word_cloud$title_clean <- gsub("[[:punct:]]", "", df_word_cloud$title.preferred)
+df_word_cloud$abstract_clean <- gsub("[[:punct:]]", "", df_word_cloud$abstract.preferred)
+df_word_cloud <- df_word_cloud %>%
+  dplyr::select(title_clean, abstract_clean)
+library(tm)
+my_corpus <- VCorpus(VectorSource(df_word_cloud))
+# my_corpus <- tm_map(my_corpus, removeWords, c(stopwords("english")))
+# myStopwords <- c(stopwords("english"), "the", "this", "can")
+my_corpus <- tm_map(my_corpus, removeWords, Stopwords)
+dtm <- TermDocumentMatrix(my_corpus)
+matrix <- as.matrix(dtm)
+words <- sort(rowSums(matrix),decreasing=TRUE)
+df <- data.frame(word = names(words),freq=words)
+words <- c("the", "this", "can")
+df_r <- df %>%
+  filter(!word %in% words)
+
+data.table::fwrite(df_r, "dados/df_word_cloud.csv")
+
+rm(df_word_cloud, my_corpus, myStopwords)
+
+
+## Tabela de perguntas e artigos resposta - Inconsistências  ---------------------------------
+
 df_perguntas <- data.table::fread("dados/buscaCompleta2305.csv")
-  
+
+df_dimensions_perguntas_anti <- dplyr::anti_join(df_dimensions, df_perguntas, by="id")
+
+df_perguntas_dupli_doi <- df_perguntas %>%
+  dplyr::select(doi) %>%
+  dplyr::group_by(doi) %>% 
+  ## Se quiser ver todas as linhas que são repetidas, sem contagem e sem agrupamento,
+  ## só comentar as três linahs abaixo
+  dplyr::mutate(count = n()) %>%
+  dplyr::filter(count > 1) %>%
+  dplyr::distinct(.keep_all = T) %>%
+  dplyr::ungroup()
+
+df_dimensions_dupli_doi <- df_dimensions %>% 
+  dplyr::select(doi) %>%
+  dplyr::group_by(doi) %>% 
+  dplyr::mutate(count = n()) %>%
+  dplyr::filter(count > 1) %>%
+  dplyr::distinct(.keep_all = T) %>%
+  dplyr::ungroup()
+
+df_perguntas_dupli_id <- df_perguntas %>% 
+  dplyr::select(id) %>%
+  dplyr::group_by(id) %>% 
+  dplyr::mutate(count = n()) %>%
+  dplyr::filter(count > 1) %>%
+  dplyr::distinct(.keep_all = T) %>%
+  dplyr::ungroup()
+
+df_dimensions_dupli_id <- df_dimensions %>% 
+  dplyr::select(id) %>%
+  dplyr::group_by(id) %>% 
+  dplyr::mutate(count = n()) %>%
+  dplyr::filter(count > 1) %>%
+  dplyr::distinct(.keep_all = T) %>%
+  dplyr::ungroup()
+
+df_perguntas_rows_valid_doi <- nrow(df_perguntas) - nrow(df_perguntas_dupli_doi)
+df_dimensions_rows_valid_doi <- nrow(df_dimensions) - nrow(df_dimensions_dupli_doi)
+
+df_perguntas_rows_valid_id <- nrow(df_perguntas) - nrow(df_perguntas_dupli_id)
+df_dimensions_rows_valid_id <- nrow(df_dimensions) - nrow(df_dimensions_dupli_id)
+
+rm(df_dimensions_perguntas_anti, df_perguntas_dupli_doi, df_perguntas_dupli_id,
+   df_dimensions_dupli_doi, df_dimensions_dupli_id, df_dimensions_rows_valid_doi, 
+   df_dimensions_rows_valid_id, df_perguntas_rows_valid_doi, df_perguntas_rows_valid_id)
+
+## Tabela de perguntas e artigos resposta - Inconsistências ---------------------------------
+
+df_dimensions_perguntas <- dplyr::inner_join(df_dimensions %>%
+                                               dplyr::select(date_normal, subtitles, type, research_org_country_names,
+                                                             tittle.preferred, abstract.preferred,),
+                                             df_perguntas, by="id")
