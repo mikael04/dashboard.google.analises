@@ -61,7 +61,7 @@ paises_split <- paises %>%
 #list <- lapply(paises, stringr::str_replace_all, ";", "0")
 ## Apenas valores únicos, para listar todos os países (sem repetição)
 unique_values <- unique(rapply(paises_split, function(x) head(x, 30)))
-# 
+
 ## Transforma em dataframe para manipulação
 dt_list <- purrr::map(paises_split, data.table::as.data.table)
 dt <- data.table::rbindlist(dt_list, fill = TRUE, idcol = T)
@@ -236,11 +236,11 @@ df_dimensions_perguntas_anti <- dplyr::anti_join(df_dimensions, df_perguntas, by
 df_perguntas_dupli_doi <- df_perguntas %>%
   dplyr::select(doi) %>%
   dplyr::group_by(doi) %>% 
-  ## Se quiser ver todas as linhas que são repetidas, sem contagem e sem agrupamento,
-  ## só comentar as três linahs abaixo
   dplyr::mutate(count = n()) %>%
   dplyr::filter(count > 1) %>%
-  dplyr::distinct(.keep_all = T) %>%
+  ## Se quiser ver todas as linhas que são repetidas, sem contagem e sem agrupamento,
+  ## só comentar a linha abaixo
+  # dplyr::distinct(.keep_all = T) %>%
   dplyr::ungroup()
 
 df_dimensions_dupli_doi <- df_dimensions %>% 
@@ -248,7 +248,7 @@ df_dimensions_dupli_doi <- df_dimensions %>%
   dplyr::group_by(doi) %>% 
   dplyr::mutate(count = n()) %>%
   dplyr::filter(count > 1) %>%
-  dplyr::distinct(.keep_all = T) %>%
+  # dplyr::distinct(.keep_all = T) %>%
   dplyr::ungroup()
 
 df_perguntas_dupli_id <- df_perguntas %>% 
@@ -256,7 +256,7 @@ df_perguntas_dupli_id <- df_perguntas %>%
   dplyr::group_by(id) %>% 
   dplyr::mutate(count = n()) %>%
   dplyr::filter(count > 1) %>%
-  dplyr::distinct(.keep_all = T) %>%
+  # dplyr::distinct(.keep_all = T) %>%
   dplyr::ungroup()
 
 df_dimensions_dupli_id <- df_dimensions %>% 
@@ -264,22 +264,26 @@ df_dimensions_dupli_id <- df_dimensions %>%
   dplyr::group_by(id) %>% 
   dplyr::mutate(count = n()) %>%
   dplyr::filter(count > 1) %>%
-  dplyr::distinct(.keep_all = T) %>%
+  # dplyr::distinct(.keep_all = T) %>%
   dplyr::ungroup()
 
-df_perguntas_rows_valid_doi <- nrow(df_perguntas) - nrow(df_perguntas_dupli_doi)
-df_dimensions_rows_valid_doi <- nrow(df_dimensions) - nrow(df_dimensions_dupli_doi)
+df_valid_doi_perguntas <- nrow(df_perguntas) - nrow(df_perguntas_dupli_doi)
+df_valid_doi_dimensions <- nrow(df_dimensions) - nrow(df_dimensions_dupli_doi)
 
-df_perguntas_rows_valid_id <- nrow(df_perguntas) - nrow(df_perguntas_dupli_id)
-df_dimensions_rows_valid_id <- nrow(df_dimensions) - nrow(df_dimensions_dupli_id)
+df_valid_id_perguntas <- nrow(df_perguntas) - nrow(df_perguntas_dupli_id)
+df_valid_id_dimensions <- nrow(df_dimensions) - nrow(df_dimensions_dupli_id)
 
 rm(df_dimensions_perguntas_anti, df_perguntas_dupli_doi, df_perguntas_dupli_id,
-   df_dimensions_dupli_doi, df_dimensions_dupli_id, df_dimensions_rows_valid_doi, 
-   df_dimensions_rows_valid_id, df_perguntas_rows_valid_doi, df_perguntas_rows_valid_id)
+   df_dimensions_dupli_doi, df_dimensions_dupli_id, df_valid_doi_perguntas, 
+   df_valid_doi_dimensions, df_valid_id_perguntas, df_valid_id_dimensions)
 
-## Tabela de perguntas e artigos resposta - Inconsistências ---------------------------------
-
-df_dimensions_perguntas <- dplyr::inner_join(df_dimensions %>%
-                                               dplyr::select(date_normal, subtitles, type, research_org_country_names,
-                                                             tittle.preferred, abstract.preferred,),
+## Tabela de perguntas e artigos resposta - Tabela resposta ---------------------------------
+df_dimensions_cut <- df_dimensions %>%
+  dplyr::select(id,date_normal, subtitles, type, research_org_country_names,
+                title.preferred, abstract.preferred)
+df_dimensions_ij_perguntas <- dplyr::inner_join(df_dimensions_cut,
                                              df_perguntas, by="id")
+
+
+
+rm(df_dimensions_cut, df_perguntas, df_dimensions_ij_perguntas)

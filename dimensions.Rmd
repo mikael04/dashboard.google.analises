@@ -34,7 +34,21 @@ df_dim_sort_alph_sample <- df_dimensions_sample %>%
 #   dplyr::select(id, year, doi, type, date, date_normal, date_inserted, clinical_trial_ids, altmetrics.score, open_access_categories, open_access_categories_v2, research_org_city_names, research_org_country_names, reference_ids,  title.preferred, abstract.preferred, publisher.name, publisher.name, metrics.times_cited, metrics.recent_citations, citations_count, journal.id, journal.title)
 
 ```
-
+```{r}
+## Recebe apenas a coluna de paises
+df_paises <- df_dimensions %>%
+# df_paises <- df_dimensions_sample %>%
+  dplyr::select(id, research_org_country_names) %>%
+  dplyr::filter(research_org_country_names != "")
+paises <- df_paises$research_org_country_names
+## Separa em uma lista de mais de um elemento quando possui mais de um país
+paises_split <- paises %>%
+  stringr::str_split(., ';')
+## remove todos os caractéres menos letras e números
+#list <- lapply(paises, stringr::str_replace_all, ";", "0")
+## Apenas valores únicos, para listar todos os países (sem repetição)
+unique_values <- unique(rapply(paises_split, function(x) head(x, 30)))
+```
 ### 1. Indicadores de Impacto
 
 altimetrics.score - ```r sum(is.na(df_dimensions$altmetrics.score)  + is.null(df_dimensions$altmetrics.score))```  de  ```r nrow(df_dimensions)``` linhas em branco (NA, NULL)
@@ -75,25 +89,28 @@ sum(is.na(df_dimensions$metrics.times_cited)  + is.null(df_dimensions$metrics.ti
 
 #### **1.1. Altimetria**
 ```{r alt_anal_expl, echo=F, eval = TRUE}
-skimr::skim(df_dim_cut$altmetrics.score)
+skimr::skim(df_dimensions$altmetrics.score)
 
-plotly::plot_ly(data = df_dim_cut, x = ~altmetrics.score, type = 'histogram')
+plotly::plot_ly(data = df_dimensions, x = ~altmetrics.score, type = 'histogram')
 ```
 
 
 
 #### **1.2. Clinical trials ids**
 ```{r clin_anal_expl, echo=F, eval = TRUE}
-skimr::skim(df_dim_cut$clinical_trial_ids)
+skimr::skim(df_dimensions$clinical_trial_ids)
 ```
 
 
 
 #### **1.3. Times cited**
 ```{r times_cited_anal_expl, echo=F, eval = TRUE}
-skimr::skim(df_dim_cut$metrics.times_cited)
+skimr::skim(df_dimensions$metrics.times_cited)
 
-plotly::plot_ly(data = df_dim_cut, x = ~metrics.times_cited, type = 'histogram')
+plotly::plot_ly(data = df_dimensions, x = ~metrics.times_cited, type = 'histogram')
+
+df_dimensions %>%
+  dplyr::order_by(metrics.times_cited)
 ```
 
 ### 2. Filtros laterais
@@ -102,7 +119,6 @@ Ano - ```r sum(is.na(df_dimensions$year)  + is.null(df_dimensions$year))```  de 
 
 País - ```r sum(is.na(df_dimensions$research_org_country_names)  + is.null(df_dimensions$research_org_country_names)) + sum(df_dimensions$research_org_country_names == "" )``` de  ```r nrow(df_dimensions)``` linhas em branco (NA, NULL ou "")
 Nesse caso, verifica se existe na linha um ou mais países, ou se a linha está vazia.
-Para países, temos um total de ```r length(unique_values)``` países aparecendo pelo menos uma vez. E o ranking de países que mais aparecem podem ser vistos abaixo.
 
 Tipo de publicação - ```r sum(is.na(df_dimensions$type)  + is.null(df_dimensions$type))``` de  ```r nrow(df_dimensions)``` linhas em branco (NA, NULL).
 Podem ser do tipo: _article, book, chapter, monograph, preprint_ ou _proceeding_
@@ -139,14 +155,14 @@ sum(is.na(df_dimensions$type)  + is.null(df_dimensions$type))
 
 #### **2.1. Ano**
 ```{r ano_anal_expl, echo=F, eval = TRUE}
-#skimr::skim(df_dim_cut$year)
+#skimr::skim(df_dimensions$year)
 
-#plotly::plot_ly(data = df_dim_cut, x = ~year, nbinsx = 2, type = 'histogram')
+#plotly::plot_ly(data = df_dimensions, x = ~year, nbinsx = 2, type = 'histogram')
 ```
 
 #### **2.2. Países e publicações**
 ```{r paises_anal_expl, echo=F, eval = TRUE}
-# skimr::skim(df_dim_cut$research_org_country_names)
+# skimr::skim(df_dimensions$research_org_country_names)
 dt_paises_count_ordered <- data.table::fread("dados/df_paises_count_ordered.csv")
 dt_paises_count_top20 <- dt_paises_count_ordered %>%
   dplyr::slice_head(n = 20)
@@ -177,8 +193,8 @@ p
 
 #### **2.3. Tipo de publicação**
 ```{r tipo_cited_anal_expl, echo=F, eval = TRUE}
-skimr::skim(df_dim_cut$type)
-plotly::plot_ly(data = df_dim_cut, x = ~type, type = 'histogram')
+skimr::skim(df_dimensions$type)
+plotly::plot_ly(data = df_dimensions, x = ~type, type = 'histogram')
 ```
 
 #### **3. Categorias**
@@ -208,7 +224,7 @@ layout_axis_x <- list(
   tickformat = "digit"
 )
 m <- list(l=350, r=50, b=50, t=30, pad=4)
-p <- plotly::plot_ly(df_categ, x = ~Count, y = ~reorder(Category, Count), type = 'bar')
+p <- plotly::plot_ly(df_categ_count, x = ~Count, y = ~reorder(Category, Count), type = 'bar')
 p <- p %>%
   plotly::layout(title = "Publicações por categoria", xaxis = layout_axis_x, yaxis = layout_axis_y, dragmode='pan', margin = m) %>%
     plotly::config(modeBarButtonsToRemove = c("zoom2d", "select2d", "lasso2d", "autoScale2d", "toggleSpikelines"), displaylogo = FALSE)
@@ -230,7 +246,7 @@ p
 #  
 library(rgdal)
 world_spdf <- readOGR( 
-  dsn= paste0(getwd(),"/world_shape_file/") , 
+  dsn= paste0(getwd(),"dados/world_shape_file/") , 
   layer="TM_WORLD_BORDERS_SIMPL-0.3",
   verbose=FALSE
 )
@@ -360,7 +376,7 @@ set.seed(1234) # for reproducibility
 wordcloud2(data=df_r, size=.5, color='random-dark')
 ```
 
-#### **7. Organizações e funders**
+#### **8. Organizações e funders**
 
 ```{r org_fund, echo=F, eval = TRUE}
 df_skim_funder_orgs <- data.table::fread("dados/df_skim_funder_orgs.csv")
