@@ -278,12 +278,29 @@ rm(df_dimensions_perguntas_anti, df_perguntas_dupli_doi, df_perguntas_dupli_id,
    df_valid_doi_dimensions, df_valid_id_perguntas, df_valid_id_dimensions)
 
 ## Tabela de perguntas e artigos resposta - Tabela resposta ---------------------------------
-df_dimensions_cut <- df_dimensions %>%
-  dplyr::select(id,date_normal, subtitles, type, research_org_country_names,
-                title.preferred, abstract.preferred)
-df_dimensions_ij_perguntas <- dplyr::inner_join(df_dimensions_cut,
-                                             df_perguntas, by="id")
+# df_dimensions_cut <- df_dimensions %>%
+#   dplyr::select(title.preferred, `authors/lastname`, abstract.preferred, date_normal,
+#                 subtitles, type, research_org_country_names)
+# df_perguntas <- data.table::fread("dados/buscaCompleta2305.csv") %>%
+#   dplyr::select(-abstract.preferred, -title.preferred)
+# df_perguntas_dict <- data.table::fread("dados/Relacao_clean.csv")
 
+## manipulando para ter mesmo nome de coluna do df_perguntas
+df_perguntas_dict <- data.table::fread("dados/Relacao.csv")
+df_perguntas_dict[,1] <- lapply(df_perguntas_dict[,1], gsub, pattern = " ", replacement = "", fixed = T)
+df_perguntas_dict[,1] <- lapply(df_perguntas_dict[,1], gsub, pattern = "B", replacement = "b", fixed = T)
+## Escrevendo nova tabela
+data.table::fwrite(df_perguntas_dict, "dados/Relacao_clean.csv")
+# dt1 <- df_perguntas
+# newnames = df_perguntas_dict$Pergunta
+# oldnames = df_perguntas_dict$Busca
+# for(i in 1:68){
+#   ##nesse caso, eu sei que as colunas estão ordenadas
+#   colnames(df_perguntas)[i+3] <- newnames[i]
+# }
+
+# df_dimensions_ij_perguntas <- dplyr::inner_join(df_dimensions_cut,
+                                                df_perguntas, by="id")
 
 
 rm(df_dimensions_cut, df_perguntas, df_dimensions_ij_perguntas)

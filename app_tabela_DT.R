@@ -11,11 +11,11 @@ df_dimensions_cut <- fst::read_fst("dados/dimensions_compressed.fst") %>%
                 title.preferred)
 df_perguntas <- data.table::fread("dados/buscaCompleta2305.csv") %>%
   dplyr::select(-abstract.preferred, -title.preferred)
-df_perguntas_dict <- data.table::fread("dados/Relacao.csv")
+df_perguntas_dict <- data.table::fread("dados/Relacao_clean.csv")
 
 ## manipulando para ter mesmo nome de coluna do df_perguntas
-df_perguntas_dict[,1] <- lapply(df_perguntas_dict[,1], gsub, pattern = " ", replacement = "", fixed = T)
-df_perguntas_dict[,1] <- lapply(df_perguntas_dict[,1], gsub, pattern = "B", replacement = "b", fixed = T)
+# df_perguntas_dict[,1] <- lapply(df_perguntas_dict[,1], gsub, pattern = " ", replacement = "", fixed = T)
+# df_perguntas_dict[,1] <- lapply(df_perguntas_dict[,1], gsub, pattern = "B", replacement = "b", fixed = T)
 
 # dt1 <- df_perguntas
 newnames = df_perguntas_dict$Pergunta
@@ -49,7 +49,6 @@ ui <- fluidPage(
       shinycssloaders::withSpinner(DT::DTOutput("table")))
   )
 )
-df_dimensions_ij_perguntas
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   output$table <- DT::renderDataTable({
