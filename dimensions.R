@@ -61,7 +61,7 @@ paises_split <- paises %>%
 #list <- lapply(paises, stringr::str_replace_all, ";", "0")
 ## Apenas valores únicos, para listar todos os países (sem repetição)
 unique_values <- unique(rapply(paises_split, function(x) head(x, 30)))
-# 
+
 ## Transforma em dataframe para manipulação
 dt_list <- purrr::map(paises_split, data.table::as.data.table)
 dt <- data.table::rbindlist(dt_list, fill = TRUE, idcol = T)
@@ -236,11 +236,11 @@ df_dimensions_perguntas_anti <- dplyr::anti_join(df_dimensions, df_perguntas, by
 df_perguntas_dupli_doi <- df_perguntas %>%
   dplyr::select(doi) %>%
   dplyr::group_by(doi) %>% 
-  ## Se quiser ver todas as linhas que são repetidas, sem contagem e sem agrupamento,
-  ## só comentar as três linahs abaixo
   dplyr::mutate(count = n()) %>%
   dplyr::filter(count > 1) %>%
-  dplyr::distinct(.keep_all = T) %>%
+  ## Se quiser ver todas as linhas que são repetidas, sem contagem e sem agrupamento,
+  ## só comentar a linha abaixo
+  # dplyr::distinct(.keep_all = T) %>%
   dplyr::ungroup()
 
 df_dimensions_dupli_doi <- df_dimensions %>% 
@@ -248,7 +248,7 @@ df_dimensions_dupli_doi <- df_dimensions %>%
   dplyr::group_by(doi) %>% 
   dplyr::mutate(count = n()) %>%
   dplyr::filter(count > 1) %>%
-  dplyr::distinct(.keep_all = T) %>%
+  # dplyr::distinct(.keep_all = T) %>%
   dplyr::ungroup()
 
 df_perguntas_dupli_id <- df_perguntas %>% 
@@ -256,7 +256,7 @@ df_perguntas_dupli_id <- df_perguntas %>%
   dplyr::group_by(id) %>% 
   dplyr::mutate(count = n()) %>%
   dplyr::filter(count > 1) %>%
-  dplyr::distinct(.keep_all = T) %>%
+  # dplyr::distinct(.keep_all = T) %>%
   dplyr::ungroup()
 
 df_dimensions_dupli_id <- df_dimensions %>% 
@@ -264,22 +264,94 @@ df_dimensions_dupli_id <- df_dimensions %>%
   dplyr::group_by(id) %>% 
   dplyr::mutate(count = n()) %>%
   dplyr::filter(count > 1) %>%
-  dplyr::distinct(.keep_all = T) %>%
+  # dplyr::distinct(.keep_all = T) %>%
   dplyr::ungroup()
 
-df_perguntas_rows_valid_doi <- nrow(df_perguntas) - nrow(df_perguntas_dupli_doi)
-df_dimensions_rows_valid_doi <- nrow(df_dimensions) - nrow(df_dimensions_dupli_doi)
+df_valid_doi_perguntas <- nrow(df_perguntas) - nrow(df_perguntas_dupli_doi)
+df_valid_doi_dimensions <- nrow(df_dimensions) - nrow(df_dimensions_dupli_doi)
 
-df_perguntas_rows_valid_id <- nrow(df_perguntas) - nrow(df_perguntas_dupli_id)
-df_dimensions_rows_valid_id <- nrow(df_dimensions) - nrow(df_dimensions_dupli_id)
+df_valid_id_perguntas <- nrow(df_perguntas) - nrow(df_perguntas_dupli_id)
+df_valid_id_dimensions <- nrow(df_dimensions) - nrow(df_dimensions_dupli_id)
 
 rm(df_dimensions_perguntas_anti, df_perguntas_dupli_doi, df_perguntas_dupli_id,
-   df_dimensions_dupli_doi, df_dimensions_dupli_id, df_dimensions_rows_valid_doi, 
-   df_dimensions_rows_valid_id, df_perguntas_rows_valid_doi, df_perguntas_rows_valid_id)
+   df_dimensions_dupli_doi, df_dimensions_dupli_id, df_valid_doi_perguntas, 
+   df_valid_doi_dimensions, df_valid_id_perguntas, df_valid_id_dimensions)
 
-## Tabela de perguntas e artigos resposta - Inconsistências ---------------------------------
+## Tabela de perguntas e artigos resposta - Tabela resposta ---------------------------------
+# df_dimensions_cut <- df_dimensions %>%
+#   dplyr::select(title.preferred, `authors/lastname`, abstract.preferred, date_normal,
+#                 subtitles, type, research_org_country_names)
+# df_perguntas <- data.table::fread("dados/buscaCompleta2305.csv") %>%
+#   dplyr::select(-abstract.preferred, -title.preferred)
+# df_perguntas_dict <- data.table::fread("dados/Relacao_clean.csv")
 
-df_dimensions_perguntas <- dplyr::inner_join(df_dimensions %>%
-                                               dplyr::select(date_normal, subtitles, type, research_org_country_names,
-                                                             tittle.preferred, abstract.preferred,),
-                                             df_perguntas, by="id")
+## manipulando para ter mesmo nome de coluna do df_perguntas
+# df_perguntas_dict <- data.table::fread("dados/Relacao.csv")
+# df_perguntas_dict[,1] <- lapply(df_perguntas_dict[,1], gsub, pattern = " ", replacement = "", fixed = T)
+# df_perguntas_dict[,1] <- lapply(df_perguntas_dict[,1], gsub, pattern = "B", replacement = "b", fixed = T)
+# ## Escrevendo nova tabela
+# data.table::fwrite(df_perguntas_dict, "dados/Relacao_clean.csv")
+# dt1 <- df_perguntas
+# newnames = df_perguntas_dict$Pergunta
+# oldnames = df_perguntas_dict$Busca
+# for(i in 1:68){
+#   ##nesse caso, eu sei que as colunas estão ordenadas
+#   colnames(df_perguntas)[i+3] <- newnames[i]
+# }
+
+# df_dimensions_ij_perguntas <- dplyr::inner_join(df_dimensions_cut,
+#                                                 df_perguntas, by="id")
+
+
+rm(df_dimensions_cut, df_perguntas, df_dimensions_ij_perguntas)
+
+## Tabela top autores ---------------------------------
+
+## Recebe apenas a coluna de paises
+df_autores <- df_dimensions %>%
+  # df_paises <- df_dimensions_sample %>%
+  dplyr::select(id, authors = `authors/lastname`) %>%
+  dplyr::filter(authors != "", authors != "vazio")
+autores <- df_autores$authors
+## Separa em uma lista de mais de um elemento quando possui mais de um país
+autores_split <- autores %>%
+  stringr::str_split(., '\\|')
+## remove todos os caractéres menos letras e números
+#list <- lapply(paises, stringr::str_replace_all, ";", "0")
+## Apenas valores únicos, para listar todos os países (sem repetição)
+unique_values <- unique(rapply(autores_split, function(x) head(x, 30)))
+
+## Transforma em dataframe para manipulação
+df_list <- purrr::map(autores_split, data.table::as.data.table)
+df <- data.table::rbindlist(df_list, fill = TRUE, idcol = T)
+## Agrupa por país e conta quantas vezes aparece
+df_count_autores <- df %>%
+  dplyr::filter(V1 != '' & V1 != ' ') %>%
+  dplyr::group_by(V1) %>%
+  dplyr::summarise(count = n()) %>%
+  dplyr::rename(Autores = V1) %>%
+  dplyr::ungroup()
+
+df_count_autores_ordered <- df_count_autores %>%
+  dplyr::arrange(desc(count))
+
+
+data.table::fwrite(df_count_autores_ordered, "dados/df_count_autores.csv")
+
+# ## Adicionando primeiro nome de autores
+# df_autores_f <- df_dimensions %>%
+#   # df_paises <- df_dimensions_sample %>%
+#   dplyr::select(id, authors_f = authors) %>%
+#   dplyr::filter(authors_f != "", authors_f != "vazio")
+# ## Limpar memória
+# rm(df_dimensions)
+# 
+# autores_fn <- df_autores_f$authors_f
+# ## Separa em uma lista de mais de um elemento quando possui mais de um país
+# autores_fn_split <- autores_fn %>%
+#   stringr::str_split(., '\\|')
+# rm(autores_fn, df_autores)
+# autores_fn_split_first <- lapply(autores_fn_split, substring, 1, 1)
+# ##  Aqui tenho o primeiro nome do autor, com um "." após a primeira letra, porém,
+# ## ainda falta adicionar os outros nomes, pego apenas o primeiro
+# autores_fn_split_first_c <- lapply(autores_fn_split_first, function(x) paste0(x, "."))
