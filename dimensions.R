@@ -325,12 +325,33 @@ unique_values <- unique(rapply(autores_split, function(x) head(x, 30)))
 df_list <- purrr::map(autores_split, data.table::as.data.table)
 df <- data.table::rbindlist(df_list, fill = TRUE, idcol = T)
 ## Agrupa por país e conta quantas vezes aparece
-df_count <- df %>%
+df_count_autores <- df %>%
   dplyr::filter(V1 != '' & V1 != ' ') %>%
   dplyr::group_by(V1) %>%
   dplyr::summarise(count = n()) %>%
   dplyr::rename(Autores = V1) %>%
   dplyr::ungroup()
 
-df_count_ordered <- df_count %>%
+df_count_autores_ordered <- df_count_autores %>%
   dplyr::arrange(desc(count))
+
+
+data.table::fwrite(df_count_autores_ordered, "dados/df_count_autores.csv")
+
+# ## Adicionando primeiro nome de autores
+# df_autores_f <- df_dimensions %>%
+#   # df_paises <- df_dimensions_sample %>%
+#   dplyr::select(id, authors_f = authors) %>%
+#   dplyr::filter(authors_f != "", authors_f != "vazio")
+# ## Limpar memória
+# rm(df_dimensions)
+# 
+# autores_fn <- df_autores_f$authors_f
+# ## Separa em uma lista de mais de um elemento quando possui mais de um país
+# autores_fn_split <- autores_fn %>%
+#   stringr::str_split(., '\\|')
+# rm(autores_fn, df_autores)
+# autores_fn_split_first <- lapply(autores_fn_split, substring, 1, 1)
+# ##  Aqui tenho o primeiro nome do autor, com um "." após a primeira letra, porém,
+# ## ainda falta adicionar os outros nomes, pego apenas o primeiro
+# autores_fn_split_first_c <- lapply(autores_fn_split_first, function(x) paste0(x, "."))

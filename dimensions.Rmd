@@ -109,8 +109,6 @@ skimr::skim(df_dimensions$metrics.times_cited)
 
 plotly::plot_ly(data = df_dimensions, x = ~metrics.times_cited, type = 'histogram')
 
-df_dimensions %>%
-  dplyr::order_by(metrics.times_cited)
 ```
 
 ### 2. Filtros laterais
@@ -246,7 +244,7 @@ p
 #  
 library(rgdal)
 world_spdf <- readOGR( 
-  dsn= paste0(getwd(),"dados/world_shape_file/") , 
+  dsn= paste0("dados/world_shape_file/") , 
   layer="TM_WORLD_BORDERS_SIMPL-0.3",
   verbose=FALSE
 )
@@ -256,7 +254,7 @@ library(leaflet)
 library(sp)
 
 ## Lendo df com count de países já em ordem
-df_count_ordered <- data.table::fread("df_paises_count_ordered.csv") %>%
+df_count_ordered <- data.table::fread("dados/df_paises_count_ordered.csv") %>%
   dplyr::rename(NAME = Paises)
 ## Renomeando colunas de world_spdf (esse dataframe tem todos os países)
 country_names <- as.data.frame(world_spdf@data$NAME) %>%
@@ -382,6 +380,35 @@ wordcloud2(data=df_r, size=.5, color='random-dark')
 df_skim_funder_orgs <- data.table::fread("dados/df_skim_funder_orgs.csv")
 df_skim_funder_orgs
 
-count_vazio = sum(stringr::str_detect(df_dimensions_fund_org$raw_affiliations, "vazio"))
+count_vazio = sum(stringr::str_detect(df_skim_funder_orgs$raw_affiliations, "vazio"))
 paste0("Temos ", count_vazio, " linhas em branco, na coluna de afiliações dos autores")
+```
+
+#### **9. Autores**
+
+```{r authors, echo=F, eval = TRUE}
+df_count_autores_ordered <- data.table::fread("dados/df_count_autores.csv") %>%
+  dplyr::slice_head(n = 20)
+
+library(plotly)
+## Plot
+layout_axis_y <- list(
+  title = "",
+  showline = F,
+  showticklabels = T,
+  showgrid = F
+)
+layout_axis_x <- list(
+  title = "",
+  showline = F,
+  showticklabels = T,
+  showgrid = F,
+  tickformat = "digit"
+)
+m <- list(l=350, r=50, b=50, t=30, pad=4)
+p <- plotly::plot_ly(df_count_autores_ordered, x = ~count, y = ~reorder(Autores, count), type = 'bar')
+p <- p %>%
+  plotly::layout(title = "Publicações por autor", xaxis = layout_axis_x, yaxis = layout_axis_y, dragmode='pan', margin = m) %>%
+    plotly::config(modeBarButtonsToRemove = c("zoom2d", "select2d", "lasso2d", "autoScale2d", "toggleSpikelines"), displaylogo = FALSE)
+p
 ```
