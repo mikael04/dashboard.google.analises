@@ -18,7 +18,7 @@ df_perguntas_dict <- data.table::fread("dados/Relacao_clean.csv")
 # df_perguntas_dict[,1] <- lapply(df_perguntas_dict[,1], gsub, pattern = "B", replacement = "b", fixed = T)
 
 # dt1 <- df_perguntas
-newnames = df_perguntas_dict$Pergunta
+#newnames = df_perguntas_dict$Pergunta
 # oldnames = df_perguntas_dict$Busca
 # for(i in 1:68){
 #   ##nesse caso, eu sei que as colunas estão ordenadas
