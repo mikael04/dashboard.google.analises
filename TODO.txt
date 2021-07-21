@@ -4,4 +4,7 @@
 ------------------------------------------------------------
 **** A fazer
 - Arrumar para mostrar todos os nomes do autor (não só primeira letra do primeiro nome)
+- ** Tratar para que qualquer eixo, tópico ou sub-tópico tenha sua tabela de resposta (depende do banco de dados)
+
+* -> nível de importância
 ------------------------------------------------------------

@@ -58,6 +58,16 @@ server <- function(input, output) {
     "Selecione uma pergunta"
   })
   observeEvent(input$question, {
+    ## Como é feito no app
+    # arvore_no_sel = 'What are the most common/typical symptoms of the CoV disease?'
+    # col_name <- df_perguntas_dict %>%
+    #   dplyr::filter(Pergunta == arvore_no_sel) %>%
+    #   dplyr::select(Busca)
+    # df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
+    #     dplyr::filter(!!as.name(col_name$Busca) == '1')
+    # ## Escrevendo uma tabela exemplo
+    # data.table::fwrite(df_dimensions_ij_perguntas_search, "dados/df_dimensions_ij_perguntas_search.csv")
+    ## Para teste
     col_name <- df_perguntas_dict[df_perguntas_dict$Pergunta == input$question]$Busca
     df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
       dplyr::filter(!!as.name(col_name) == '1')
