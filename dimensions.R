@@ -227,7 +227,7 @@ data.table::fwrite(df_r, "dados/df_word_cloud.csv")
 rm(df_word_cloud, my_corpus, myStopwords)
 
 
-## Tabela de perguntas e artigos resposta - Inconsistências  ---------------------------------
+## Perguntas e artigos resposta - Inconsistências  ---------------------------------
 
 df_perguntas <- data.table::fread("dados/buscaCompleta2305.csv")
 
@@ -277,28 +277,28 @@ rm(df_dimensions_perguntas_anti, df_perguntas_dupli_doi, df_perguntas_dupli_id,
    df_dimensions_dupli_doi, df_dimensions_dupli_id, df_valid_doi_perguntas, 
    df_valid_doi_dimensions, df_valid_id_perguntas, df_valid_id_dimensions)
 
-## Tabela de perguntas e artigos resposta - Tabela resposta ---------------------------------
-df_dimensions_cut <- df_dimensions %>%
-  dplyr::select(title.preferred, `authors/lastname`, abstract.preferred, date_normal,
-                subtitles, type, research_org_country_names)
-df_perguntas <- data.table::fread("dados/buscaCompleta2305.csv") %>%
-  dplyr::select(-abstract.preferred, -title.preferred)
-##################################################################
-## Feito apenas uma vez, depois usar o "Relacao_clean.csv"
-## manipulando para ter mesmo nome de coluna do df_perguntas
-# df_perguntas_dict <- data.table::fread("dados/Relacao.csv")
-# df_perguntas_dict[,1] <- lapply(df_perguntas_dict[,1], gsub, pattern = " ", replacement = "", fixed = T)
-# df_perguntas_dict[,1] <- lapply(df_perguntas_dict[,1], gsub, pattern = "B", replacement = "b", fixed = T)
-# ## Escrevendo nova tabela
-# data.table::fwrite(df_perguntas_dict, "dados/Relacao_clean.csv")
-##################################################################
-df_perguntas_dict <- data.table::fread("dados/Relacao_clean.csv")
-
-df_dimensions_ij_perguntas <- dplyr::inner_join(df_dimensions_cut,
-                                                df_perguntas, by="id")
-##################################################################
+## Perguntas e artigos resposta - Tabela resposta ---------------------------------
+# df_dimensions_cut <- df_dimensions %>%
+#   dplyr::select(id, title.preferred, `authors/lastname`, abstract.preferred, date_normal,
+#                 subtitles, type, research_org_country_names)
+# df_perguntas <- data.table::fread("dados/buscaCompleta2305.csv") %>%
+#   dplyr::select(-abstract.preferred, -title.preferred)
+# ###
+# ## Feito apenas uma vez, depois usar o "Relacao_clean.csv"
+# ## manipulando para ter mesmo nome de coluna do df_perguntas
+# # df_perguntas_dict <- data.table::fread("dados/Relacao.csv")
+# # df_perguntas_dict[,1] <- lapply(df_perguntas_dict[,1], gsub, pattern = " ", replacement = "", fixed = T)
+# # df_perguntas_dict[,1] <- lapply(df_perguntas_dict[,1], gsub, pattern = "B", replacement = "b", fixed = T)
+# # ## Escrevendo nova tabela
+# # data.table::fwrite(df_perguntas_dict, "dados/Relacao_clean.csv")
+# ###
+# df_perguntas_dict <- data.table::fread("dados/Relacao_clean.csv")
+# 
+# df_dimensions_ij_perguntas <- dplyr::inner_join(df_dimensions_cut,
+#                                                 df_perguntas, by="id")
+####
 ## Como é feito no app
-# arvore_no_sel = 'What are the most common/typical symptoms of the CoV disease?'
+# arvore_no_sel = 'What are the prodromal symptoms in COVID-19?'
 # col_name <- df_perguntas_dict %>%
 #   dplyr::filter(Pergunta == arvore_no_sel) %>%
 #   dplyr::select(Busca)
@@ -306,16 +306,16 @@ df_dimensions_ij_perguntas <- dplyr::inner_join(df_dimensions_cut,
 #     dplyr::filter(!!as.name(col_name$Busca) == '1')
 # ## Escrevendo uma tabela exemplo
 # data.table::fwrite(df_dimensions_ij_perguntas_search, "dados/df_dimensions_ij_perguntas_search.csv")
-##################################################################
+####
 ## Para o app_tabela
 # col_name <- df_perguntas_dict[df_perguntas_dict$Pergunta == input$question]$Busca
 # df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
 #   dplyr::filter(!!as.name(col_name) == '1')
-##################################################################
+####
 
 rm(df_dimensions_cut, df_perguntas, df_dimensions_ij_perguntas)
 
-## Tabela top autores ---------------------------------
+## Top autores ---------------------------------
 
 ## Recebe apenas a coluna de paises
 df_autores <- df_dimensions %>%
@@ -342,11 +342,14 @@ df_count_autores <- df %>%
   dplyr::rename(Autores = V1) %>%
   dplyr::ungroup()
 
-df_count_autores_ordered <- df_count_autores %>%
+df_autores_ordered_cit <- df_count_autores %>%
   dplyr::arrange(desc(count))
-
-
-data.table::fwrite(df_count_autores_ordered, "dados/df_count_autores.csv")
+data.table::fwrite(df_autores_ordered_cit, "dados/df_autores_cit_ordered.csv")
+## Apenas o top20
+# df_count_autores <- data.table::fread("dados/df_autores_cit_ordered.csv")
+df_autores_cit_top20 <- df_count_autores %>%
+  dplyr::slice_head(n = 20)
+data.table::fwrite(df_autores_cit_top20, "dados/df_autores_cit_top20.csv")
 
 # ## Adicionando primeiro nome de autores
 # df_autores_f <- df_dimensions %>%
@@ -365,3 +368,15 @@ data.table::fwrite(df_count_autores_ordered, "dados/df_count_autores.csv")
 # ##  Aqui tenho o primeiro nome do autor, com um "." após a primeira letra, porém,
 # ## ainda falta adicionar os outros nomes, pego apenas o primeiro
 # autores_fn_split_first_c <- lapply(autores_fn_split_first, function(x) paste0(x, "."))
+
+## Top citações ---------------------------------
+
+df_citacoes_ordered <- df_dimensions %>%
+  dplyr::select(doi, metrics.times_cited, altmetrics.score) %>%
+  dplyr::arrange(desc(metrics.times_cited))
+
+df_count_autores_ordered_top20 <- df_citacoes_ordered %>%
+  dplyr::slice_head(n = 20)
+  
+data.table::fwrite(df_citacoes_ordered, "dados/df_citacoes_ordered.csv")
+data.table::fwrite(df_count_autores_ordered_top20, "dados/df_citacoes_ordered_top20.csv")

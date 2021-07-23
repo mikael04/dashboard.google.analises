@@ -412,3 +412,38 @@ p <- p %>%
     plotly::config(modeBarButtonsToRemove = c("zoom2d", "select2d", "lasso2d", "autoScale2d", "toggleSpikelines"), displaylogo = FALSE)
 p
 ```
+
+#### **10. Citações**
+
+```{r cit_alt, echo=F, eval = TRUE}
+df_citacoes_ordered <- data.table::fread("dados/df_citacoes_ordered.csv") %>%
+  dplyr::select(doi, `Número de citações` = metrics.times_cited, 
+                `Score altmetrico` = altmetrics.score)
+
+df_citacoes_ordered_slice <- df_citacoes_ordered %>%
+  dplyr::slice_head(n = 20)
+
+library(plotly)
+## Plot
+layout_axis_y <- list(
+  title = "",
+  showline = F,
+  showticklabels = T,
+  showgrid = F
+)
+layout_axis_x <- list(
+  title = "",
+  showline = F,
+  showticklabels = T,
+  showgrid = F,
+  tickformat = "digit"
+)
+m <- list(l=350, r=50, b=50, t=30, pad=4)
+p <- plotly::plot_ly(df_citacoes_ordered_slice, x = ~`Número de citações`, y = ~reorder(doi, `Número de citações`), type = 'bar')
+p <- p %>%
+  plotly::layout(title = "Citações por publicação", xaxis = layout_axis_x, yaxis = layout_axis_y, dragmode='pan') %>%
+    plotly::config(modeBarButtonsToRemove = c("zoom2d", "select2d", "lasso2d", "autoScale2d", "toggleSpikelines"), displaylogo = FALSE)
+p
+
+DT::datatable(df_citacoes_ordered)
+```
