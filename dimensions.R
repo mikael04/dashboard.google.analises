@@ -352,22 +352,30 @@ df_autores_cit_top20 <- df_count_autores %>%
 data.table::fwrite(df_autores_cit_top20, "dados/df_autores_cit_top20.csv")
 
 # ## Adicionando primeiro nome de autores
-# df_autores_f <- df_dimensions %>%
-#   # df_paises <- df_dimensions_sample %>%
-#   dplyr::select(id, authors_f = authors) %>%
-#   dplyr::filter(authors_f != "", authors_f != "vazio")
-# ## Limpar memória
-# rm(df_dimensions)
-# 
-# autores_fn <- df_autores_f$authors_f
-# ## Separa em uma lista de mais de um elemento quando possui mais de um país
-# autores_fn_split <- autores_fn %>%
-#   stringr::str_split(., '\\|')
-# rm(autores_fn, df_autores)
+df_autores_f_l <- df_dimensions %>%
+  # df_paises <- df_dimensions_sample %>%
+  dplyr::select(id, authors_f = authors, authors_l = `authors/lastname`) %>%
+  dplyr::filter(authors_f != "", authors_f != "vazio")
+## Limpar memória
+rm(df_autores_f)
+
+autores_fn <- df_autores_f_l$authors_f
+## Separa em uma lista de mais de um elemento quando possui mais de um país
+autores_fn_split <- autores_fn %>%
+  stringr::str_split(., '\\|')
+rm(autores_fn, df_autores)
 # autores_fn_split_first <- lapply(autores_fn_split, substring, 1, 1)
-# ##  Aqui tenho o primeiro nome do autor, com um "." após a primeira letra, porém,
-# ## ainda falta adicionar os outros nomes, pego apenas o primeiro
-# autores_fn_split_first_c <- lapply(autores_fn_split_first, function(x) paste0(x, "."))
+# autores_mais_um_nome <- lapply(autores_fn_split, function(x) stringr::str_detect(x, " "))
+autores_fn_split_ <- lapply(autores_fn_split, function(x) stringr::str_to_title(x))
+autores_fn_split__ <- lapply(autores_fn_split_, function (x) stringr::str_extract_all(x, stringr::regex("[:upper:]")))
+## Agora temos uma lista de listas, ao invés de uma lista de caractéres,
+## mas acho que está ok, só teria que agrupar a lista em caractéres pra depois fazer a união
+
+##Seguir aqui
+
+##  Aqui tenho o primeiro nome do autor, com um "." após a primeira letra, porém,
+## ainda falta adicionar os outros nomes, pego apenas o primeiro
+autores_fn_split_first_c <- lapply(autores_fn_split_first, function(x) paste0(x, "."))
 
 ## Top citações ---------------------------------
 
@@ -380,3 +388,26 @@ df_count_autores_ordered_top20 <- df_citacoes_ordered %>%
   
 data.table::fwrite(df_citacoes_ordered, "dados/df_citacoes_ordered.csv")
 data.table::fwrite(df_count_autores_ordered_top20, "dados/df_citacoes_ordered_top20.csv")
+
+## BD autores e afiliações ---------------------------------
+
+df_raw_affiliation <- data.table::fread("dados/mikael_raw_affiliation.csv", sep = "/")
+df_raw_affiliation_clean <- df_raw_affiliation %>%
+  dplyr::group_by(doi) %>%
+  dplyr::summarise(last_t = last(raw_affiliation))
+
+# problemas nas linhas (número estranho, pessoal da extração vai me retornar)
+
+## Altimetria  ---------------------------------
+
+df_alt <- df_dimensions %>%
+  dplyr::select(doi, altmetrics.score) %>%
+  dplyr::arrange(desc(altmetrics.score)) %>%
+  dplyr::filter(altmetrics.score > 0)
+
+df_alt_top20 <- df_alt %>%
+  dplyr::slice_head(n = 20)
+
+
+data.table::fwrite(df_alt, "dados/df_alt.csv")
+data.table::fwrite(df_alt_top20, "dados/df_alt_top20.csv")

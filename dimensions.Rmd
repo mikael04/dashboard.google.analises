@@ -49,7 +49,7 @@ paises_split <- paises %>%
 ## Apenas valores únicos, para listar todos os países (sem repetição)
 unique_values <- unique(rapply(paises_split, function(x) head(x, 30)))
 ```
-### 1. Indicadores de Impacto
+### **1. Indicadores de Impacto**
 
 altimetrics.score - ```r sum(is.na(df_dimensions$altmetrics.score)  + is.null(df_dimensions$altmetrics.score))```  de  ```r nrow(df_dimensions)``` linhas em branco (NA, NULL)
 
@@ -111,7 +111,7 @@ plotly::plot_ly(data = df_dimensions, x = ~metrics.times_cited, type = 'histogra
 
 ```
 
-### 2. Filtros laterais
+### **2. Filtros laterais**
 
 Ano - ```r sum(is.na(df_dimensions$year)  + is.null(df_dimensions$year))```  de  ```r nrow(df_dimensions)``` linhas em branco (NA, NULL)
 
@@ -195,7 +195,7 @@ skimr::skim(df_dimensions$type)
 plotly::plot_ly(data = df_dimensions, x = ~type, type = 'histogram')
 ```
 
-#### **3. Categorias**
+### **3. Categorias**
 ```{r categories, echo=F, eval = TRUE}
 
 df_categ_count <- data.table::fread("dados/df_categ_count_ordered.csv")
@@ -229,7 +229,7 @@ p <- p %>%
 p
 ```
 
-#### **4. Mapas**
+### **4. Mapas**
 
 
 ```{r mapa_dist, echo=F, eval = TRUE}
@@ -299,7 +299,7 @@ m
 
 ```
 
-#### **5. Funders**
+### **5. Funders**
 Funders - ```r sum(is.na(df_dimensions$funder_orgs)  + is.null(df_dimensions$funder_orgs)) + sum(df_dimensions$funder_orgs == "")```  de  ```r nrow(df_dimensions)``` linhas em branco (NA, NULL)
 
 ```{r funders, echo=F, eval = TRUE}
@@ -308,7 +308,7 @@ skimr::skim(df_dimensions$funder_orgs)
 
 ```
 
-#### **6. Tipo de publicação**
+### **6. Tipo de publicação**
 
 ```{r pub_type, echo=F, eval = TRUE}
 skimr::skim(df_dimensions$type)
@@ -337,7 +337,7 @@ p <- plotly::plot_ly(df_dimensions_type_date, x = ~date_normal, y = ~count, mode
 p
 ```
 
-#### **7. Mapa de palavras**
+### **7. Mapa de palavras**
 
 ```{r word_cloud, echo=F, eval = TRUE}
 # df_word_cloud <- df_dimensions_sample %>%
@@ -374,7 +374,7 @@ set.seed(1234) # for reproducibility
 wordcloud2(data=df_r, size=.5, color='random-dark')
 ```
 
-#### **8. Organizações e funders**
+### **8. Organizações e funders**
 
 ```{r org_fund, echo=F, eval = TRUE}
 df_skim_funder_orgs <- data.table::fread("dados/df_skim_funder_orgs.csv")
@@ -384,10 +384,10 @@ count_vazio = sum(stringr::str_detect(df_skim_funder_orgs$raw_affiliations, "vaz
 paste0("Temos ", count_vazio, " linhas em branco, na coluna de afiliações dos autores")
 ```
 
-#### **9. Autores**
+### **9. Autores**
 
 ```{r authors, echo=F, eval = TRUE}
-df_count_autores_ordered <- data.table::fread("dados/df_count_autores.csv") %>%
+df_autores_cit_ordered.csv <- data.table::fread("dados/df_autores_cit_ordered.csv") %>%
   dplyr::slice_head(n = 20)
 
 library(plotly)
@@ -406,16 +406,16 @@ layout_axis_x <- list(
   tickformat = "digit"
 )
 m <- list(l=350, r=50, b=50, t=30, pad=4)
-p <- plotly::plot_ly(df_count_autores_ordered, x = ~count, y = ~reorder(Autores, count), type = 'bar')
+p <- plotly::plot_ly(df_autores_cit_ordered.csv, x = ~count, y = ~reorder(Autores, count), type = 'bar')
 p <- p %>%
   plotly::layout(title = "Publicações por autor", xaxis = layout_axis_x, yaxis = layout_axis_y, dragmode='pan', margin = m) %>%
     plotly::config(modeBarButtonsToRemove = c("zoom2d", "select2d", "lasso2d", "autoScale2d", "toggleSpikelines"), displaylogo = FALSE)
 p
 ```
 
-#### **10. Citações**
+### **10. Citações**
 
-```{r cit_alt, echo=F, eval = TRUE}
+```{r cit_art, echo=F, eval = TRUE}
 df_citacoes_ordered <- data.table::fread("dados/df_citacoes_ordered.csv") %>%
   dplyr::select(doi, `Número de citações` = metrics.times_cited, 
                 `Score altmetrico` = altmetrics.score)
@@ -446,4 +446,36 @@ p <- p %>%
 p
 
 DT::datatable(df_citacoes_ordered)
+```
+
+
+### **11. Altimetria**
+
+```{r alt_art, echo=F, eval = TRUE}
+#df_alt <- data.table::fread("dados/df_alt.csv")
+df_alt_top20 <- data.table::fread("dados/df_alt_top20.csv")
+
+library(plotly)
+## Plot
+layout_axis_y <- list(
+  title = "",
+  showline = F,
+  showticklabels = T,
+  showgrid = F
+)
+layout_axis_x <- list(
+  title = "",
+  showline = F,
+  showticklabels = T,
+  showgrid = F,
+  tickformat = "digit"
+)
+#m <- list(l=350, r=50, b=50, t=30, pad=4)
+p <- plotly::plot_ly(df_alt_top20, x = ~altmetrics.score, y = ~reorder(doi, altmetrics.score), type = 'bar')
+p <- p %>%
+  plotly::layout(title = "Artigos com maiores scores altimétricos", xaxis = layout_axis_x, yaxis = layout_axis_y, dragmode='pan') %>%
+    plotly::config(modeBarButtonsToRemove = c("zoom2d", "select2d", "lasso2d", "autoScale2d", "toggleSpikelines"), displaylogo = FALSE)
+p
+
+#DT::datatable(df_citacoes_ordered)
 ```
