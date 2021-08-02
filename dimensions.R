@@ -3,21 +3,26 @@ library(dplyr)
 
 plot <- F
 dashboard <- F
+debug <- F
 ## Lendo arquivo de banco de dados  ---------------------------------
 
 df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst")
 df_dimensions <- tibble::as_tibble(df_dimensions)
 
 df_dimensions_sample <- df_dimensions %>% 
-  dplyr::sample_frac(0.1)
+  dplyr::sample_frac(0.01)
+
+# data.table::fwrite(df_dimensions_sample, "dados/df_sample.csv")
+
+##Sample da base com campos ordenados em ordem alfabética
+df_dim_sort_alph_sample <- df_dimensions_sample %>% 
+  dplyr::select(sort(tidyselect::peek_vars()))
 
 ## df_dim_sort_alph <- toda a base com campos ordenados em ordem alfabética
 df_dim_sort_alph <- df_dimensions %>% 
   dplyr::select(sort(tidyselect::peek_vars()))
 
 
-df_dim_sort_alph_sample <- df_dimensions_sample %>% 
-  dplyr::select(sort(tidyselect::peek_vars()))
 
 
 ## Manipulando datas ---------------------------------
@@ -351,13 +356,19 @@ df_autores_cit_top20 <- df_count_autores %>%
   dplyr::slice_head(n = 20)
 data.table::fwrite(df_autores_cit_top20, "dados/df_autores_cit_top20.csv")
 
-# ## Adicionando primeiro nome de autores
-df_autores_f_l <- df_dimensions %>%
+
+
+df_dimensions_sample_gist <- df_dimensions_sample %>%
+  dplyr::select(id, authors, `authors/lastname`)
+
+data.table::fwrite(df_dimensions_sample_gist, "dados/df_gist.csv")
+## Adicionando primeiro nome de autores
+df_autores_f_l <- df_dimensions_sample %>%
   # df_paises <- df_dimensions_sample %>%
   dplyr::select(id, authors_f = authors, authors_l = `authors/lastname`) %>%
   dplyr::filter(authors_f != "", authors_f != "vazio")
 ## Limpar memória
-rm(df_autores_f)
+#rm(df_autores_f)
 
 autores_fn <- df_autores_f_l$authors_f
 ## Separa em uma lista de mais de um elemento quando possui mais de um país
@@ -372,7 +383,27 @@ autores_fn_split__ <- lapply(autores_fn_split_, function (x) stringr::str_extrac
 ## mas acho que está ok, só teria que agrupar a lista em caractéres pra depois fazer a união
 
 ##Seguir aqui
+autores_fn_split___ <- lapply(autores_fn_split__, function (x) paste0(x, "."))
+length(autores_fn_split__[[3]][[2]])
+i=1
+j=1
+debug = T
+for(i in 1:length(autores_fn_split__)){
+  for(j in 1:length(autores_fn_split__[[i]])){
+    if(autores_fn_split__[[i]][[j]] > 1){
+      if(debug){
+        print(paste0("i = ", i))
+        print(paste0("j = ", j))
+        print(autores_fn_split__[[i]][[j]])
+      }
 
+    }
+  }
+}
+
+length(autores_fn_split__[[i]])
+autores_fn_split__[[137]]
+autores_fn_split_[[93]]
 ##  Aqui tenho o primeiro nome do autor, com um "." após a primeira letra, porém,
 ## ainda falta adicionar os outros nomes, pego apenas o primeiro
 autores_fn_split_first_c <- lapply(autores_fn_split_first, function(x) paste0(x, "."))
@@ -411,3 +442,7 @@ df_alt_top20 <- df_alt %>%
 
 data.table::fwrite(df_alt, "dados/df_alt.csv")
 data.table::fwrite(df_alt_top20, "dados/df_alt_top20.csv")
+
+## Países Parquet  ---------------------------------
+
+df_country <- arrow::read_parquet("dados/country_code-Copy1")
