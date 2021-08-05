@@ -25,7 +25,7 @@ df_dim_sort_alph <- df_dimensions %>%
 
 
 
-## Manipulando datas ---------------------------------
+## Evolução de publicações no tempo ---------------------------------
 
 
 df_date_count <- df_dimensions  %>%
@@ -38,7 +38,7 @@ df_date_count <- df_dimensions  %>%
   #dplyr::mutate(date_normal = lubridate::format_ISO8601(date_normal, precision = "ym")) %>%
   dplyr::ungroup()
 
-# data.table::fwrite(df_date_count, "/ dados/df_date_count.csv")
+data.table::fwrite(df_date_count, "/dados/df_date_count.csv")
 if(plot){
   p <- plotly::plot_ly(df_date_count, x = ~date_normal, y = ~count, mode = 'line', type = 'scatter') %>%
     plotly::layout(title = "Evolução de publicações de COVID19 no tempo",
@@ -51,7 +51,20 @@ if(plot){
 
 rm(df_date_count, p)
 
-## Contando países ---------------------------------
+## Evolução de publicações por tipo, no tempo ---------------------------------
+
+df_dimensions_type_date <- df_dimensions %>%
+  dplyr::filter(date_normal > "2020-01-01") %>%
+  dplyr::mutate(date_normal = lubridate::floor_date(date_normal, "month")) %>%
+  dplyr::select(id, date_normal, type) %>%
+  dplyr::group_by(date_normal, type) %>%
+  dplyr::filter(date_normal <= lubridate::ymd("2021-05-23")) %>%
+  dplyr::summarise(count = n()) %>%
+  dplyr::ungroup()
+
+data.table::fwrite(df_dimensions_type_date, "dados/df_dimensions_type_date.csv")
+
+## Publicações por país ---------------------------------
 
 ## Recebe apenas a coluna de paises
 df_paises <- df_dimensions %>%
@@ -89,13 +102,13 @@ if(plot){
 }
 data.table::fwrite(df_count_ordered, "dados/df_paises_count_ordered.csv")
 # caso queira trabalhar com a sample
-# data.table::fwrite(df_count_ordered, "dados/df_sample_count_ordered.csv")
+# data.table::fwrite(df_count_ordered, "dados/df_sample_paises_count_ordered.csv")
 
 rm(df_paises, paises, paises_split, unique_values, dt_list, dt,
    df_count, df_count_ordered, p)
 
 
-## Publicações por categoria  ---------------------------------
+## Publicações por categoria (ANZSRC_FoR)  ---------------------------------
 
 df_dim_categories <- df_dimensions %>%
   dplyr::select(id, categories.for_v1.first_level.codes) %>%
@@ -446,3 +459,5 @@ data.table::fwrite(df_alt_top20, "dados/df_alt_top20.csv")
 ## Países Parquet  ---------------------------------
 
 df_country <- arrow::read_parquet("dados/country_code-Copy1")
+
+glimpse(df_raw_affiliation)

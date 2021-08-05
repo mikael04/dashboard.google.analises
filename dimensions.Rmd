@@ -161,8 +161,8 @@ sum(is.na(df_dimensions$type)  + is.null(df_dimensions$type))
 #### **2.2. Países e publicações**
 ```{r paises_anal_expl, echo=F, eval = TRUE}
 # skimr::skim(df_dimensions$research_org_country_names)
-dt_paises_count_ordered <- data.table::fread("dados/df_paises_count_ordered.csv")
-dt_paises_count_top20 <- dt_paises_count_ordered %>%
+df_paises_count_ordered <- data.table::fread("dados/df_paises_count_ordered.csv")
+df_paises_count_top20 <- df_paises_count_ordered %>%
   dplyr::slice_head(n = 20)
 
 ## Plot
@@ -179,7 +179,7 @@ layout_axis_x <- list(
   showgrid = F,
   tickformat = "digit"
 ) 
-p <- plotly::plot_ly(dt_paises_count_top20, type = 'bar', x = ~count, y = ~reorder(Paises, count))
+p <- plotly::plot_ly(df_paises_count_top20, type = 'bar', x = ~count, y = ~reorder(Paises, count))
 p <- p %>%
   plotly::layout(title = "Publicações por país", xaxis = layout_axis_x, yaxis = layout_axis_y, dragmode='pan') %>%
   plotly::config(modeBarButtonsToRemove = c("zoom2d", "select2d", "lasso2d", "autoScale2d", "toggleSpikelines"), displaylogo = FALSE)
@@ -312,16 +312,6 @@ skimr::skim(df_dimensions$funder_orgs)
 
 ```{r pub_type, echo=F, eval = TRUE}
 skimr::skim(df_dimensions$type)
-# df_dimensions_type_date <- df_dimensions %>%
-#   dplyr::filter(date_normal > "2020-01-01") %>%
-#   dplyr::mutate(date_normal = lubridate::floor_date(date_normal, "month")) %>%
-#   dplyr::select(id, date_normal, type) %>%
-#   dplyr::group_by(date_normal, type) %>%
-#   dplyr::filter(date_normal <= lubridate::ymd("2021-05-23")) %>%
-#   dplyr::summarise(count = n()) %>%
-#   dplyr::ungroup()
-
-# data.table::fwrite(df_dimensions_type_date, "dados/df_dimensions_type_date.csv")
 
 df_dimensions_type_date <- data.table::fread("dados/df_dimensions_type_date.csv")
   
