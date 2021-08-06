@@ -3,24 +3,29 @@ library(dplyr)
 
 plot <- F
 dashboard <- F
+debug <- F
 ## Lendo arquivo de banco de dados  ---------------------------------
 
 df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst")
 df_dimensions <- tibble::as_tibble(df_dimensions)
 
 df_dimensions_sample <- df_dimensions %>% 
-  dplyr::sample_frac(0.1)
+  dplyr::sample_frac(0.01)
+
+# data.table::fwrite(df_dimensions_sample, "dados/df_sample.csv")
+
+##Sample da base com campos ordenados em ordem alfabética
+df_dim_sort_alph_sample <- df_dimensions_sample %>% 
+  dplyr::select(sort(tidyselect::peek_vars()))
 
 ## df_dim_sort_alph <- toda a base com campos ordenados em ordem alfabética
 df_dim_sort_alph <- df_dimensions %>% 
   dplyr::select(sort(tidyselect::peek_vars()))
 
 
-df_dim_sort_alph_sample <- df_dimensions_sample %>% 
-  dplyr::select(sort(tidyselect::peek_vars()))
 
 
-## Manipulando datas ---------------------------------
+## Evolução de publicações no tempo ---------------------------------
 
 
 df_date_count <- df_dimensions  %>%
@@ -33,7 +38,7 @@ df_date_count <- df_dimensions  %>%
   #dplyr::mutate(date_normal = lubridate::format_ISO8601(date_normal, precision = "ym")) %>%
   dplyr::ungroup()
 
-# data.table::fwrite(df_date_count, "/ dados/df_date_count.csv")
+data.table::fwrite(df_date_count, "/dados/df_date_count.csv")
 if(plot){
   p <- plotly::plot_ly(df_date_count, x = ~date_normal, y = ~count, mode = 'line', type = 'scatter') %>%
     plotly::layout(title = "Evolução de publicações de COVID19 no tempo",
@@ -46,7 +51,20 @@ if(plot){
 
 rm(df_date_count, p)
 
-## Contando países ---------------------------------
+## Evolução de publicações por tipo, no tempo ---------------------------------
+
+df_dimensions_type_date <- df_dimensions %>%
+  dplyr::filter(date_normal > "2020-01-01") %>%
+  dplyr::mutate(date_normal = lubridate::floor_date(date_normal, "month")) %>%
+  dplyr::select(id, date_normal, type) %>%
+  dplyr::group_by(date_normal, type) %>%
+  dplyr::filter(date_normal <= lubridate::ymd("2021-05-23")) %>%
+  dplyr::summarise(count = n()) %>%
+  dplyr::ungroup()
+
+data.table::fwrite(df_dimensions_type_date, "dados/df_dimensions_type_date.csv")
+
+## Publicações por país ---------------------------------
 
 ## Recebe apenas a coluna de paises
 df_paises <- df_dimensions %>%
@@ -84,13 +102,13 @@ if(plot){
 }
 data.table::fwrite(df_count_ordered, "dados/df_paises_count_ordered.csv")
 # caso queira trabalhar com a sample
-# data.table::fwrite(df_count_ordered, "dados/df_sample_count_ordered.csv")
+# data.table::fwrite(df_count_ordered, "dados/df_sample_paises_count_ordered.csv")
 
 rm(df_paises, paises, paises_split, unique_values, dt_list, dt,
    df_count, df_count_ordered, p)
 
 
-## Publicações por categoria  ---------------------------------
+## Publicações por categoria (ANZSRC_FoR)  ---------------------------------
 
 df_dim_categories <- df_dimensions %>%
   dplyr::select(id, categories.for_v1.first_level.codes) %>%
@@ -351,23 +369,57 @@ df_autores_cit_top20 <- df_count_autores %>%
   dplyr::slice_head(n = 20)
 data.table::fwrite(df_autores_cit_top20, "dados/df_autores_cit_top20.csv")
 
-# ## Adicionando primeiro nome de autores
-# df_autores_f <- df_dimensions %>%
-#   # df_paises <- df_dimensions_sample %>%
-#   dplyr::select(id, authors_f = authors) %>%
-#   dplyr::filter(authors_f != "", authors_f != "vazio")
-# ## Limpar memória
-# rm(df_dimensions)
-# 
-# autores_fn <- df_autores_f$authors_f
-# ## Separa em uma lista de mais de um elemento quando possui mais de um país
-# autores_fn_split <- autores_fn %>%
-#   stringr::str_split(., '\\|')
-# rm(autores_fn, df_autores)
+
+
+df_dimensions_sample_gist <- df_dimensions_sample %>%
+  dplyr::select(id, authors, `authors/lastname`)
+
+data.table::fwrite(df_dimensions_sample_gist, "dados/df_gist.csv")
+## Adicionando primeiro nome de autores
+df_autores_f_l <- df_dimensions_sample %>%
+  # df_paises <- df_dimensions_sample %>%
+  dplyr::select(id, authors_f = authors, authors_l = `authors/lastname`) %>%
+  dplyr::filter(authors_f != "", authors_f != "vazio")
+## Limpar memória
+#rm(df_autores_f)
+
+autores_fn <- df_autores_f_l$authors_f
+## Separa em uma lista de mais de um elemento quando possui mais de um país
+autores_fn_split <- autores_fn %>%
+  stringr::str_split(., '\\|')
+rm(autores_fn, df_autores)
 # autores_fn_split_first <- lapply(autores_fn_split, substring, 1, 1)
-# ##  Aqui tenho o primeiro nome do autor, com um "." após a primeira letra, porém,
-# ## ainda falta adicionar os outros nomes, pego apenas o primeiro
-# autores_fn_split_first_c <- lapply(autores_fn_split_first, function(x) paste0(x, "."))
+# autores_mais_um_nome <- lapply(autores_fn_split, function(x) stringr::str_detect(x, " "))
+autores_fn_split_ <- lapply(autores_fn_split, function(x) stringr::str_to_title(x))
+autores_fn_split__ <- lapply(autores_fn_split_, function (x) stringr::str_extract_all(x, stringr::regex("[:upper:]")))
+## Agora temos uma lista de listas, ao invés de uma lista de caractéres,
+## mas acho que está ok, só teria que agrupar a lista em caractéres pra depois fazer a união
+
+##Seguir aqui
+autores_fn_split___ <- lapply(autores_fn_split__, function (x) paste0(x, "."))
+length(autores_fn_split__[[3]][[2]])
+i=1
+j=1
+debug = T
+for(i in 1:length(autores_fn_split__)){
+  for(j in 1:length(autores_fn_split__[[i]])){
+    if(autores_fn_split__[[i]][[j]] > 1){
+      if(debug){
+        print(paste0("i = ", i))
+        print(paste0("j = ", j))
+        print(autores_fn_split__[[i]][[j]])
+      }
+
+    }
+  }
+}
+
+length(autores_fn_split__[[i]])
+autores_fn_split__[[137]]
+autores_fn_split_[[93]]
+##  Aqui tenho o primeiro nome do autor, com um "." após a primeira letra, porém,
+## ainda falta adicionar os outros nomes, pego apenas o primeiro
+autores_fn_split_first_c <- lapply(autores_fn_split_first, function(x) paste0(x, "."))
 
 ## Top citações ---------------------------------
 
@@ -380,3 +432,32 @@ df_count_autores_ordered_top20 <- df_citacoes_ordered %>%
   
 data.table::fwrite(df_citacoes_ordered, "dados/df_citacoes_ordered.csv")
 data.table::fwrite(df_count_autores_ordered_top20, "dados/df_citacoes_ordered_top20.csv")
+
+## BD autores e afiliações ---------------------------------
+
+df_raw_affiliation <- data.table::fread("dados/mikael_raw_affiliation.csv", sep = "/")
+df_raw_affiliation_clean <- df_raw_affiliation %>%
+  dplyr::group_by(doi) %>%
+  dplyr::summarise(last_t = last(raw_affiliation))
+
+# problemas nas linhas (número estranho, pessoal da extração vai me retornar)
+
+## Altimetria  ---------------------------------
+
+df_alt <- df_dimensions %>%
+  dplyr::select(doi, altmetrics.score) %>%
+  dplyr::arrange(desc(altmetrics.score)) %>%
+  dplyr::filter(altmetrics.score > 0)
+
+df_alt_top20 <- df_alt %>%
+  dplyr::slice_head(n = 20)
+
+
+data.table::fwrite(df_alt, "dados/df_alt.csv")
+data.table::fwrite(df_alt_top20, "dados/df_alt_top20.csv")
+
+## Países Parquet  ---------------------------------
+
+df_country <- arrow::read_parquet("dados/country_code-Copy1")
+
+glimpse(df_raw_affiliation)

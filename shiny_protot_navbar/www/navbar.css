@@ -1,0 +1,26 @@
+.container-fluid{
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+  text-align: center;
+}
+.navbar-header{
+  width:20%;
+  text-align: center;
+}
+.navbar-brand {
+  position: relative;
+  left: 20%;
+  rigth: 80%;
+  text-align: center;
+}
+#navbar{
+  width: 80%;
+}
+#navbar li{
+  width: 33.33%;
+}
+.sidebar-menu{
+  width: 20%;
+  padding-inline-start: 10px;
+}
