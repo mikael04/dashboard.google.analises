@@ -5,7 +5,7 @@ plot <- F
 dashboard <- F
 debug <- F
 ## Lendo arquivo de banco de dados  ---------------------------------
-
+## Setup, lendo a base de dados (pode ser usado qualquer outro formato)
 df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst")
 df_dimensions <- tibble::as_tibble(df_dimensions)
 
@@ -14,19 +14,18 @@ df_dimensions_sample <- df_dimensions %>%
 
 # data.table::fwrite(df_dimensions_sample, "dados/df_sample.csv")
 
-##Sample da base com campos ordenados em ordem alfabética
-df_dim_sort_alph_sample <- df_dimensions_sample %>% 
-  dplyr::select(sort(tidyselect::peek_vars()))
+## não precisam rodar, só rodo para organizar melhor o banco (variáveis ficam em ordem alfabética,
+## assim fica mais fácil de procurar por elas)
+# ##Sample da base com campos ordenados em ordem alfabética
+# df_dim_sort_alph_sample <- df_dimensions_sample %>% 
+#   dplyr::select(sort(tidyselect::peek_vars()))
 
-## df_dim_sort_alph <- toda a base com campos ordenados em ordem alfabética
-df_dim_sort_alph <- df_dimensions %>% 
-  dplyr::select(sort(tidyselect::peek_vars()))
-
-
+# ## df_dim_sort_alph <- toda a base com campos ordenados em ordem alfabética
+# df_dim_sort_alph <- df_dimensions %>% 
+#   dplyr::select(sort(tidyselect::peek_vars()))
 
 
 ## Evolução de publicações no tempo ---------------------------------
-
 
 df_date_count <- df_dimensions  %>%
   dplyr::filter(date_normal < lubridate::ymd("2021-05-23")) %>%
@@ -63,22 +62,30 @@ df_dimensions_type_date <- df_dimensions %>%
   dplyr::ungroup()
 
 data.table::fwrite(df_dimensions_type_date, "dados/df_dimensions_type_date.csv")
-
+rm(df_dimensions_type_date)
 ## Publicações por país ---------------------------------
 
+# df_dimensions_filter <- df_dimensions %>%
+#   dplyr::select(id, date_normal, type, title.preferred, abstract.preferred,
+#                 research_org_country_names, categories.for_v1.first_level.codes)
 ## Recebe apenas a coluna de paises
-df_paises <- df_dimensions %>%
-# df_paises <- df_dimensions_sample %>%
+df_paises <- df_dimensions_filter %>%
+  # df_paises <- df_dimensions_sample %>%
   dplyr::select(id, research_org_country_names) %>%
   dplyr::filter(research_org_country_names != "")
 paises <- df_paises$research_org_country_names
 ## Separa em uma lista de mais de um elemento quando possui mais de um país
 paises_split <- paises %>%
   stringr::str_split(., ';')
+
 ## remove todos os caractéres menos letras e números
 #list <- lapply(paises, stringr::str_replace_all, ";", "0")
 ## Apenas valores únicos, para listar todos os países (sem repetição)
 unique_values <- unique(rapply(paises_split, function(x) head(x, 30)))
+unique_values_ordered <- as.data.frame(stringr::str_sort(unique_values)) %>%
+  dplyr::rename(pais = `stringr::str_sort(unique_values)`)
+
+data.table:: fwrite(unique_values_ordered, "dados/paises.csv")
 
 ## Transforma em dataframe para manipulação
 dt_list <- purrr::map(paises_split, data.table::as.data.table)
@@ -117,7 +124,7 @@ df_dim_categories <- df_dimensions %>%
 
 ## Pega apenas a variável que quero para fazer contagem
 categoria <- df_dim_categories$categories.for_v1.first_level.codes
-  #dplyr::filter(stringr::str_detect(., "[[:digit:]]"))
+#dplyr::filter(stringr::str_detect(., "[[:digit:]]"))
 list_categ <- lapply(categoria, stringr::str_replace_all, "'", "")
 list_categ <- lapply(list_categ, stringr::str_replace_all, " ", "")
 list_categ <- lapply(list_categ, stringr::str_replace_all, "\\[", "")
@@ -409,7 +416,7 @@ for(i in 1:length(autores_fn_split__)){
         print(paste0("j = ", j))
         print(autores_fn_split__[[i]][[j]])
       }
-
+      
     }
   }
 }
@@ -429,7 +436,7 @@ df_citacoes_ordered <- df_dimensions %>%
 
 df_count_autores_ordered_top20 <- df_citacoes_ordered %>%
   dplyr::slice_head(n = 20)
-  
+
 data.table::fwrite(df_citacoes_ordered, "dados/df_citacoes_ordered.csv")
 data.table::fwrite(df_count_autores_ordered_top20, "dados/df_citacoes_ordered_top20.csv")
 
@@ -461,3 +468,54 @@ data.table::fwrite(df_alt_top20, "dados/df_alt_top20.csv")
 df_country <- arrow::read_parquet("dados/country_code-Copy1")
 
 glimpse(df_raw_affiliation)
+
+## 1. Criação de tabelas  ---------------------------------
+library(dplyr)
+## quais campos preciso? id +
+## artigos_autores -> 
+## artigos_cit -> 
+## evol_pub_tipo -> date_normal, type
+## wordcloud -> title.preferred, abstract.preferred
+## paises_pub -> research_org_country_names
+## categ_pub -> categories.for_v1.first_level.codes
+## 
+df_dimensions_filter <- fst::read_fst("dados/dimensions_compressed.fst")%>%
+  dplyr::select(id, authors_fn = authors,  authors_ln =  `authors/lastname`, metrics.times_cited, altmetrics.score, date_normal, type, title.preferred, abstract.preferred,
+                research_org_country_names, categories.for_v1.first_level.codes)
+df_dimensions_filter <- tibble::as_tibble(df_dimensions_filter)
+
+df_dimensions_filter_sample <- df_dimensions_filter %>% 
+  dplyr::sample_frac(0.01)
+
+## arredondando para mês (que é como vai ser exibido nos gráficos)
+df_dimensions_filter <- df_dimensions_filter %>%
+  dplyr::mutate(date = lubridate::floor_date(date_normal, "month")) %>%
+  dplyr::select(-date_normal)
+
+col_names <- colnames(df_dimensions_filter)
+length(col_names)
+col_all_types <- unique(df_dimensions_filter[[2]])
+
+df_dimensions_filter_type_date <- df_dimensions_filter %>%
+  dplyr::group_by(type, date) %>%
+  dplyr::summarise(count = n())
+### 1.1 Manipulando países  ---------------------------------
+
+## Recebe apenas a coluna de paises
+df_paises <- df_dimensions_filter %>%
+  # df_paises <- df_dimensions_sample %>%
+  dplyr::select(id, research_org_country_names) %>%
+  dplyr::filter(research_org_country_names != "")
+paises <- df_paises$research_org_country_names
+## Separa em uma lista de mais de um elemento quando possui mais de um país
+paises_split <- paises %>%
+  stringr::str_split(., ';')
+
+## remove todos os caractéres menos letras e números
+#list <- lapply(paises, stringr::str_replace_all, ";", "0")
+## Apenas valores únicos, para listar todos os países (sem repetição)
+unique_values <- unique(rapply(paises_split, function(x) head(x, 30)))
+
+## Transforma em dataframe para manipulação
+dt_list <- purrr::map(paises_split, data.table::as.data.table)
+dt <- data.table::rbindlist(dt_list, fill = TRUE, idcol = T)
