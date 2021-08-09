@@ -28,8 +28,8 @@ df_dimensions_sample <- df_dimensions %>%
 ## Evolução de publicações no tempo ---------------------------------
 
 df_date_count <- df_dimensions  %>%
-  dplyr::filter(date_normal < lubridate::ymd("2021-05-23")) %>%
-  dplyr::filter(date_normal > "2020-01-01") %>%
+  dplyr::filter(date_normal < lubridate::ymd("2021-05-24")) %>% ##data da última extração
+  dplyr::filter(date_normal > "2020-01-01") %>% ##não pegar arquivos que possuem apenas ano para não distorcer gráfico
   dplyr::select(id, date_normal) %>%
   dplyr::mutate(date_normal = lubridate::floor_date(date_normal, "month")) %>%
   dplyr::group_by(date_normal) %>%
@@ -489,12 +489,12 @@ df_dimensions_filter_sample <- df_dimensions_filter %>%
 
 ## arredondando para mês (que é como vai ser exibido nos gráficos)
 df_dimensions_filter <- df_dimensions_filter %>%
+  dplyr::filter(date_normal < lubridate::ymd("2021-05-24")) %>% ##data da última extração
+  dplyr::filter(date_normal > "2020-01-01") %>% ##não pegar arquivos que possuem apenas ano para não distorcer gráfico
   dplyr::mutate(date = lubridate::floor_date(date_normal, "month")) %>%
   dplyr::select(-date_normal)
 
-col_names <- colnames(df_dimensions_filter)
-length(col_names)
-col_all_types <- unique(df_dimensions_filter[[2]])
+
 
 df_dimensions_filter_type_date <- df_dimensions_filter %>%
   dplyr::group_by(type, date) %>%
