@@ -499,6 +499,7 @@ df_dimensions_filter <- df_dimensions_filter %>%
 df_dimensions_filter_type_date <- df_dimensions_filter %>%
   dplyr::group_by(type, date) %>%
   dplyr::summarise(count = n())
+
 ### 1.1 Manipulando países  ---------------------------------
 
 ## Recebe apenas a coluna de paises
@@ -519,3 +520,28 @@ unique_values <- unique(rapply(paises_split, function(x) head(x, 30)))
 ## Transforma em dataframe para manipulação
 dt_list <- purrr::map(paises_split, data.table::as.data.table)
 dt <- data.table::rbindlist(dt_list, fill = TRUE, idcol = T)
+
+### 1.2 Separando nomes, primeiro e último   ---------------------------------
+library(stringr)
+
+## If NA, significa que tem apenas um autor, posso puxar de last author
+# first_author <- str_extract(df_dimensions_filter_sample_min$authors_ln, '[^|]+') 
+# 
+# last_author <- sub(".*\\|", "", df_dimensions_filter_sample_min$authors_ln)
+# 
+## Funções para pegar primeiro autor e último autor
+first_author <- function (x){
+  str_extract(x, '[^|]+') 
+}
+last_author <- function (x){
+  sub(".*\\|", "", x)
+}
+
+df_dimensions_filter_authors <- df_dimensions_filter %>%
+  dplyr::select(authors_fn, authors_ln)  %>%
+  dplyr::mutate(first_author_fn = first_author(authors_fn)) %>%
+  dplyr::mutate(first_author_ln = first_author(authors_ln)) %>%
+  dplyr::mutate(last_author_fn = last_author(authors_fn)) %>%
+  dplyr::mutate(last_author_ln = last_author(authors_ln)) %>%
+  dplyr::select(-authors_fn, -authors_ln)
+
