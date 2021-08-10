@@ -524,7 +524,7 @@ df_dimensions_filter_country <- df_dimensions_filter %>%
   dplyr::mutate(first_country = fct_first_country(research_org_country_names)) %>%
   dplyr::mutate(last_country = fct_last_country(research_org_country_names)) %>%
   dplyr::select(-research_org_country_names) %>%
-  dplyr::mutate(last_country = if_else(first_country == last_country, "NA",
+  dplyr::mutate(last_country = if_else(first_country == last_country, "NoCountry",
                                        last_country))
 
 ### 1.2 Tabela tipo e data   ---------------------------------
@@ -542,33 +542,7 @@ df_dimensions_filter_type_date_db <- df_dimensions_filter_type_date %>%
   dplyr::group_by(type, date) %>%
   dplyr::summarise(count = n()) %>%
   dplyr::ungroup()
-
-### Unindo tabelas de países com tipo e data ---------------------
-
-df_dim_filter_type_date_country <- inner_join(df_dimensions_filter_type_date, df_dimensions_filter_country,
-                                               by=c("id"))
-
-df_dim_filter_type_date_country_f_db <- df_dim_filter_type_date_country %>%
-  dplyr::group_by(type, date, first_country) %>%
-  dplyr::summarise(count = n()) %>%
-  dplyr::ungroup() %>%
-  dplyr::filter(first_country != "NA")
-
-df_dim_filter_type_date_country_l_db <- df_dim_filter_type_date_country %>%
-  dplyr::group_by(type, date, last_country) %>%
-  dplyr::summarise(count = n()) %>%
-  dplyr::ungroup() %>%
-  dplyr::filter(last_country != "NA")
-
-df_dim_filter_type_date_country_db <- full_join(df_dim_filter_type_date_country_f_db, 
-                                                df_dim_filter_type_date_country_l_db,
-                                                by=c("type" = "type", "date" = "date",
-                                                     "first_country" = "last_country")) %>%
-  replace(is.na(.), 0) %>%
-  dplyr::mutate(count_sum = count.x + count.y) %>%
-  dplyr::select(-count.x, -count.y)
-
-### 1.2 Separando nomes, primeiro e último   ---------------------------------
+### 1.3 Separando nomes, primeiro e último   ---------------------------------
 library(stringr)
 
 ## If NA, significa que tem apenas um autor, posso puxar de last author
@@ -596,3 +570,30 @@ df_dimensions_filter_authors <- df_dimensions_filter %>%
                                          last_author_ln)) %>%
   dplyr::mutate(last_author_fn = if_else(first_author_fn == last_author_fn, "vazio",
                                          last_author_fn))
+
+## 1.4 Tabelas de países com tipo e data ---------------------
+
+df_dim_filter_type_date_country <- full_join(df_dimensions_filter_type_date, df_dimensions_filter_country,
+                                               by=c("id")) %>%
+  dplyr::mutate(first_country = tidyr::replace_na(first_country, "NoCountry")) %>%
+  dplyr::mutate(last_country = tidyr::replace_na(last_country, "NoCountry")) %>%
+  dplyr::mutate(type = tidyr::replace_na(type, "NoType"))
+
+df_dim_filter_type_date_country_f_db <- df_dim_filter_type_date_country %>%
+  dplyr::group_by(type, date, first_country) %>%
+  dplyr::summarise(count = n()) %>%
+  dplyr::ungroup()
+
+df_dim_filter_type_date_country_l_db <- df_dim_filter_type_date_country %>%
+  dplyr::group_by(type, date, last_country) %>%
+  dplyr::summarise(count = n()) %>%
+  dplyr::ungroup()
+
+df_dim_filter_type_date_country_db <- full_join(df_dim_filter_type_date_country_f_db, 
+                                                df_dim_filter_type_date_country_l_db,
+                                                by=c("type" = "type", "date" = "date",
+                                                     "first_country" = "last_country")) %>%
+  dplyr::mutate(count_sum = count.x + count.y) %>%
+  dplyr::select(-count.x, -count.y)
+
+
