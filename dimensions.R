@@ -597,5 +597,3 @@ df_dim_filter_type_date_country_db <- full_join(df_dim_filter_type_date_country_
   dplyr::mutate(count.y = tidyr::replace_na(count.y, 0)) %>%
   dplyr::mutate(count_sum = count.x + count.y) %>%
   dplyr::select(-count.x, -count.y)
-
-
