@@ -480,7 +480,7 @@ library(dplyr)
 ## categ_pub -> categories.for_v1.first_level.codes
 ## 
 df_dimensions_filter <- fst::read_fst("dados/dimensions_compressed.fst")%>%
-  dplyr::select(id, authors_fn = authors,  authors_ln =  `authors/lastname`, metrics.times_cited, altmetrics.score, date_normal, type, title.preferred, abstract.preferred,
+  dplyr::select(id, doi, authors_fn = authors,  authors_ln =  `authors/lastname`, metrics.times_cited, altmetrics.score, date_normal, type, title.preferred, abstract.preferred,
                 research_org_country_names, categories.for_v1.first_level.codes)
 df_dimensions_filter <- tibble::as_tibble(df_dimensions_filter)
 
@@ -597,3 +597,73 @@ df_dim_filter_type_date_country_db <- full_join(df_dim_filter_type_date_country_
   dplyr::mutate(count.y = tidyr::replace_na(count.y, 0)) %>%
   dplyr::mutate(count_sum = count.x + count.y) %>%
   dplyr::select(-count.x, -count.y)
+
+
+## 1.5 Manipulando (todos) países ---------------------------------
+
+library(stringr)
+
+# df_dimensions_filter_country <- df_dimensions_filter %>%
+#   dplyr::select(id, research_org_country_names) %>%
+#   dplyr::filter(research_org_country_names != "") 
+
+# separar_string <- function (x){
+#   x <- stringr::str_split(x, pattern = ";")
+# }
+
+df_country <- df_dimensions_filter %>%
+  dplyr::select(id, doi, research_org_country_names) %>%
+  dplyr::filter(research_org_country_names != "") %>%
+  dplyr::mutate_at(.vars = c(3) , function (x) stringr::str_split(x, pattern = ";"))
+
+## Verificando o maior número de países nas linhas
+max_lenght = 1
+for(i in 1:nrow(df_country)){
+  col_length <- length(df_country[[3]][[i]])
+  #print(col_length)
+  if(col_length > max_lenght){
+    col_name <- i
+    max_lenght <- col_length
+  }
+}
+
+## artigo com maior número de países na base
+df_country[[3]][[183424]]
+
+##Adicionando coluna de ID para agrupar com a contagem depois
+df_country <- tibble::rowid_to_column(df_country, "ID")
+
+countries <- df_country$research_org_country_names
+## Transforma em dataframe para manipulação
+countries <- purrr::map(df_country$research_org_country_names , data.table::as.data.table)
+df_countries_count <- data.table::rbindlist(countries, fill = TRUE, idcol = T)
+
+df_group <- df_countries_count %>%
+  dplyr::rename(id = .id, paises = V1) %>%
+  dplyr::group_by(paises) %>%
+  dplyr::mutate(count = n()) %>%
+  dplyr::distinct(.keep_all = T) %>%
+  dplyr::ungroup() %>%
+  dplyr::arrange(paises)
+
+df_ <- df_countries_count %>%
+  dplyr::rename(id = .id, paises = V1) %>%
+  dplyr::mutate(n = 1)
+
+
+df_coun <- df_ %>%
+  tidyr::pivot_wider(names_from = paises, values_from = n, values_fill = 0)
+
+df_coun <- df_coun %>%
+  dplyr::group_by_all() %>%
+  dplyr::summarise(count = n()) %>%
+  dplyr::ungroup()
+  
+## Agrupa por país e conta quantas vezes aparece
+df_count <- df_countries_count %>%
+  dplyr::filter(V1 != '' & V1 != ' ') %>%
+  dplyr::group_by(V1) %>%
+  dplyr::summarise(count = n()) %>%
+  dplyr::rename(Paises = V1) %>%
+  dplyr::ungroup()
+
