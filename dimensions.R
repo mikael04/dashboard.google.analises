@@ -650,7 +650,7 @@ df_ <- df_countries_count %>%
   dplyr::rename(id = .id, paises = V1) %>%
   dplyr::mutate(n = 1)
 
-
+rm(countries, df_, df_countries_count)
 df_coun <- df_ %>%
   tidyr::pivot_wider(names_from = paises, values_from = n, values_fill = 0)
 
@@ -658,6 +658,39 @@ df_coun <- df_coun %>%
   dplyr::group_by_all() %>%
   dplyr::summarise(count = n()) %>%
   dplyr::ungroup()
+
+data.table::fwrite(df_coun, "dados/df_paises_wider.RDS")
+df_coun <- data.table::fread("dados/df_paises_wider.RDS")
+func_sim_nao <- function(x, name_col){
+  if(x == "1"){
+    x = name_col
+  }else{
+    x = "no"
+  }
+}
+col_names <- colnames(df_coun)
+col_names[i]
+names(df_coun[[2]])
+for(i in 2:ncol(df_coun)){
+  df_coun[[i]] <- sapply(df_coun[[i]], function(x){
+    if(x == "1"){
+      x = col_names[i]
+    }else{
+      x = "no"
+    }
+  })
+}
+df_coun$Spain <- sapply(df_coun$Spain, function(x){
+  if(x == "1"){
+    x = "Spain"
+  }else{
+    x = "no"
+  }
+})
+ncol(df_coun)
+for(i in 2:ncol(df_coun)){
+  # print(i)
+}
   
 ## Agrupa por país e conta quantas vezes aparece
 df_count <- df_countries_count %>%
