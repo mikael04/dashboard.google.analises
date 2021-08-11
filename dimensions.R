@@ -661,13 +661,7 @@ df_coun <- df_coun %>%
 
 data.table::fwrite(df_coun, "dados/df_paises_wider.RDS")
 df_coun <- data.table::fread("dados/df_paises_wider.RDS")
-func_sim_nao <- function(x, name_col){
-  if(x == "1"){
-    x = name_col
-  }else{
-    x = "no"
-  }
-}
+
 col_names <- colnames(df_coun)
 col_names[i]
 names(df_coun[[2]])
@@ -680,23 +674,3 @@ for(i in 2:ncol(df_coun)){
     }
   })
 }
-df_coun$Spain <- sapply(df_coun$Spain, function(x){
-  if(x == "1"){
-    x = "Spain"
-  }else{
-    x = "no"
-  }
-})
-ncol(df_coun)
-for(i in 2:ncol(df_coun)){
-  # print(i)
-}
-  
-## Agrupa por país e conta quantas vezes aparece
-df_count <- df_countries_count %>%
-  dplyr::filter(V1 != '' & V1 != ' ') %>%
-  dplyr::group_by(V1) %>%
-  dplyr::summarise(count = n()) %>%
-  dplyr::rename(Paises = V1) %>%
-  dplyr::ungroup()
-
