@@ -470,7 +470,6 @@ df_country <- arrow::read_parquet("dados/country_code-Copy1")
 glimpse(df_raw_affiliation)
 
 ## 1. Criação de tabelas  ---------------------------------
-library(dplyr)
 ## quais campos preciso? id +
 ## artigos_autores -> 
 ## artigos_cit -> 
@@ -479,11 +478,14 @@ library(dplyr)
 ## paises_pub -> research_org_country_names
 ## categ_pub -> categories.for_v1.first_level.codes
 ## 
+library(dplyr)
+
 df_dimensions_filter <- fst::read_fst("dados/dimensions_compressed.fst")%>%
   dplyr::select(id, doi, authors_fn = authors,  authors_ln =  `authors/lastname`, metrics.times_cited, altmetrics.score, date_normal, type, title.preferred, abstract.preferred,
                 research_org_country_names, categories.for_v1.first_level.codes)
 df_dimensions_filter <- tibble::as_tibble(df_dimensions_filter)
 
+set.seed(424242)
 df_dimensions_filter_sample <- df_dimensions_filter %>% 
   dplyr::sample_frac(0.01)
 
@@ -551,25 +553,48 @@ library(stringr)
 # last_author <- sub(".*\\|", "", df_dimensions_filter_sample_min$authors_ln)
 # 
 ## Funções para pegar primeiro autor e último autor
-first_author <- function (x){
-  str_extract(x, '[^|]+') 
+func_first_author <- function (x){
+  str_extract(x, '[^|]+')
 }
-last_author <- function (x){
+func_last_author <- function (x){
   sub(".*\\|", "", x)
 }
+func_trans_names <- function(x){
+  stringi::stri_trans_general(x, "Latin-ASCII")
+}
 
-df_dimensions_filter_authors <- df_dimensions_filter %>%
+df_dimensions_filter_authors <- df_dimensions_filter_sample %>%
   dplyr::select(id, authors_fn, authors_ln) %>%
-  dplyr::filter(authors_ln != "vazio") %>%
-  dplyr::mutate(first_author_fn = first_author(authors_fn)) %>%
-  dplyr::mutate(first_author_ln = first_author(authors_ln)) %>%
-  dplyr::mutate(last_author_fn = last_author(authors_fn)) %>%
-  dplyr::mutate(last_author_ln = last_author(authors_ln)) %>%
+  dplyr::filter((authors_ln != "vazio") | (authors_fn != "vazio")) %>%
+  ## transliteração de nomes, funciona para caractéres próximos do nosso alfabeto
+  ## não vai funcionar pra outras línguas (ex: árabe e chinês)
+  dplyr::mutate(authors_fn = func_trans_names(authors_fn)) %>%
+  dplyr::mutate(authors_ln = func_trans_names(authors_ln)) %>%
+  ## extraindo apenas nome (nome e sobrenome) do primeiro autor
+  dplyr::mutate(first_author_fn = func_first_author(authors_fn)) %>%
+  dplyr::mutate(first_author_ln = func_first_author(authors_ln)) %>%
+  ## extraindo apenas nome (nome e sobrenome) do último autor
+  dplyr::mutate(last_author_fn = func_last_author(authors_fn)) %>%
+  dplyr::mutate(last_author_ln = func_last_author(authors_ln)) %>%
   dplyr::select(-authors_fn, -authors_ln) %>%
+  ## removendo duplicatas, quando tem apenas um autor
   dplyr::mutate(last_author_ln = if_else(first_author_ln == last_author_ln, "vazio",
                                          last_author_ln)) %>%
   dplyr::mutate(last_author_fn = if_else(first_author_fn == last_author_fn, "vazio",
                                          last_author_fn))
+
+## árabe
+stringi::stri_trans_general(df_dimensions_filter_authors[[2]][[42]], "Latin-ASCII")
+
+library(googleLanguageR)
+googleAuthR::gar_api_key("AIzaSyB84ctrM_TV-a_WbVOFGocanrraVUr9my8")
+googleAuthR::gar_auth("103fe09bb359dbea4b227af75b34653f0f6a436b")
+text <- "to administer medicince to animals is frequently a very difficult matter, and yet sometimes it's necessary to do so"
+googleLanguageR::gl_auth("AIzaSyDxafQIU4qlOA9lIBry29PjbxI-EcxMRZ0")
+## translate British into Danish
+gl_translate(df_dimensions_filter_authors[[2]][[42]], target = "en")
+
+# stringi::stri_trans_general("Zażółć gęślą jaźń", "Latin-ASCII")
 
 ## 1.4 Tabelas de países com tipo e data ---------------------
 
@@ -628,10 +653,10 @@ for(i in 1:nrow(df_country)){
 }
 
 ## artigo com maior número de países na base
-df_country[[3]][[183424]]
+# df_country[[3]][[183424]]
 
 ##Adicionando coluna de ID para agrupar com a contagem depois
-df_country <- tibble::rowid_to_column(df_country, "ID")
+df_country <- tibble::rowid_to_column(df_country, "id_doi")
 
 countries <- df_country$research_org_country_names
 ## Transforma em dataframe para manipulação
@@ -654,19 +679,17 @@ rm(countries, df_, df_countries_count)
 df_coun <- df_ %>%
   tidyr::pivot_wider(names_from = paises, values_from = n, values_fill = 0)
 
-df_coun <- df_coun %>%
-  dplyr::group_by_all() %>%
-  dplyr::summarise(count = n()) %>%
-  dplyr::ungroup()
+df_paises_wider <- dplyr::inner_join(df_country, df_coun, by=c("id_doi" = "id")) %>%
+  dplyr::select(-id_doi, -research_org_country_names)
 
-data.table::fwrite(df_coun, "dados/df_paises_wider.RDS")
-df_coun <- data.table::fread("dados/df_paises_wider.RDS")
+data.table::fwrite(df_paises_wider, "dados/df_paises_wider.RDS")
+df_paises_wider <- data.table::fread("dados/df_paises_wider.RDS")
 
-col_names <- colnames(df_coun)
+col_names <- colnames(df_paises_wider)
 col_names[i]
-names(df_coun[[2]])
-for(i in 2:ncol(df_coun)){
-  df_coun[[i]] <- sapply(df_coun[[i]], function(x){
+names(df_paises_wider[[2]])
+for(i in 2:ncol(df_paises_wider)){
+  df_paises_wider[[i]] <- sapply(df_paises_wider[[i]], function(x){
     if(x == "1"){
       x = col_names[i]
     }else{

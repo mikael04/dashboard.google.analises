@@ -108,8 +108,8 @@ df_dim_filter_type_date_country_db <- full_join(df_dim_filter_type_date_country_
 df_coun <- data.table::fread("dados/df_paises_wider.RDS")
 
 col_names <- colnames(df_coun)
-## A partir do segundo, o primeiro é o "id"
-for(i in 2:ncol(df_coun)){
+## A partir da terceira coluna, a primeira é o "id" e segunda "doi"
+for(i in 3:ncol(df_coun)){
   df_coun[[i]] <- sapply(df_coun[[i]], function(x){
     if(x == "1"){
       x = col_names[i]
