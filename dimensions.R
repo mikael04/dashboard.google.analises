@@ -597,15 +597,12 @@ df_utf8 <- df_dimensions_filter_authors %>%
 ## Tradução
 library(googleLanguageR)
 
+## Verificar quais campos deverão ser traduzidos, por enqaunto apenas um
 # df_dimensions_filter_authors <- df_dimensions_filter_authors %>%
 #   dplyr::mutate(language = gl_translate_detect(first_author_ln))
 
-idiomas <- df_dimensions_filter_authors$language
-data.table::fwrite(idiomas, "idiomas.csv")
-
-gl_translate(df_dimensions_filter_authors[[2]][[42]], target = "en")
-
 # stringi::stri_trans_general("Zażółć gęślą jaźń", "Latin-ASCII")
+
 
 ## 1.4 Tabelas de países com tipo e data ---------------------
 

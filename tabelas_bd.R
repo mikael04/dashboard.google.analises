@@ -172,10 +172,8 @@ df_utf8 <- df_dimensions_filter_authors %>%
 ## Tradução
 library(googleLanguageR)
 
-authors <- df_utf8$first_author_ln
+## Verificar quais campos deverão ser traduzidos, por enqaunto apenas um
 # df_dimensions_filter_authors <- df_dimensions_filter_authors %>%
 #   dplyr::mutate(language = gl_translate_detect(first_author_ln))
-idiomas <- df_utf8$language
-data.table::fwrite(idiomas, "idiomas.csv")
 
 # stringi::stri_trans_general("Zażółć gęślą jaźń", "Latin-ASCII")
