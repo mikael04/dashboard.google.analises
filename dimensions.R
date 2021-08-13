@@ -563,7 +563,7 @@ func_trans_names <- function(x){
   stringi::stri_trans_general(x, "Latin-ASCII")
 }
 
-df_dimensions_filter_authors <- df_dimensions_filter_sample %>%
+df_dimensions_filter_authors <- df_dimensions_filter %>%
   dplyr::select(id, authors_fn, authors_ln) %>%
   dplyr::filter((authors_ln != "vazio") | (authors_fn != "vazio")) %>%
   ## transliteração de nomes, funciona para caractéres próximos do nosso alfabeto
@@ -581,17 +581,28 @@ df_dimensions_filter_authors <- df_dimensions_filter_sample %>%
   dplyr::mutate(last_author_ln = if_else(first_author_ln == last_author_ln, "vazio",
                                          last_author_ln)) %>%
   dplyr::mutate(last_author_fn = if_else(first_author_fn == last_author_fn, "vazio",
-                                         last_author_fn))
+                                         last_author_fn)) %>%
+  ## Adicionando identificador de letra, para futura tradução de nome (nomes asiáticos,
+  ## russos e derivados, e em idioma arábico)
+  dplyr::mutate(first_author_fn_typeofchar = stringi::stri_enc_mark(first_author_fn)) %>%
+  dplyr::mutate(first_author_ln_typeofchar = stringi::stri_enc_mark(first_author_ln)) %>%
+  dplyr::mutate(last_author_fn_typeofchar = stringi::stri_enc_mark(last_author_fn)) %>%
+  dplyr::mutate(last_author_ln_typeofchar = stringi::stri_enc_mark(last_author_ln))
+  ## Precisa testar as quatro variáveis, primeiro e último autor combinados com primeiro e último nome (2x2)
 
-## árabe
-stringi::stri_trans_general(df_dimensions_filter_authors[[2]][[42]], "Latin-ASCII")
+## Apenas os que precisarão de tradução
+df_utf8 <- df_dimensions_filter_authors %>%
+  dplyr::filter(first_author_ln_typeofchar == "UTF-8")
 
+## Tradução
 library(googleLanguageR)
-googleAuthR::gar_api_key("AIzaSyB84ctrM_TV-a_WbVOFGocanrraVUr9my8")
-googleAuthR::gar_auth("103fe09bb359dbea4b227af75b34653f0f6a436b")
-text <- "to administer medicince to animals is frequently a very difficult matter, and yet sometimes it's necessary to do so"
-googleLanguageR::gl_auth("AIzaSyDxafQIU4qlOA9lIBry29PjbxI-EcxMRZ0")
-## translate British into Danish
+
+# df_dimensions_filter_authors <- df_dimensions_filter_authors %>%
+#   dplyr::mutate(language = gl_translate_detect(first_author_ln))
+
+idiomas <- df_dimensions_filter_authors$language
+data.table::fwrite(idiomas, "idiomas.csv")
+
 gl_translate(df_dimensions_filter_authors[[2]][[42]], target = "en")
 
 # stringi::stri_trans_general("Zażółć gęślą jaźń", "Latin-ASCII")

@@ -118,3 +118,64 @@ for(i in 3:ncol(df_coun)){
     }
   })
 }
+
+### 1.3 Separando nomes, primeiro e último   ---------------------------------
+library(stringr)
+
+## If NA, significa que tem apenas um autor, posso puxar de last author
+# first_author <- str_extract(df_dimensions_filter_sample_min$authors_ln, '[^|]+') 
+# 
+# last_author <- sub(".*\\|", "", df_dimensions_filter_sample_min$authors_ln)
+# 
+## Funções para pegar primeiro autor e último autor
+func_first_author <- function (x){
+  str_extract(x, '[^|]+')
+}
+func_last_author <- function (x){
+  sub(".*\\|", "", x)
+}
+func_trans_names <- function(x){
+  stringi::stri_trans_general(x, "Latin-ASCII")
+}
+
+df_dimensions_filter_authors <- df_dimensions_filter %>%
+  dplyr::select(id, authors_fn, authors_ln) %>%
+  dplyr::filter((authors_ln != "vazio") | (authors_fn != "vazio")) %>%
+  ## transliteração de nomes, funciona para caractéres próximos do nosso alfabeto
+  ## não vai funcionar pra outras línguas (ex: árabe e chinês)
+  dplyr::mutate(authors_fn = func_trans_names(authors_fn)) %>%
+  dplyr::mutate(authors_ln = func_trans_names(authors_ln)) %>%
+  ## extraindo apenas nome (nome e sobrenome) do primeiro autor
+  dplyr::mutate(first_author_fn = func_first_author(authors_fn)) %>%
+  dplyr::mutate(first_author_ln = func_first_author(authors_ln)) %>%
+  ## extraindo apenas nome (nome e sobrenome) do último autor
+  dplyr::mutate(last_author_fn = func_last_author(authors_fn)) %>%
+  dplyr::mutate(last_author_ln = func_last_author(authors_ln)) %>%
+  dplyr::select(-authors_fn, -authors_ln) %>%
+  ## removendo duplicatas, quando tem apenas um autor
+  dplyr::mutate(last_author_ln = if_else(first_author_ln == last_author_ln, "vazio",
+                                         last_author_ln)) %>%
+  dplyr::mutate(last_author_fn = if_else(first_author_fn == last_author_fn, "vazio",
+                                         last_author_fn)) %>%
+  ## Adicionando identificador de letra, para futura tradução de nome (nomes asiáticos,
+  ## russos e derivados, e em idioma arábico)
+  dplyr::mutate(first_author_fn_typeofchar = stringi::stri_enc_mark(first_author_fn)) %>%
+  dplyr::mutate(first_author_ln_typeofchar = stringi::stri_enc_mark(first_author_ln)) %>%
+  dplyr::mutate(last_author_fn_typeofchar = stringi::stri_enc_mark(last_author_fn)) %>%
+  dplyr::mutate(last_author_ln_typeofchar = stringi::stri_enc_mark(last_author_ln))
+## Precisa testar as quatro variáveis, primeiro e último autor combinados com primeiro e último nome (2x2)
+
+## Apenas os que precisarão de tradução
+df_utf8 <- df_dimensions_filter_authors %>%
+  dplyr::filter(first_author_ln_typeofchar == "UTF-8")
+
+## Tradução
+library(googleLanguageR)
+
+authors <- df_utf8$first_author_ln
+# df_dimensions_filter_authors <- df_dimensions_filter_authors %>%
+#   dplyr::mutate(language = gl_translate_detect(first_author_ln))
+idiomas <- df_utf8$language
+data.table::fwrite(idiomas, "idiomas.csv")
+
+# stringi::stri_trans_general("Zażółć gęślą jaźń", "Latin-ASCII")
