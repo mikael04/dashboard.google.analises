@@ -666,19 +666,12 @@ for(i in 1:nrow(df_country)){
 ##Adicionando coluna de ID para agrupar com a contagem depois
 df_country <- tibble::rowid_to_column(df_country, "id_doi")
 
-countries <- df_country$research_org_country_names
-## Transforma em dataframe para manipulação
+## Transforma lista para manipulação
 countries <- purrr::map(df_country$research_org_country_names , data.table::as.data.table)
+## Transforma em dataframe, mas criando novas linhas para mesmo id (separa países por linha)
 df_countries_count <- data.table::rbindlist(countries, fill = TRUE, idcol = T)
 
-df_group <- df_countries_count %>%
-  dplyr::rename(id = .id, paises = V1) %>%
-  dplyr::group_by(paises) %>%
-  dplyr::mutate(count = n()) %>%
-  dplyr::distinct(.keep_all = T) %>%
-  dplyr::ungroup() %>%
-  dplyr::arrange(paises)
-
+## renomeia e adiciona uma linha com valor 1, para poder fazer o pivot_wider
 df_ <- df_countries_count %>%
   dplyr::rename(id = .id, paises = V1) %>%
   dplyr::mutate(n = 1)
@@ -691,7 +684,7 @@ df_paises_wider <- dplyr::inner_join(df_country, df_coun, by=c("id_doi" = "id"))
   dplyr::select(-id_doi, -research_org_country_names)
 
 data.table::fwrite(df_paises_wider, "dados/df_paises_wider.RDS")
-df_paises_wider <- data.table::fread("dados/df_paises_wider.RDS")
+df_paises_wider <- data.table::fread("dados/df_wider_paises.RDS")
 
 col_names <- colnames(df_paises_wider)
 col_names[i]
