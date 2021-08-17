@@ -303,12 +303,14 @@ rm(df_dimensions_perguntas_anti, df_perguntas_dupli_doi, df_perguntas_dupli_id,
    df_valid_doi_dimensions, df_valid_id_perguntas, df_valid_id_dimensions)
 
 ## Perguntas e artigos resposta - Tabela resposta ---------------------------------
-# df_dimensions_cut <- df_dimensions %>%
-#   dplyr::select(id, title.preferred, `authors/lastname`, abstract.preferred, date_normal,
-#                 subtitles, type, research_org_country_names)
-# df_perguntas <- data.table::fread("dados/buscaCompleta2305.csv") %>%
-#   dplyr::select(-abstract.preferred, -title.preferred)
-# ###
+library(dplyr)
+
+df_dimensions_cut <- df_dimensions %>%
+  dplyr::select(id, title.preferred, `authors/lastname`, abstract.preferred, date_normal,
+                subtitles, type, research_org_country_names)
+df_perguntas <- data.table::fread("dados/buscaCompleta2305.csv") %>%
+  dplyr::select(-abstract.preferred, -title.preferred)
+###
 # ## Feito apenas uma vez, depois usar o "Relacao_clean.csv"
 # ## manipulando para ter mesmo nome de coluna do df_perguntas
 # # df_perguntas_dict <- data.table::fread("dados/Relacao.csv")
@@ -317,26 +319,30 @@ rm(df_dimensions_perguntas_anti, df_perguntas_dupli_doi, df_perguntas_dupli_id,
 # # ## Escrevendo nova tabela
 # # data.table::fwrite(df_perguntas_dict, "dados/Relacao_clean.csv")
 # ###
-# df_perguntas_dict <- data.table::fread("dados/Relacao_clean.csv")
-# 
-# df_dimensions_ij_perguntas <- dplyr::inner_join(df_dimensions_cut,
-#                                                 df_perguntas, by="id")
-####
-## Como é feito no app
-# arvore_no_sel = 'What are the prodromal symptoms in COVID-19?'
-# col_name <- df_perguntas_dict %>%
-#   dplyr::filter(Pergunta == arvore_no_sel) %>%
-#   dplyr::select(Busca)
-# df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
-#     dplyr::filter(!!as.name(col_name$Busca) == '1')
-# ## Escrevendo uma tabela exemplo
-# data.table::fwrite(df_dimensions_ij_perguntas_search, "dados/df_dimensions_ij_perguntas_search.csv")
-####
-## Para o app_tabela
-# col_name <- df_perguntas_dict[df_perguntas_dict$Pergunta == input$question]$Busca
-# df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
-#   dplyr::filter(!!as.name(col_name) == '1')
-####
+df_perguntas_dict <- data.table::fread("dados/Relacao_clean.csv")
+
+df_dimensions_ij_perguntas <- dplyr::inner_join(df_dimensions_cut,
+                                                df_perguntas, by="id") %>%
+  dplyr::select(id, title.preferred, authors = `authors/lastname`, date_normal, subtitles, type, research_org_country_names) %>%
+  dplyr::mutate(authors = if_else(authors == "vazio", "-", authors))
+
+
+###
+# Como é feito no app
+arvore_no_sel = 'What are the prodromal symptoms in COVID-19?'
+col_name <- df_perguntas_dict %>%
+  dplyr::filter(Pergunta == arvore_no_sel) %>%
+  dplyr::select(Busca)
+df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
+    dplyr::filter(!!as.name(col_name$Busca) == '1')
+## Escrevendo uma tabela exemplo
+data.table::fwrite(df_dimensions_ij_perguntas_search, "dados/df_dimensions_ij_perguntas_search.csv")
+###
+# Para o app_tabela
+col_name <- df_perguntas_dict[df_perguntas_dict$Pergunta == input$question]$Busca
+df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
+  dplyr::filter(!!as.name(col_name) == '1')
+###
 
 rm(df_dimensions_cut, df_perguntas, df_dimensions_ij_perguntas)
 
@@ -480,7 +486,7 @@ glimpse(df_raw_affiliation)
 ## 
 library(dplyr)
 
-df_dimensions_filter <- fst::read_fst("dados/dimensions_compressed.fst")%>%
+df_dimensions_filter <- fst::read_fst("dados/dimensions_compressed.fst") %>%
   dplyr::select(id, doi, authors_fn = authors,  authors_ln =  `authors/lastname`, metrics.times_cited, altmetrics.score, date_normal, type, title.preferred, abstract.preferred,
                 research_org_country_names, categories.for_v1.first_level.codes)
 df_dimensions_filter <- tibble::as_tibble(df_dimensions_filter)
