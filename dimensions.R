@@ -642,23 +642,15 @@ df_dim_filter_type_date_country_db <- full_join(df_dim_filter_type_date_country_
 
 library(stringr)
 
-# df_dimensions_filter_country <- df_dimensions_filter %>%
-#   dplyr::select(id, research_org_country_names) %>%
-#   dplyr::filter(research_org_country_names != "") 
-
-# separar_string <- function (x){
-#   x <- stringr::str_split(x, pattern = ";")
-# }
-
 df_country <- df_dimensions_filter %>%
-  dplyr::select(id, doi, research_org_country_names) %>%
+  dplyr::select(id, research_org_country_names) %>%
   dplyr::filter(research_org_country_names != "") %>%
-  dplyr::mutate_at(.vars = c(3) , function (x) stringr::str_split(x, pattern = ";"))
+  dplyr::mutate_at(.vars = c(2) , function (x) stringr::str_split(x, pattern = ";"))
 
 ## Verificando o maior número de países nas linhas
 max_lenght = 1
 for(i in 1:nrow(df_country)){
-  col_length <- length(df_country[[3]][[i]])
+  col_length <- length(df_country[[2]][[i]])
   #print(col_length)
   if(col_length > max_lenght){
     col_name <- i
@@ -670,37 +662,18 @@ for(i in 1:nrow(df_country)){
 # df_country[[3]][[183424]]
 
 ##Adicionando coluna de ID para agrupar com a contagem depois
-df_country <- tibble::rowid_to_column(df_country, "id_doi")
+df_country <- tibble::rowid_to_column(df_country, "id_pub")
 
 ## Transforma lista para manipulação
 countries <- purrr::map(df_country$research_org_country_names , data.table::as.data.table)
 ## Transforma em dataframe, mas criando novas linhas para mesmo id (separa países por linha)
-df_countries_count <- data.table::rbindlist(countries, fill = TRUE, idcol = T)
+df_countries_count <- data.table::rbindlist(countries, fill = TRUE, idcol = T) %>%
+  dplyr::rename(id = .id, paises = V1)
 
-## renomeia e adiciona uma linha com valor 1, para poder fazer o pivot_wider
-df_ <- df_countries_count %>%
-  dplyr::rename(id = .id, paises = V1) %>%
-  dplyr::mutate(n = 1)
+df_paises_long <- dplyr::inner_join(df_country, df_countries_count, by=c("id_pub" = "id")) %>%
+  dplyr::select(-id_pub, -research_org_country_names)
 
-rm(countries, df_, df_countries_count)
-df_coun <- df_ %>%
-  tidyr::pivot_wider(names_from = paises, values_from = n, values_fill = 0)
+rm(countries, df_countries_count, df_country)
 
-df_paises_wider <- dplyr::inner_join(df_country, df_coun, by=c("id_doi" = "id")) %>%
-  dplyr::select(-id_doi, -research_org_country_names)
-
-data.table::fwrite(df_paises_wider, "dados/df_paises_wider.RDS")
-df_paises_wider <- data.table::fread("dados/df_wider_paises.RDS")
-
-col_names <- colnames(df_paises_wider)
-col_names[i]
-names(df_paises_wider[[2]])
-for(i in 2:ncol(df_paises_wider)){
-  df_paises_wider[[i]] <- sapply(df_paises_wider[[i]], function(x){
-    if(x == "1"){
-      x = col_names[i]
-    }else{
-      x = "no"
-    }
-  })
-}
+data.table::fwrite(df_paises_wider, "dados/df_paises_long.RDS")
+# df_paises_wider <- data.table::fread("dados/df_wider_paises.RDS")
