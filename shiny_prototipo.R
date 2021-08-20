@@ -16,6 +16,7 @@ library(shiny)
 library(jsonlite)
 library(bslib)
 library(plotly)
+library(thematic)
 
 countries <- c('Brazil', 'France', 'Germany', 'USA')
 questions <- c("What are the effective pre-exposure prophylactics (PreP) for COVID?",
@@ -35,10 +36,13 @@ comboTreeInput <- function(inputId, width = "30%", height = "100px",
     )
 }
 
+solar_theme <- bs_theme(
+    
+)
+
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-    theme = bs_theme(version = 4,
-                     bootswatch = "minty"),
+    theme = solar_theme,
     navbarPage("COVID-19/CIDACS",
                tabPanel("Publicações ao longo do tempo e local",
                         id = "pub_temp_loc",
@@ -76,14 +80,7 @@ ui <- fluidPage(
                                            ))
                                 ),
                                 fluidRow(
-                                    column(width=6,
-                                           shinycssloaders::withSpinner(plotlyOutput("plot")),
-                                           plotOutput("plot2")
-                                           ),
-                                    column(width=6,
-                                           shinycssloaders::withSpinner(plotOutput("plot3")),
-                                           plotOutput("plot4")
-                                    )
+                                    shiny::uiOutput("dinamic_ui_content")
                                 )
                                 #selected = "pub_temp_loc",
                                 #theme = "boostrap.min.css",
@@ -107,8 +104,16 @@ server <- function(input, output, session) {
     output$plot <- renderPlotly({
         plotly::ggplotly(random_ggplot())
     })
-    output$plot2 <- renderPlot({
-        random_ggplot()
+    
+    output$plot2 <- renderPlotly({
+        fig <- plot_ly(
+            x = c("giraffes", "orangutans", "monkeys"),
+            y = c(20, 14, 23),
+            name = "SF Zoo",
+            type = "bar"
+        )
+        
+        fig
     })
     output$plot3 <- renderPlot({
         random_ggplot()
@@ -117,8 +122,26 @@ server <- function(input, output, session) {
         random_ggplot()
     })
     
+    output$tabela <- renderDataTable({
+        shinipsum::random_DT()
+    })
+    
+    output$dinamic_ui_content <- renderUI({
+        fluidRow(
+            column(width=6,
+                   shinycssloaders::withSpinner(plotlyOutput("plot")),
+                   plotlyOutput("plot2")
+            ),
+            column(width=6,
+                   shinycssloaders::withSpinner(plotOutput("plot3")),
+                   plotOutput("plot4")
+            ),
+            dataTableOutput("tabela")
+        )
+    })
     
 }
 
+thematic_shiny(font = "auto")
 # Run the application 
 shinyApp(ui = ui, server = server)

@@ -25,16 +25,16 @@ df_country <- df_dimensions_filter %>%
   dplyr::filter(research_org_country_names != "") %>%
   dplyr::mutate_at(.vars = c(2) , function (x) stringr::str_split(x, pattern = ";"))
 
-## Verificando o maior número de países nas linhas
-max_lenght = 1
-for(i in 1:nrow(df_country)){
-  col_length <- length(df_country[[2]][[i]])
-  #print(col_length)
-  if(col_length > max_lenght){
-    col_name <- i
-    max_lenght <- col_length
-  }
-}
+# ## Verificando o maior número de países nas linhas
+# max_lenght = 1
+# for(i in 1:nrow(df_country)){
+#   col_length <- length(df_country[[2]][[i]])
+#   #print(col_length)
+#   if(col_length > max_lenght){
+#     col_name <- i
+#     max_lenght <- col_length
+#   }
+# }
 
 ## artigo com maior número de países na base
 # df_country[[3]][[183424]]
@@ -56,7 +56,7 @@ rm(countries, df_countries_count, df_country)
 
 ## arredondando para mês (que é como vai ser exibido nos gráficos)
 df_dimensions_filter_type_date <- df_dimensions_filter %>%
-  dplyr::filter(date_normal < lubridate::ymd("2021-05-24")) %>% ##data da última extração
+  # dplyr::filter(date_normal < lubridate::ymd("2021-05-24")) %>% ##data da última extração
   dplyr::filter(date_normal > "2020-01-01") %>% ##não pegar arquivos que possuem apenas ano para não distorcer gráfico
   dplyr::mutate(date = lubridate::floor_date(date_normal, "month")) %>%
   dplyr::select(id, date, type)
@@ -72,5 +72,6 @@ df_dim_filter_type_date_country_db <- df_dim_filter_type_date_country %>%
   dplyr::summarise(count = n()) %>%
   dplyr::ungroup()
 
+# length(unique(df_dim_filter_type_date_country$id))
 # Foram mantidos os NA, para caso não seja selecionado algum filtro
 
