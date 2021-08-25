@@ -17,31 +17,41 @@ library(jsonlite)
 library(bslib)
 library(plotly)
 library(thematic)
+library(bigrquery)
+library(DBI)
+library(dplyr)
 
-countries <- c('Brazil', 'France', 'Germany', 'USA')
-questions <- c("What are the effective pre-exposure prophylactics (PreP) for COVID?",
-               "How much/Has social distancing had an impact on slowing the spread of COVID-19?",
-               "How much/What is the impact of school closure in handling the COVID-19?",
-               "How/How much OPENING AND CLOSING POLICY DECISIONS influence trends in COVID-19 cases?")
+# countries <- c('Brazil', 'France', 'Germany', 'USA')
 
-comboTreeInput <- function(inputId, width = "30%", height = "100px", 
-                           choices, multiple = FALSE, cascaded = TRUE){
-    tags$div(style = sprintf("width: %s; height: %s;", width, height),
-             tags$input(id = inputId, class = "comboTree", type = "text", 
-                        placeholder = "Select",
-                        `data-choices` = as.character(toJSON(choices, auto_unbox = TRUE)),
-                        `data-multiple` = ifelse(multiple, "true", "false"), 
-                        `data-cascaded` = ifelse(cascaded, "true", "false")
-             )
-    )
-}
+
+
+# comboTreeInput <- function(inputId, width = "30%", height = "100px", 
+#                            choices, multiple = FALSE, cascaded = TRUE){
+#     tags$div(style = sprintf("width: %s; height: %s;", width, height),
+#              tags$input(id = inputId, class = "comboTree", type = "text", 
+#                         placeholder = "Select",
+#                         `data-choices` = as.character(toJSON(choices, auto_unbox = TRUE)),
+#                         `data-multiple` = ifelse(multiple, "true", "false"), 
+#                         `data-cascaded` = ifelse(cascaded, "true", "false")
+#              )
+#     )
+# }
 
 solar_theme <- bs_theme(
-    
+
 )
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
+    tags$head(
+        tags$style(
+            HTML(
+                "        #div_id .selectize-control.single .selectize-input:after{
+                            content: none;
+                         }"
+            )
+        )
+    ),
     theme = solar_theme,
     navbarPage("COVID-19/CIDACS",
                tabPanel("Publicações ao longo do tempo e local",
@@ -52,7 +62,11 @@ ui <- fluidPage(
                                 selectizeInput(
                                     'e5', '5. Max number of items to select', choices = c("Todos os anos", "2020", "2021"),
                                     multiple = TRUE, options = list(maxItems = 1)
-                                )
+                                ),
+                                uiOutput("server_selectize_countries"),
+                                uiOutput("server_selectize_article_type"),
+                                uiOutput("server_selectize_date"),
+                                
                             ),
                             mainPanel(
                                 width = 10,
@@ -101,6 +115,29 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
+    
+    ## Conectando com o BQ
+    con <- dbConnect(
+        bigrquery::bigquery(),
+        project = "cidacs-ai-covid19-br",
+        dataset = "backendDash",
+        billing = "cidacs-ai-covid19-br"
+    )
+    bigrquery::bq_auth(email = "mikael.coletto.eng@gmail.com") # aqui vai ter uma primeira configuração, depois ele usa um token que ele salva
+    ## Recebendo a primeira tabela de filtro
+    df_filtros = dplyr::tbl(con,"hml_base_filtro") %>% dplyr::collect()
+    countries <- df_filtros %>%
+        dplyr::select(paises)
+    type <- df_filtros %>%
+        dplyr::select(tipo = type)
+    date <- df_filtros %>%
+        dplyr::select(data = date) 
+    
+    # updateSelectizeInput(session, 'countries', choices = cbind(name = rownames(countries),countries),
+    #                      server = TRUE)
+    # updateSelectizeInput(session, 'article_type', choices = type, server = TRUE)
+    # updateSelectizeInput(session, 'date', choices = date, server = TRUE)
+    
     output$plot <- renderPlotly({
         plotly::ggplotly(random_ggplot())
     })
@@ -115,15 +152,15 @@ server <- function(input, output, session) {
         
         fig
     })
-    output$plot3 <- renderPlot({
-        random_ggplot()
+    output$plot3 <- renderPlotly({
+        ggplotly(random_ggplot())
     })
-    output$plot4 <- renderPlot({
-        random_ggplot()
+    output$plot4 <- renderPlotly({
+        ggplotly(random_ggplot())
     })
     
     output$tabela <- renderDataTable({
-        shinipsum::random_DT()
+        shinipsum::random_DT(10, 5)
     })
     
     output$dinamic_ui_content <- renderUI({
@@ -133,10 +170,28 @@ server <- function(input, output, session) {
                    plotlyOutput("plot2")
             ),
             column(width=6,
-                   shinycssloaders::withSpinner(plotOutput("plot3")),
-                   plotOutput("plot4")
+                   shinycssloaders::withSpinner(plotlyOutput("plot3")),
+                   plotlyOutput("plot4")
             ),
-            dataTableOutput("tabela")
+            # dataTableOutput("tabela")
+        )
+    })
+    output$server_selectize_countries <- renderUI({
+        selectizeInput(
+            'countries', 'Selecione os países', choices =  countries,
+            multiple = TRUE
+        )
+    })
+    output$server_selectize_article_type <- renderUI({
+        selectizeInput(
+            'article_type', 'Selecione o tipo de artigo', choices = type,
+            multiple = TRUE, options = list(maxItems = 5)
+        )
+    })
+    output$server_selectize_date <- renderUI({
+        selectizeInput(
+            'date', 'Selecione a data', choices = date,
+            multiple = TRUE, options = list(maxItems = 5)
         )
     })
     
