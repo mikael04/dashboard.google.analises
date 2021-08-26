@@ -160,7 +160,9 @@ server <- function(input, output) {
     df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
       dplyr::filter(!!as.name(col_name) == '1')
     output$table <- DT::renderDataTable({
-      DT::datatable(df_dimensions_ij_perguntas_search[,1:11],options = list(columnDefs = list(list(visible=FALSE, targets=c(8, 9, 10, 11))), rowCallback = DT::JS(
+      DT::datatable(df_dimensions_ij_perguntas_search[,1:11],
+                    options = list(columnDefs = list(list(visible=FALSE, targets=c(8, 9, 10, 11))),
+                                   rowCallback = DT::JS(
         "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
         "var full_text_title = aData[8]",
         "var full_text_abs = aData[9]",

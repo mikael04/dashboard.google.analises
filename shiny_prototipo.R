@@ -63,9 +63,18 @@ ui <- fluidPage(
                                     'e5', '5. Max number of items to select', choices = c("Todos os anos", "2020", "2021"),
                                     multiple = TRUE, options = list(maxItems = 1)
                                 ),
-                                uiOutput("server_selectize_countries"),
-                                uiOutput("server_selectize_article_type"),
-                                uiOutput("server_selectize_date"),
+                                selectizeInput(
+                                    'article_type', 'Selecione o tipo de artigo', choices = character(0),
+                                    multiple = TRUE, options = list(maxItems = 5)
+                                ),
+                                selectizeInput(
+                                    'date', 'Selecione a data', choices = character(0),
+                                    multiple = TRUE, options = list(maxItems = 5)
+                                ),
+                                selectizeInput(
+                                    'countries', 'Selecione os países', choices =  character(0),
+                                    multiple = TRUE
+                                )
                                 
                             ),
                             mainPanel(
@@ -126,13 +135,27 @@ server <- function(input, output, session) {
     bigrquery::bq_auth(email = "mikael.coletto.eng@gmail.com") # aqui vai ter uma primeira configuração, depois ele usa um token que ele salva
     ## Recebendo a primeira tabela de filtro
     df_filtros = dplyr::tbl(con,"hml_base_filtro") %>% dplyr::collect()
-    countries <- df_filtros %>%
-        dplyr::select(paises)
-    type <- df_filtros %>%
-        dplyr::select(tipo = type)
-    date <- df_filtros %>%
-        dplyr::select(data = date) 
+    countries_ <- df_filtros %>%
+        dplyr::select(paises) %>%
+        dplyr::distinct(paises)
+    countries <- countries_$paises
+    type_ <- df_filtros %>%
+        dplyr::select(tipo = type) %>%
+        dplyr::distinct(tipo)
+    types <- type_$tipo
+    date_ <- df_filtros %>%
+        dplyr::select(data = date) %>%
+        dplyr::mutate(data = if_else(is.na(data), data, lubridate::floor_date(data, "year"))) %>%
+        dplyr::mutate(data_text = if_else(is.na(data), as.character("Sem Data"), as.character(data))) %>%
+        dplyr::mutate(data_text =  gsub("-.*$", "", data_text)) %>%
+        dplyr::distinct(data, .keep_all = T)
+    dates <- date_$data
+    # observe({
+    # })
     
+    updateSelectizeInput(session, 'article_type', choices = types, server = TRUE)
+    updateSelectizeInput(session, 'date', choices = dates, server = TRUE)
+    updateSelectizeInput(session, 'countries', choices = countries, server = TRUE)
     # updateSelectizeInput(session, 'countries', choices = cbind(name = rownames(countries),countries),
     #                      server = TRUE)
     # updateSelectizeInput(session, 'article_type', choices = type, server = TRUE)
@@ -176,24 +199,24 @@ server <- function(input, output, session) {
             # dataTableOutput("tabela")
         )
     })
-    output$server_selectize_countries <- renderUI({
-        selectizeInput(
-            'countries', 'Selecione os países', choices =  countries,
-            multiple = TRUE
-        )
-    })
-    output$server_selectize_article_type <- renderUI({
-        selectizeInput(
-            'article_type', 'Selecione o tipo de artigo', choices = type,
-            multiple = TRUE, options = list(maxItems = 5)
-        )
-    })
-    output$server_selectize_date <- renderUI({
-        selectizeInput(
-            'date', 'Selecione a data', choices = date,
-            multiple = TRUE, options = list(maxItems = 5)
-        )
-    })
+    # output$server_selectize_countries <- renderUI({
+    #     selectizeInput(
+    #         'countries', 'Selecione os países', choices =  countries,
+    #         multiple = TRUE
+    #     )
+    # })
+    # output$server_selectize_article_type <- renderUI({
+    #     selectizeInput(
+    #         'article_type', 'Selecione o tipo de artigo', choices = type,
+    #         multiple = TRUE, options = list(maxItems = 5)
+    #     )
+    # })
+    # output$server_selectize_date <- renderUI({
+    #     selectizeInput(
+    #         'date', 'Selecione a data', choices = date,
+    #         multiple = TRUE, options = list(maxItems = 5)
+    #     )
+    # })
     
 }
 
