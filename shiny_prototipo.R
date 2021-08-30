@@ -8,6 +8,7 @@
 #
 
 library(shiny)
+library(ggplot2)
 library(shinyWidgets)
 library(dqshiny)
 library(rhandsontable)
@@ -21,6 +22,59 @@ library(bigrquery)
 library(DBI)
 library(dplyr)
 
+# i18n <- Translator$new(translation_csvs_path = "data-raw/translations/")
+
+func_filtrar_dim  <- function(df_filtros, list_parameters, debug){
+    tipo_sel <- list_parameters[[1]]
+    ano_sel <- list_parameters[[2]]
+    pais_sel <- list_parameters[[3]]
+    ## mantendo apenas campos usados
+    df_dimensions_selection <- df_filtros %>%
+        dplyr::select(type, date, paises, count)
+    ## Filtrando tipo de artigo -----
+    tipo_sel <- as.character(tipo_sel)
+    if(length(tipo_sel) <= 1){ ## casos onde tem um argumento (um tipo ou todos)
+        if(tipo_sel == "TODOS"){
+            df_dimensions_selection <- df_dimensions_selection
+        }else{
+            df_dimensions_selection <- df_dimensions_selection %>%
+                dplyr::filter(type %in% tipo_sel)
+        }
+    }else{ ## casos onde tem mais de um argumento (mais de um tipo)
+        df_dimensions_selection <- df_dimensions_selection %>%
+            dplyr::filter(type %in% tipo_sel)
+    }
+    
+    ## Filtrando ano -----
+    ano_sel <- as.character(ano_sel)
+    if(length(ano_sel) == 1){ ## casos onde tem um argumento (um tipo ou todos)
+        if(ano_sel == "TODOS"){
+            df_dimensions_selection <- df_dimensions_selection
+        }else{
+            df_dimensions_selection <- df_dimensions_selection %>%
+                dplyr::filter(as.character(lubridate::year(date)) == ano_sel)
+        }
+    }else{ ## casos onde tem mais de um argumento (mais de um tipo)
+        df_dimensions_selection <- df_dimensions_selection %>%
+            dplyr::filter(as.character(lubridate::year(date)) %in% ano_sel)
+    }
+    ## Filtrando países -----
+    length(pais_sel)
+    pais_sel <- as.character(pais_sel)
+    if(length(pais_sel) == 1){ ## casos onde tem um argumento (um tipo ou todos)
+        if(ano_sel == "TODOS"){
+            df_dimensions_selection <- df_dimensions_selection
+        }else{
+            df_dimensions_selection <- df_dimensions_selection %>%
+                dplyr::filter(paises == pais_sel)
+        }
+    }else{ ## casos onde tem mais de um argumento (mais de um tipo)
+        df_dimensions_selection <- df_dimensions_selection %>%
+            dplyr::filter(paises %in% pais_sel)
+    }
+    
+    return(df_dimensions_selection)
+}
 # countries <- c('Brazil', 'France', 'Germany', 'USA')
 
 
@@ -44,81 +98,79 @@ solar_theme <- bs_theme(
 # Define UI for application that draws a histogram
 ui <- fluidPage(
     tags$head(
-        tags$style(
-            HTML(
-                "        #div_id .selectize-control.single .selectize-input:after{
-                            content: none;
-                         }"
-            )
-        )
+        # shiny.i18n::usei18n(i18n),
     ),
     theme = solar_theme,
-    navbarPage("COVID-19/CIDACS",
-               tabPanel("Publicações ao longo do tempo e local",
-                        id = "pub_temp_loc",
-                        sidebarLayout(
-                            sidebarPanel(
-                                width = 2,
-                                selectizeInput(
-                                    'e5', '5. Max number of items to select', choices = c("Todos os anos", "2020", "2021"),
-                                    multiple = TRUE, options = list(maxItems = 1)
+    navbarPage(title = "COVID-19/CIDACS",
+               id = "navbar_panel",
+                   tabPanel("Publicações ao longo do tempo e local",
+                            id = "pub_temp_loc",
+                            sidebarLayout(
+                                sidebarPanel(
+                                    width = 2,
+                                    selectizeInput(
+                                        'e5', '5. Max number of items to select', choices = c("Todos os anos", "2020", "2021"),
+                                        multiple = TRUE, options = list(maxItems = 1)
+                                    ),
+                                    selectizeInput(
+                                        'article_type', 'Selecione o tipo de artigo', choices = character(0),
+                                        multiple = TRUE, options = list(maxItems = 5)
+                                    ),
+                                    selectizeInput(
+                                        'date', 'Selecione a data', choices = character(0),
+                                        multiple = TRUE, options = list(maxItems = 5)
+                                    ),
+                                    selectizeInput(
+                                        'countries', 'Selecione os países', choices =  character(0),
+                                        multiple = TRUE
+                                    )
+                                    
                                 ),
-                                selectizeInput(
-                                    'article_type', 'Selecione o tipo de artigo', choices = character(0),
-                                    multiple = TRUE, options = list(maxItems = 5)
-                                ),
-                                selectizeInput(
-                                    'date', 'Selecione a data', choices = character(0),
-                                    multiple = TRUE, options = list(maxItems = 5)
-                                ),
-                                selectizeInput(
-                                    'countries', 'Selecione os países', choices =  character(0),
-                                    multiple = TRUE
+                                mainPanel(
+                                    width = 10,
+                                    fluidRow(
+                                        # tags$h4("Perguntas"),
+                                        column(4,
+                                               dropdownButton(
+                                                   inputId = "mydropdown",
+                                                   label = "Controls",
+                                                   icon = icon("sliders"),
+                                                   status = "primary",
+                                                   circle = FALSE,
+                                                   sliderInput(
+                                                       inputId = "n",
+                                                       label = "Number of observations",
+                                                       min = 10, max = 100, value = 30
+                                                   )
+                                               ))
+                                    ),
+                                    fluidRow(
+                                        # tabsetPanel(
+                                            "Header",
+                                            tabPanel("First",
+                                                     id = "first_panel",
+                                                     shiny::uiOutput("dinamic_ui_content")),
+                                            tabPanel("Second",
+                                                     id = "sec_panel",),
+                                            tabPanel("Third",
+                                                     id = "thrd_panel",)
+                                        # )
+                                    )
+                                    #selected = "pub_temp_loc",
+                                    #theme = "boostrap.min.css",
+                                    #fluid = T,
+                                    #
+                                    
                                 )
-                                
-                            ),
-                            mainPanel(
-                                width = 10,
-                                fluidRow(
-                                    tags$h4("Perguntas"),
-                                    column(4,
-                                           dropdownButton(
-                                               inputId = "mydropdown",
-                                               label = "Controls",
-                                               icon = icon("sliders"),
-                                               status = "primary",
-                                               circle = FALSE,
-                                               sliderInput(
-                                                   inputId = "n",
-                                                   label = "Number of observations",
-                                                   min = 10, max = 100, value = 30
-                                               ),
-                                               prettyToggle(
-                                                   inputId = "na",
-                                                   label_on = "NAs keeped",
-                                                   label_off = "NAs removed",
-                                                   icon_on = icon("check"),
-                                                   icon_off = icon("remove")
-                                               )
-                                           ))
-                                ),
-                                fluidRow(
-                                    shiny::uiOutput("dinamic_ui_content")
-                                )
-                                #selected = "pub_temp_loc",
-                                #theme = "boostrap.min.css",
-                                #fluid = T,
-                                #
-                                
                             )
-                        )
-                        
-               ),
-               tabPanel("Colaborações e financiamento",
-                        id = "col_fin"),
-               tabPanel("Citação e altmetria",
-                        id = "cit_alt")
-               )
+                            
+                   ),
+                   tabPanel("Colaborações e financiamento",
+                            id = "col_fin"),
+                   tabPanel("Citação e altmetria",
+                            id = "cit_alt")
+               
+    )
     
 )
 
@@ -150,12 +202,40 @@ server <- function(input, output, session) {
         dplyr::mutate(data_text =  gsub("-.*$", "", data_text)) %>%
         dplyr::distinct(data, .keep_all = T)
     dates <- date_$data
-    # observe({
-    # })
     
-    updateSelectizeInput(session, 'article_type', choices = types, server = TRUE)
-    updateSelectizeInput(session, 'date', choices = dates, server = TRUE)
-    updateSelectizeInput(session, 'countries', choices = countries, server = TRUE)
+    tipo_pub_sel <- c("article", "book")
+    ano_sel <- c("TODOS")
+    pais_sel <- c("Argentina", "Austria", "Brazil")
+    list_parameters <- list(tipo_pub_sel, ano_sel, pais_sel)
+    df_dimensions_selection <- func_filtrar_dim(df_filtros, list_parameters, debug) %>%
+        dplyr::rename(date_normal = date, count_date = count) %>%
+        dplyr::filter(!is.na(date_normal)) %>%
+        # dplyr::mutate(date_normal = format(as.Date(date_normal), "%Y-%m")) %>%
+        dplyr::group_by(date_normal, type) %>%
+        dplyr::summarise(count = sum(count_date)) %>%
+        # dplyr::distinct(date, .keep_all = T) %>%
+        dplyr::ungroup()
+    
+    
+    p <- ggplot2::ggplot(data = df_dimensions_selection, aes(x = date_normal, y = count, color = type, group = type,
+                                                  text=(paste0('<b>Data:</b>', date_normal, '<br>',
+                                                               '<b>Número de publicações:</b>', count, "<br>",
+                                                               '<b>Tipo:</b>', type)))) + 
+        geom_line() +
+        theme_minimal() +
+        labs(x = ("Tempo"), y = ("Número de artigos"),
+             title = ("Publicações ao longo do tempo, por tipo"),
+             colour = ("Tipo"))
+    
+    p <- ggplotly(p, tooltip = "text") %>%
+        plotly::config(modeBarButtonsToRemove = c("zoom2d", "select2d", "lasso2d", "autoScale2d", "toggleSpikelines"), displaylogo = FALSE)
+    
+    
+    observe({
+        updateSelectizeInput(session, 'article_type', choices = types, server = TRUE)
+        updateSelectizeInput(session, 'date', choices = dates, server = TRUE)
+        updateSelectizeInput(session, 'countries', choices = countries, server = TRUE)
+    })
     # updateSelectizeInput(session, 'countries', choices = cbind(name = rownames(countries),countries),
     #                      server = TRUE)
     # updateSelectizeInput(session, 'article_type', choices = type, server = TRUE)
@@ -172,11 +252,10 @@ server <- function(input, output, session) {
             name = "SF Zoo",
             type = "bar"
         )
-        
         fig
     })
     output$plot3 <- renderPlotly({
-        ggplotly(random_ggplot())
+        p
     })
     output$plot4 <- renderPlotly({
         ggplotly(random_ggplot())

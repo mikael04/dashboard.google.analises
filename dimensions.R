@@ -173,6 +173,7 @@ df_categ_count_ordered <- df_categ %>%
 
 ## Escrevendo tabela
 data.table::fwrite(df_categ_count_ordered, "dados/df_categ_count_ordered.csv")
+df_categ <- data.table::fread("dados/df_categ_count_ordered.csv")
 
 ## Plota gráfico
 if(plot){
