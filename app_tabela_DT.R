@@ -104,16 +104,19 @@ gif = "nyancat.gif"
 # 
 # data.table::fwrite(df_dimensions, "dados/df_dimensions_tabelas_clean.csv")
 df_dimensions <- data.table::fread("dados/df_dimensions_tabelas_clean.csv") %>%
-  dplyr::select(id, title_50char, type, authors_last_name, countries, metrics.times_cited, abstract_50char, title.preferred, abstract.preferred, authors_ln, research_org_country_names)
+  dplyr::select(id, doi, title_50char, type, authors_last_name, countries, metrics.times_cited,
+                altmetrics.score, abstract_50char, title.preferred, abstract.preferred,
+                authors_ln, journal_lists)
 
 df_perguntas <- data.table::fread("dados/buscaCompleta2305.csv") %>%
   dplyr::select(-abstract.preferred, -title.preferred)
+
 df_perguntas_dict <- data.table::fread("dados/Relacao_clean.csv")
 
 newnames = df_perguntas_dict$Pergunta
 
 df_dimensions_ij_perguntas <- dplyr::inner_join(df_dimensions, df_perguntas, by="id") %>%
-  dplyr::select(-V1, -doi)
+  dplyr::select(-V1, -id, doi = doi.x, -doi.y)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -147,7 +150,7 @@ server <- function(input, output) {
   })
   observeEvent(input$question, {
     ## Como é feito no app
-    # arvore_no_sel = 'What are the most common/typical symptoms of the CoV disease?'
+    arvore_no_sel = 'What are the most common/typical symptoms of the CoV disease?'
     # col_name <- df_perguntas_dict %>%
     #   dplyr::filter(Pergunta == arvore_no_sel) %>%
     #   dplyr::select(Busca)
@@ -156,11 +159,13 @@ server <- function(input, output) {
     # ## Escrevendo uma tabela exemplo
     # data.table::fwrite(df_dimensions_ij_perguntas_search, "dados/df_dimensions_ij_perguntas_search.csv")
     ## Para teste
-    col_name <- df_perguntas_dict[df_perguntas_dict$Pergunta == input$question]$Busca
+    col_name <- df_perguntas_dict[df_perguntas_dict$Pergunta == arvore_no_sel]$Busca
+    
+    # col_name <- df_perguntas_dict[df_perguntas_dict$Pergunta == input$question]$Busca
     df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
       dplyr::filter(!!as.name(col_name) == '1')
     output$table <- DT::renderDataTable({
-      DT::datatable(df_dimensions_ij_perguntas_search[,1:11],
+      DT::datatable(df_dimensions_ij_perguntas_search[,1:12],
                     options = list(columnDefs = list(list(visible=FALSE, targets=c(8, 9, 10, 11))),
                                    rowCallback = DT::JS(
         "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",

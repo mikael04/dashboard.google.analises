@@ -4,9 +4,12 @@ library(dplyr)
 plot <- F
 dashboard <- F
 debug <- F
-## Lendo arquivo de banco de dados  ---------------------------------
+## 1. Lendo arquivo de banco de dados  ---------------------------------
 ## Setup, lendo a base de dados (pode ser usado qualquer outro formato)
-df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst")
+df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst") %>%
+  select(id, doi, date_normal, type, research_org_country_names, raw_affiliations,
+         categories.for_v1.first_level.codes, title.preferred, abstract.preferred,
+         authors, `authors/lastname`, metrics.times_cited, altmetrics.score, journal_lists)
 df_dimensions <- tibble::as_tibble(df_dimensions)
 
 df_dimensions_sample <- df_dimensions %>% 
@@ -65,11 +68,11 @@ data.table::fwrite(df_dimensions_type_date, "dados/df_dimensions_type_date.csv")
 rm(df_dimensions_type_date)
 ## Publicações por país ---------------------------------
 
-# df_dimensions_filter <- df_dimensions %>%
+# df_dimensions <- df_dimensions %>%
 #   dplyr::select(id, date_normal, type, title.preferred, abstract.preferred,
 #                 research_org_country_names, categories.for_v1.first_level.codes)
 ## Recebe apenas a coluna de paises
-df_paises <- df_dimensions_filter %>%
+df_paises <- df_dimensions %>%
   # df_paises <- df_dimensions_sample %>%
   dplyr::select(id, research_org_country_names) %>%
   dplyr::filter(research_org_country_names != "")
@@ -112,7 +115,7 @@ data.table::fwrite(df_count_ordered, "dados/df_paises_count_ordered.csv")
 # data.table::fwrite(df_count_ordered, "dados/df_sample_paises_count_ordered.csv")
 
 rm(df_paises, paises, paises_split, unique_values, dt_list, dt,
-   df_count, df_count_ordered, p)
+   df_count, df_count_ordered, unique_values_ordered, p)
 
 
 ## Publicações por categoria (ANZSRC_FoR)  ---------------------------------
@@ -208,11 +211,13 @@ rm(df_dim_categories, categoria, list_categ, list_categ_split,
 
 ## Análise exploratória funders e organização ---------------------------------
 
-df_dimensions_fund_org <- df_dimensions %>%
+df_dimensions_fund_org <- fst::read_fst("dados/dimensions_compressed.fst") %>%
   dplyr::select(funder_orgs, raw_affiliations, research_org_cities, research_org_city_names,
                 research_org_countries, research_org_country_names, research_org_state_codes,
                 research_org_state_names, research_orgs)
 
+df_dimensions_fund_org_sample <- df_dimensions_fund_org %>%
+  dplyr::slice_sample(n = 0.1)
 
 skim_funder_orgs <- skimr::skim(df_dimensions_fund_org)
 
@@ -224,7 +229,8 @@ sum(stringr::str_detect(df_dimensions_fund_org_sample$raw_affiliations, " "))
 df_fund_org_sample_n_vazio <- df_dimensions_fund_org_sample %>%
   dplyr::filter(!stringr::str_detect(df_dimensions_fund_org_sample$raw_affiliations, "vazio"))
 
-rm(df_dimensions_fund_org, skim_funder_orgs, df_fund_org_sample_n_vazio)
+rm(df_dimensions_fund_org, skim_funder_orgs,
+   df_fund_org_sample_n_vazio, df_dimensions_fund_org_sample)
 
 ## Mapa de palavras ---------------------------------
 
@@ -238,8 +244,8 @@ df_word_cloud <- df_word_cloud %>%
 library(tm)
 my_corpus <- VCorpus(VectorSource(df_word_cloud))
 # my_corpus <- tm_map(my_corpus, removeWords, c(stopwords("english")))
-# myStopwords <- c(stopwords("english"), "the", "this", "can")
-my_corpus <- tm_map(my_corpus, removeWords, Stopwords)
+myStopwords <- c(stopwords("english"), "the", "this", "can")
+my_corpus <- tm_map(my_corpus, removeWords, myStopwords)
 dtm <- TermDocumentMatrix(my_corpus)
 matrix <- as.matrix(dtm)
 words <- sort(rowSums(matrix),decreasing=TRUE)
@@ -250,7 +256,8 @@ df_r <- df %>%
 
 data.table::fwrite(df_r, "dados/df_word_cloud.csv")
 
-rm(df_word_cloud, my_corpus, myStopwords)
+rm(df, df_r, dtm, matrix, words,
+  df_word_cloud, my_corpus, myStopwords)
 
 
 ## Perguntas e artigos resposta - Inconsistências  ---------------------------------
@@ -301,58 +308,17 @@ df_valid_id_dimensions <- nrow(df_dimensions) - nrow(df_dimensions_dupli_id)
 
 rm(df_dimensions_perguntas_anti, df_perguntas_dupli_doi, df_perguntas_dupli_id,
    df_dimensions_dupli_doi, df_dimensions_dupli_id, df_valid_doi_perguntas, 
-   df_valid_doi_dimensions, df_valid_id_perguntas, df_valid_id_dimensions)
-
-## Perguntas e artigos resposta - Tabela resposta ---------------------------------
-library(dplyr)
-
-df_dimensions_cut <- df_dimensions %>%
-  dplyr::select(id, title.preferred, `authors/lastname`, abstract.preferred, date_normal,
-                subtitles, type, research_org_country_names)
-df_perguntas <- data.table::fread("dados/buscaCompleta2305.csv") %>%
-  dplyr::select(-abstract.preferred, -title.preferred)
-###
-# ## Feito apenas uma vez, depois usar o "Relacao_clean.csv"
-# ## manipulando para ter mesmo nome de coluna do df_perguntas
-# # df_perguntas_dict <- data.table::fread("dados/Relacao.csv")
-# # df_perguntas_dict[,1] <- lapply(df_perguntas_dict[,1], gsub, pattern = " ", replacement = "", fixed = T)
-# # df_perguntas_dict[,1] <- lapply(df_perguntas_dict[,1], gsub, pattern = "B", replacement = "b", fixed = T)
-# # ## Escrevendo nova tabela
-# # data.table::fwrite(df_perguntas_dict, "dados/Relacao_clean.csv")
-# ###
-df_perguntas_dict <- data.table::fread("dados/Relacao_clean.csv")
-
-df_dimensions_ij_perguntas <- dplyr::inner_join(df_dimensions_cut,
-                                                df_perguntas, by="id") %>%
-  dplyr::select(id, title.preferred, authors = `authors/lastname`, date_normal, subtitles, type, research_org_country_names) %>%
-  dplyr::mutate(authors = if_else(authors == "vazio", "-", authors))
+   df_valid_doi_dimensions, df_valid_id_perguntas, df_valid_id_dimensions,
+   df_perguntas)
 
 
-###
-# Como é feito no app
-arvore_no_sel = 'What are the prodromal symptoms in COVID-19?'
-col_name <- df_perguntas_dict %>%
-  dplyr::filter(Pergunta == arvore_no_sel) %>%
-  dplyr::select(Busca)
-df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
-    dplyr::filter(!!as.name(col_name$Busca) == '1')
-## Escrevendo uma tabela exemplo
-data.table::fwrite(df_dimensions_ij_perguntas_search, "dados/df_dimensions_ij_perguntas_search.csv")
-###
-# Para o app_tabela
-col_name <- df_perguntas_dict[df_perguntas_dict$Pergunta == input$question]$Busca
-df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
-  dplyr::filter(!!as.name(col_name) == '1')
-###
-
-rm(df_dimensions_cut, df_perguntas, df_dimensions_ij_perguntas)
 
 ## Top autores ---------------------------------
 
 ## Recebe apenas a coluna de paises
 df_autores <- df_dimensions %>%
   # df_paises <- df_dimensions_sample %>%
-  dplyr::select(id, authors = `authors/lastname`) %>%
+  dplyr::select(id, authors = authors_last_name) %>%
   dplyr::filter(authors != "", authors != "vazio")
 autores <- df_autores$authors
 ## Separa em uma lista de mais de um elemento quando possui mais de um país
@@ -385,10 +351,10 @@ data.table::fwrite(df_autores_cit_top20, "dados/df_autores_cit_top20.csv")
 
 
 
-df_dimensions_sample_gist <- df_dimensions_sample %>%
-  dplyr::select(id, authors, `authors/lastname`)
-
-data.table::fwrite(df_dimensions_sample_gist, "dados/df_gist.csv")
+# df_dimensions_sample_gist <- df_dimensions_sample %>%
+#   dplyr::select(id, authors, `authors/lastname`)
+# 
+# data.table::fwrite(df_dimensions_sample_gist, "dados/df_gist.csv")
 ## Adicionando primeiro nome de autores
 df_autores_f_l <- df_dimensions_sample %>%
   # df_paises <- df_dimensions_sample %>%
@@ -428,13 +394,15 @@ for(i in 1:length(autores_fn_split__)){
   }
 }
 
-length(autores_fn_split__[[i]])
-autores_fn_split__[[137]]
-autores_fn_split_[[93]]
+# length(autores_fn_split__[[i]])
+# autores_fn_split__[[137]]
+# autores_fn_split_[[93]]
 ##  Aqui tenho o primeiro nome do autor, com um "." após a primeira letra, porém,
 ## ainda falta adicionar os outros nomes, pego apenas o primeiro
-autores_fn_split_first_c <- lapply(autores_fn_split_first, function(x) paste0(x, "."))
-
+# autores_fn_split_first_c <- lapply(autores_fn_split_first, function(x) paste0(x, "."))
+rm(autores_split, df_autores_f_l, autores_fn, autores, unique_values, df_list,
+   df, df_count_autores, df_autores_ordered_cit, df_autores_cit_top20,
+  autores_fn_split, autores_fn_split_, autores_fn_split__, autores_fn_split___)
 ## Top citações ---------------------------------
 
 df_citacoes_ordered <- df_dimensions %>%
@@ -469,12 +437,19 @@ df_alt_top20 <- df_alt %>%
 
 data.table::fwrite(df_alt, "dados/df_alt.csv")
 data.table::fwrite(df_alt_top20, "dados/df_alt_top20.csv")
-
+# rm(df_dimensions, df_dimensions_sa)
 ## Países Parquet  ---------------------------------
 
-df_country <- arrow::read_parquet("dados/country_code-Copy1")
+df_country <- arrow::read_parquet("dados/country_code-Copy1") %>%
+  dplyr::select(doi) %>%
+  dplyr::group_by(doi) %>%
+  dplyr::mutate(count = n()) %>%
+  dplyr::distinct(doi, .keep_all = T) %>%
+  dplyr::ungroup()
 
-glimpse(df_raw_affiliation)
+glimpse(df_country)
+
+rm(df_country)
 
 ## 1. Criação de tabelas  ---------------------------------
 ## quais campos preciso? id +
@@ -487,20 +462,20 @@ glimpse(df_raw_affiliation)
 ## 
 library(dplyr)
 
-df_dimensions_filter <- fst::read_fst("dados/dimensions_compressed.fst") %>%
-  dplyr::select(id, doi, authors_fn = authors,  authors_ln =  `authors/lastname`, metrics.times_cited, altmetrics.score, date_normal, type, title.preferred, abstract.preferred,
-                research_org_country_names, categories.for_v1.first_level.codes)
-df_dimensions_filter <- tibble::as_tibble(df_dimensions_filter)
+# df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst") %>%
+#   dplyr::select(id, doi, authors_fn = authors,  authors_ln =  `authors/lastname`, metrics.times_cited, altmetrics.score, date_normal, type, title.preferred, abstract.preferred,
+#                 research_org_country_names, categories.for_v1.first_level.codes)
+df_dimensions <- tibble::as_tibble(df_dimensions)
 
 set.seed(424242)
-df_dimensions_filter_sample <- df_dimensions_filter %>% 
+df_dimensions_sample <- df_dimensions %>% 
   dplyr::sample_frac(0.01)
 
 ### 1.1 Manipulando países  ---------------------------------
 ## Forma antiga, antes precisava de todos os países, agora,
 ## tanto para países quanto autores pegarei apenas primeiro e último
 # ## Recebe apenas a coluna de paises
-# df_paises <- df_dimensions_filter %>%
+# df_paises <- df_dimensions %>%
 #   # df_paises <- df_dimensions_sample %>%
 #   dplyr::select(id, research_org_country_names) %>%
 #   dplyr::filter(research_org_country_names != "")
@@ -527,7 +502,7 @@ fct_last_country <- function (x){
   sub(".*;", "", x)
 }
 
-df_dimensions_filter_country <- df_dimensions_filter %>%
+df_dimensions_country <- df_dimensions %>%
   dplyr::select(id, research_org_country_names) %>%
   dplyr::filter(research_org_country_names != "")  %>%
   dplyr::mutate(first_country = fct_first_country(research_org_country_names)) %>%
@@ -539,7 +514,7 @@ df_dimensions_filter_country <- df_dimensions_filter %>%
 ### 1.2 Tabela tipo e data   ---------------------------------
 
 ## arredondando para mês (que é como vai ser exibido nos gráficos)
-df_dimensions_filter_type_date <- df_dimensions_filter %>%
+df_dimensions_type_date <- df_dimensions %>%
   dplyr::filter(date_normal < lubridate::ymd("2021-05-24")) %>% ##data da última extração
   dplyr::filter(date_normal > "2020-01-01") %>% ##não pegar arquivos que possuem apenas ano para não distorcer gráfico
   dplyr::mutate(date = lubridate::floor_date(date_normal, "month")) %>%
@@ -547,7 +522,7 @@ df_dimensions_filter_type_date <- df_dimensions_filter %>%
 
 
 
-df_dimensions_filter_type_date_db <- df_dimensions_filter_type_date %>%
+df_dimensions_type_date_db <- df_dimensions_type_date %>%
   dplyr::group_by(type, date) %>%
   dplyr::summarise(count = n()) %>%
   dplyr::ungroup()
@@ -555,9 +530,9 @@ df_dimensions_filter_type_date_db <- df_dimensions_filter_type_date %>%
 library(stringr)
 
 ## If NA, significa que tem apenas um autor, posso puxar de last author
-# first_author <- str_extract(df_dimensions_filter_sample_min$authors_ln, '[^|]+') 
+# first_author <- str_extract(df_dimensions_sample_min$authors_ln, '[^|]+') 
 # 
-# last_author <- sub(".*\\|", "", df_dimensions_filter_sample_min$authors_ln)
+# last_author <- sub(".*\\|", "", df_dimensions_sample_min$authors_ln)
 # 
 ## Funções para pegar primeiro autor e último autor
 func_first_author <- function (x){
@@ -570,7 +545,7 @@ func_trans_names <- function(x){
   stringi::stri_trans_general(x, "Latin-ASCII")
 }
 
-df_dimensions_filter_authors <- df_dimensions_filter %>%
+df_dimensions_authors <- df_dimensions %>%
   dplyr::select(id, authors_fn, authors_ln) %>%
   dplyr::filter((authors_ln != "vazio") | (authors_fn != "vazio")) %>%
   ## transliteração de nomes, funciona para caractéres próximos do nosso alfabeto
@@ -598,14 +573,14 @@ df_dimensions_filter_authors <- df_dimensions_filter %>%
   ## Precisa testar as quatro variáveis, primeiro e último autor combinados com primeiro e último nome (2x2)
 
 ## Apenas os que precisarão de tradução
-df_utf8 <- df_dimensions_filter_authors %>%
+df_utf8 <- df_dimensions_authors %>%
   dplyr::filter(first_author_ln_typeofchar == "UTF-8")
 
 ## Tradução
 library(googleLanguageR)
 
 ## Verificar quais campos deverão ser traduzidos, por enqaunto apenas um
-# df_dimensions_filter_authors <- df_dimensions_filter_authors %>%
+# df_dimensions_authors <- df_dimensions_authors %>%
 #   dplyr::mutate(language = gl_translate_detect(first_author_ln))
 
 # stringi::stri_trans_general("Zażółć gęślą jaźń", "Latin-ASCII")
@@ -613,7 +588,7 @@ library(googleLanguageR)
 
 ## 1.4 Tabelas de países com tipo e data ---------------------
 
-df_dim_filter_type_date_country <- full_join(df_dimensions_filter_type_date, df_dimensions_filter_country,
+df_dim_filter_type_date_country <- full_join(df_dimensions_type_date, df_dimensions_country,
                                                by=c("id")) %>%
   dplyr::mutate(first_country = tidyr::replace_na(first_country, "NoCountry")) %>%
   dplyr::mutate(last_country = tidyr::replace_na(last_country, "NoCountry")) %>%
@@ -639,11 +614,11 @@ df_dim_filter_type_date_country_db <- full_join(df_dim_filter_type_date_country_
   dplyr::select(-count.x, -count.y)
 
 
-## 1.5 Manipulando (todos) países ---------------------------------
+## 1.5 Manipulando países (todos) ---------------------------------
 
 library(stringr)
 
-df_country <- df_dimensions_filter %>%
+df_country <- df_dimensions %>%
   dplyr::select(id, research_org_country_names) %>%
   dplyr::filter(research_org_country_names != "") %>%
   dplyr::mutate_at(.vars = c(2) , function (x) stringr::str_split(x, pattern = ";"))
@@ -678,3 +653,144 @@ rm(countries, df_countries_count, df_country)
 
 data.table::fwrite(df_paises_wider, "dados/df_paises_long.RDS")
 # df_paises_wider <- data.table::fread("dados/df_wider_paises.RDS")
+
+## 1.6 Doi - analisando -----
+df_dimensions_doi_count <- df_dimensions %>%
+  dplyr::select(doi) %>%
+  dplyr::group_by(doi) %>%
+  dplyr::mutate(count = n()) %>%
+  dplyr::distinct(doi, .keep_all = T) %>%
+  dplyr::ungroup()
+
+# sum(df_dimensions_doi_count$count)
+
+# data.table::fwrite(df_dimensions_doi_count, "dados/df_dimensions_doi_count.csv")
+
+## 1.7 Tabela - Perguntas e artigos resposta -------------------------
+library(dplyr)
+source("fct_manip_string_nome_pais_journal.R")
+df_dimensions_authors_countries <- df_dimensions %>%
+  dplyr::rename(authors_fn = authors, authors_ln = `authors/lastname`) %>% 
+# df_dimensions_authors_countries <- df_dimensions_sample %>%
+  dplyr::select(id, doi, authors_fn, authors_ln, research_org_country_names,
+                journal_lists) %>%
+  ## nomes
+  ## transliteração de nomes, funciona para caractéres próximos do nosso alfabeto
+  ## não vai funcionar pra outras línguas (ex: árabe e chinês)
+  dplyr::mutate(authors_fn = func_trans_names(authors_fn)) %>%
+  dplyr::mutate(authors_ln = func_trans_names(authors_ln)) %>%
+  ## Criando variável para saber quantos autores temos
+  dplyr::mutate(count_authors = func_count_numbers(authors_ln, "\\|")) %>%
+  ## extraindo apenas nome (nome e sobrenome) do primeiro autor
+  dplyr::mutate(first_author_fn = func_first(authors_fn, "|")) %>%
+  dplyr::mutate(first_author_ln = func_first(authors_ln, "|")) %>%
+  ## extraindo apenas nome (nome e sobrenome) do último autor
+  dplyr::mutate(last_author_fn = func_last(authors_fn, "|")) %>%
+  dplyr::mutate(last_author_ln = func_last(authors_ln, "|")) %>%
+  ## removendo duplicatas, quando tem apenas um autor
+  dplyr::mutate(last_author_ln = if_else(first_author_ln == last_author_ln, "",
+                                         paste0(if_else(count_authors > 2, "... ; ", ""),last_author_ln))) %>%
+  dplyr::mutate(last_author_fn = if_else(first_author_fn == last_author_fn, "",
+                                         last_author_fn)) %>%
+                                         # paste0(last_author_fn, "..."))) %>% -> Se quiser adicionar os ... ao final
+  ## paises
+  ## Criando variável para saber quantos autores temos
+  dplyr::mutate(count_countries = func_count_numbers(research_org_country_names, ";")) %>%
+  ## Separando países e organizando
+  dplyr::mutate(first_country = func_first(research_org_country_names, ";")) %>%
+  dplyr::mutate(last_country = func_last(research_org_country_names, ";")) %>%
+  dplyr::mutate(last_country = if_else(first_country == last_country, "",
+                                       paste0(if_else(count_countries > 2, "... ; ", ""), last_country))) %>%
+  dplyr::mutate(first_country = if_else(is.na(first_country), "vazio", first_country)) %>%
+  dplyr::mutate(last_country = if_else(is.na(last_country), "", last_country)) %>%
+  ## journal
+  ## Criando variável para saber quantos autores temos
+  dplyr::mutate(count_journal = func_count_numbers(journal_lists, ";")) %>%
+  ## Separando países e organizando
+  dplyr::mutate(first_journal = func_first(journal_lists, ";")) %>%
+  dplyr::mutate(last_journal = func_last(journal_lists, ";")) %>%
+  dplyr::mutate(last_journal = if_else(first_journal == last_journal, "",
+                                       paste0(if_else(count_journal > 2, "... ; ", ""), last_journal))) %>%
+  dplyr::mutate(first_journal = if_else(is.na(first_journal), "vazio", first_journal)) %>%
+  dplyr::mutate(last_journal = if_else(is.na(last_journal), "", last_journal)) %>%
+  
+  
+  dplyr::select(-doi, -research_org_country_names, -journal_lists)
+
+
+## manipulando para ter mesmo nome de coluna do df_perguntas
+# df_perguntas_dict[,1] <- lapply(df_perguntas_dict[,1], gsub, pattern = " ", replacement = "", fixed = T)
+# df_perguntas_dict[,1] <- lapply(df_perguntas_dict[,1], gsub, pattern = "B", replacement = "b", fixed = T)
+
+# for(i in 1:68){
+#   ##nesse caso, eu sei que as colunas estão ordenadas
+#   colnames(df_perguntas)[i+3] <- newnames[i]
+# }
+# df_dimensions <- dplyr::inner_join(df_dimensions_authors_countries, df_dimensions, by="id") %>%
+df_dimensions_authors <- dplyr::inner_join(df_dimensions_authors_countries, df_dimensions_sample, by="id") %>%
+  dplyr::mutate(authors_last_name = paste0(first_author_ln, " ; ", last_author_ln)) %>%
+  dplyr::mutate(countries = paste0(first_country, " ; ", last_country)) %>%
+  dplyr::mutate(journals = paste0(first_journal, " ; ", last_journal)) %>%
+  dplyr::select(id, doi, title.preferred, type, authors_last_name, countries, journals,
+                metrics.times_cited, altmetrics.score, abstract.preferred,
+                authors_ln, journal_lists) %>%
+  dplyr::rowwise() %>%
+  dplyr::mutate(title_50char = dplyr::case_when(nchar(title.preferred) > 50 ~
+                                                     paste(stringr::str_sub(title.preferred, 1, 50), "..."),
+                                                   nchar(title.preferred) <= 50 ~ title.preferred))  %>%
+  dplyr::mutate(abstract_50char = dplyr::case_when(nchar(abstract.preferred) > 50 ~
+                                                        paste(stringr::str_sub(abstract.preferred, 1, 50), "..."),
+                                                      nchar(abstract.preferred) <= 50 ~ abstract.preferred)) %>%
+  dplyr::mutate(altmetrics.score = if_else(is.na(altmetrics.score), 0, as.double(altmetrics.score)))
+
+
+## Organizando para ficar melhor apresentável
+df_dimensions_authors$authors_ln <- stringr::str_replace_all(df_dimensions_authors$authors_ln, "vazio", "-")
+df_dimensions_authors$authors_ln <- stringr::str_replace_all(df_dimensions_authors$authors_ln, "\\|", "; ")
+df_dimensions_authors$authors_last_name <- stringr::str_replace(df_dimensions_authors$authors_last_name, "vazio ;", "-")
+df_dimensions_authors$countries <- stringr::str_replace(df_dimensions_authors$countries, "vazio ;", "-")
+
+data.table::fwrite(df_dimensions_authors, "dados/df_dimensions_tabelas_clean.csv")
+
+df_dimensions_authors <- data.table::fread("dados/df_dimensions_tabelas_clean.csv") %>%
+  dplyr::select(id, doi, title_50char, type, authors_last_name, countries, metrics.times_cited,
+                abstract_50char, title.preferred, abstract.preferred, authors_ln,
+                journal_lists)
+
+df_perguntas <- data.table::fread("dados/buscaCompleta2305.csv") %>%
+  dplyr::select(-abstract.preferred, -title.preferred)
+df_perguntas_dict <- data.table::fread("dados/Relacao_clean.csv")
+
+newnames = df_perguntas_dict$Pergunta
+
+df_dimensions_ij_perguntas <- dplyr::inner_join(df_dimensions_authors, df_perguntas, by="id") %>%
+  dplyr::select(-V1, -id, doi = doi.x)
+
+# ###
+# # Como é feito no app
+# arvore_no_sel = 'What are the prodromal symptoms in COVID-19?'
+# col_name <- df_perguntas_dict %>%
+#   dplyr::filter(Pergunta == arvore_no_sel) %>%
+#   dplyr::select(Busca)
+# df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
+#     dplyr::filter(!!as.name(col_name$Busca) == '1')
+# ## Escrevendo uma tabela exemplo
+# data.table::fwrite(df_dimensions_ij_perguntas_search, "dados/df_dimensions_ij_perguntas_search.csv")
+# ###
+# # Para o app_tabela
+# col_name <- df_perguntas_dict[df_perguntas_dict$Pergunta == input$question]$Busca
+# df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
+#   dplyr::filter(!!as.name(col_name) == '1')
+# ###
+# 
+rm(df_perguntas, df_dimensions_ij_perguntas,
+   df_perguntas_dict, newnames, df_dimensions_authors,
+   df_dimensions_authors_countries)
+
+### 1.7.1 Tabela - Analisando periódico -------------------------
+
+df_dimensions_journal <- df_dimensions %>%
+  dplyr::select(id, journal_lists, journal.title, journal.id, journal.issn, journal.eissn,
+                publisher.id, publisher.name)
+
+skimr::skim(df_dimensions_journal)
