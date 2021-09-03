@@ -733,7 +733,7 @@ df_dimensions_authors <- dplyr::inner_join(df_dimensions_authors_countries, df_d
   dplyr::mutate(journals = paste0(first_journal, " ; ", last_journal)) %>%
   dplyr::select(id, doi, title.preferred, type, authors_last_name, countries, journals,
                 metrics.times_cited, altmetrics.score, abstract.preferred,
-                authors_ln, journal_lists) %>%
+                authors_ln, research_org_country_names, journal_lists) %>%
   dplyr::rowwise() %>%
   dplyr::mutate(title_50char = dplyr::case_when(nchar(title.preferred) > 50 ~
                                                      paste(stringr::str_sub(title.preferred, 1, 50), "..."),
@@ -749,13 +749,14 @@ df_dimensions_authors$authors_ln <- stringr::str_replace_all(df_dimensions_autho
 df_dimensions_authors$authors_ln <- stringr::str_replace_all(df_dimensions_authors$authors_ln, "\\|", "; ")
 df_dimensions_authors$authors_last_name <- stringr::str_replace(df_dimensions_authors$authors_last_name, "vazio ;", "-")
 df_dimensions_authors$countries <- stringr::str_replace(df_dimensions_authors$countries, "vazio ;", "-")
+df_dimensions_authors$journals <- stringr::str_replace(df_dimensions_authors$journals, "vazio ;", "-")
 
 data.table::fwrite(df_dimensions_authors, "dados/df_dimensions_tabelas_clean.csv")
 
 df_dimensions_authors <- data.table::fread("dados/df_dimensions_tabelas_clean.csv") %>%
   dplyr::select(id, doi, title_50char, type, authors_last_name, countries, metrics.times_cited,
                 abstract_50char, title.preferred, abstract.preferred, authors_ln,
-                journal_lists)
+                research_org_country_names, journal_lists)
 
 df_perguntas <- data.table::fread("dados/buscaCompleta2305.csv") %>%
   dplyr::select(-abstract.preferred, -title.preferred)

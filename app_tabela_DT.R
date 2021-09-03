@@ -105,8 +105,8 @@ gif = "nyancat.gif"
 # data.table::fwrite(df_dimensions, "dados/df_dimensions_tabelas_clean.csv")
 df_dimensions <- data.table::fread("dados/df_dimensions_tabelas_clean.csv") %>%
   dplyr::select(id, doi, title_50char, type, authors_last_name, countries, metrics.times_cited,
-                altmetrics.score, abstract_50char, title.preferred, abstract.preferred,
-                authors_ln, journal_lists)
+                altmetrics.score, abstract_50char, journals, title.preferred, abstract.preferred,
+                authors_ln, research_org_country_names, journal_lists)
 
 df_perguntas <- data.table::fread("dados/buscaCompleta2305.csv") %>%
   dplyr::select(-abstract.preferred, -title.preferred)
@@ -143,7 +143,7 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   output$table <- DT::renderDataTable({
-    DT::datatable(df_dimensions_ij_perguntas[,1:11])
+    DT::datatable(df_dimensions_ij_perguntas[,1:13])
   })
   output$sel_question <- renderText({
     "Selecione uma pergunta"
@@ -165,18 +165,20 @@ server <- function(input, output) {
     df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
       dplyr::filter(!!as.name(col_name) == '1')
     output$table <- DT::renderDataTable({
-      DT::datatable(df_dimensions_ij_perguntas_search[,1:12],
-                    options = list(columnDefs = list(list(visible=FALSE, targets=c(8, 9, 10, 11))),
+      DT::datatable(df_dimensions_ij_perguntas_search[,1:14],
+                    options = list(columnDefs = list(list(visible=FALSE, targets=c(10, 11, 12, 13, 14))),
                                    rowCallback = DT::JS(
         "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
-        "var full_text_title = aData[8]",
-        "var full_text_abs = aData[9]",
-        "var full_text_author = aData[10]",
-        "var full_text_countries = aData[11]",
+        "var full_text_title = aData[10]",
+        "var full_text_abs = aData[11]",
+        "var full_text_author = aData[12]",
+        "var full_text_countries = aData[13]",
+        "var full_text_journals = aData[14]",
         "$('td:eq(2)', nRow).attr('title', full_text_title);",
-        "$('td:eq(7)', nRow).attr('title', full_text_abs);",
         "$('td:eq(4)', nRow).attr('title', full_text_author);",
         "$('td:eq(5)', nRow).attr('title', full_text_countries);",
+        "$('td:eq(8)', nRow).attr('title', full_text_abs);",
+        "$('td:eq(9)', nRow).attr('title', full_text_journals);",
         "}"
         # "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
         # "var full_text_title = aData[9]",
