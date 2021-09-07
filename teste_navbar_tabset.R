@@ -13,8 +13,8 @@ library(bigrquery)
 library(DBI)
 library(dplyr)
 source("fct_filtrar_dim.R")
-source("R/mod_arvore_busca_nosel.R")
-source("R/mod_arvore_busca.R")
+# source("R/mod_arvore_busca_nosel.R")
+# source("R/mod_arvore_busca.R")
 library(shinyTree)
 library(stringr)
 library(shinyjs)
@@ -73,14 +73,14 @@ ui <- fluidPage(
                                      column(2, align="center",
                                             #mod_arvore_busca_nosel_ui("arvore_busca_nosel_1"),
                                             # mod_arvore_busca_ui(ns("arvore_busca_1")),
-                                            mod_arvore_busca_ui("arvore_busca_1"),
+                                            # mod_arvore_busca_ui("arvore_busca_1"),
                                      )
                             )
                           )
                    ),
                    column(7,
                           # mod_arvore_busca_nosel_ui(ns("arvore_busca_nosel_1")
-                          mod_arvore_busca_nosel_ui("arvore_busca_nosel_1")
+                          # mod_arvore_busca_nosel_ui("arvore_busca_nosel_1")
                    )
                  ),
                  fluidRow(

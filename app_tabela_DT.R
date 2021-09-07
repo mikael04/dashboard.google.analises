@@ -157,12 +157,12 @@ server <- function(input, output) {
     # df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
     #     dplyr::filter(!!as.name(col_name$Busca) == '1')
     # ## Escrevendo uma tabela exemplo
-    # data.table::fwrite(df_dimensions_ij_perguntas_search, "dados/df_dimensions_ij_perguntas_search.csv")
+    data.table::fwrite(df_dimensions_ij_perguntas_search, "dados/df_dimensions_ij_perguntas_search.csv")
     ## Para teste
-    col_name <- df_perguntas_dict[df_perguntas_dict$Pergunta == arvore_no_sel]$Busca
+    # col_name <- df_perguntas_dict[df_perguntas_dict$Pergunta == arvore_no_sel]$Busca
+    col_name <- df_perguntas_dict[df_perguntas_dict$Pergunta == input$question]$Busca
     
-    # col_name <- df_perguntas_dict[df_perguntas_dict$Pergunta == input$question]$Busca
-    df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
+        df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
       dplyr::filter(!!as.name(col_name) == '1')
     output$table <- DT::renderDataTable({
       DT::datatable(df_dimensions_ij_perguntas_search[,1:14],
