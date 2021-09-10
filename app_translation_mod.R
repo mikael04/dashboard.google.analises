@@ -4,7 +4,8 @@ library(plotly)
 library(ggplot2)
 
 # File with translations
-i18n <- Translator$new(translation_csvs_path = "dados/translations/")
+# i18n <- Translator$new(translation_csvs_path = "dados/translations/")
+i18n <- Translator$new(translation_json_path = "dados/translation_json/translations.json")
 
 languageButton_UI <- function(id, i18n) {
   ns <- NS(id)

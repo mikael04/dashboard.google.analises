@@ -10,8 +10,6 @@
 library(shiny)
 library(ggplot2)
 library(shinyWidgets)
-library(dqshiny)
-library(rhandsontable)
 library(shinipsum)
 library(shiny)
 library(jsonlite)
@@ -21,9 +19,11 @@ library(thematic)
 library(bigrquery)
 library(DBI)
 library(dplyr)
+library(shiny.i18n)
 source("fct_filtrar_dim.R")
 
 # i18n <- Translator$new(translation_csvs_path = "data-raw/translations/")
+i18n <- Translator$new(translation_json_path = "dados/translation_json/translations.json")
 
 
 # countries <- c('Brazil', 'France', 'Germany', 'USA')

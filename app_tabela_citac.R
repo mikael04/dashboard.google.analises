@@ -4,6 +4,28 @@ library(dplyr)
 library(shinycssloaders)
 library(shinyjs)
 library(shinyWidgets)
+library(leaflet)
+
+
+func_create_spdf_w_col_name <- function(df_count_ordered, col_name, debug){
+  ## Lendo SPDF base
+  world_spdf <- rgdal::readOGR( 
+    dsn= "dados/world_shape_file/TM_WORLD_BORDERS_SIMPL-0.3.shp" , 
+    layer = "TM_WORLD_BORDERS_SIMPL-0.3",
+    verbose = F
+  )
+  ## Renomeando colunas de world_spdf (esse dataframe tem todos os países)
+  country_names <- as.data.frame(world_spdf@data$NAME) %>%
+    dplyr::rename(NAME = 'world_spdf@data$NAME')
+  ## Fazendo juncão para adicionar países que não possuem (NA)
+  df_count_ordered <- right_join(df_count_ordered, country_names, by=c("NAME"))
+  ## Alterando valores de NA para 0
+  df_count_ordered$count[is.na(df_count_ordered$count)] = 0
+  
+  ## Criando novo SPDF com todos os países e adicionando a coluna "count" para contagem de publicacoes
+  oo <- sp::merge(world_spdf,df_count_ordered, by="NAME")
+  return(oo)
+}
 
 gif = "nyancat.gif"
 # df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst")
@@ -137,14 +159,17 @@ ui <- fluidPage(
       textOutput("sel_question")
     ),
     fluidRow(
-      shinycssloaders::withSpinner(DT::DTOutput("table")))
+      shinycssloaders::withSpinner(DT::DTOutput("tabela_artigos_auth_cit"))
+    ),
+    fluidRow(
+      leaflet::leafletOutput("mapa_pub")
+    )
   )
 )
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-  output$table <- DT::renderDataTable({
-    DT::datatable(df_dimensions_ij_perguntas[,1:13])
-  })
+  df_dim_auth_count_journ <- data.table::fread("dados/df_dimensions_tabelas_clean.csv")
+  
   output$sel_question <- renderText({
     "Selecione uma pergunta"
   })
@@ -157,39 +182,86 @@ server <- function(input, output) {
     # df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
     #     dplyr::filter(!!as.name(col_name$Busca) == '1')
     # ## Escrevendo uma tabela exemplo
-    data.table::fwrite(df_dimensions_ij_perguntas_search, "dados/df_dimensions_ij_perguntas_search.csv")
-    ## Para teste
-    col_name <- df_perguntas_dict[df_perguntas_dict$Pergunta == arvore_no_sel]$Busca
-    # col_name <- df_perguntas_dict[df_perguntas_dict$Pergunta == input$question]$Busca
+    # data.table::fwrite(df_dimensions_ij_perguntas_search, "dados/df_dimensions_ij_perguntas_search.csv")
+    # ## Para teste
+    # col_name <- df_perguntas_dict[df_perguntas_dict$Pergunta == arvore_no_sel]$Busca
+    # # col_name <- df_perguntas_dict[df_perguntas_dict$Pergunta == input$question]$Busca
+    # 
+    # df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
+    #   dplyr::filter(!!as.name(col_name) == '1')
+    df_citacoes_ordered <- df_dim_auth_count_journ %>%
+      dplyr::select(doi, authors_last_name, metrics.times_cited, altmetrics.score, title.preferred, authors_ln) %>%
+      dplyr::arrange(desc(metrics.times_cited))
     
-        df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
-      dplyr::filter(!!as.name(col_name) == '1')
-    output$table <- DT::renderDataTable({
-      DT::datatable(df_dimensions_ij_perguntas_search[,1:14],
-                    options = list(columnDefs = list(list(visible=FALSE, targets=c(10, 11, 12, 13, 14))),
+    output$tabela_artigos_auth_cit <- DT::renderDataTable({
+      DT::datatable(df_citacoes_ordered,
+                    options = list(columnDefs = list(list(visible=FALSE, targets=c(5, 6))),
                                    rowCallback = DT::JS(
-        "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
-        "var full_text_title = aData[10]",
-        "var full_text_abs = aData[11]",
-        "var full_text_author = aData[12]",
-        "var full_text_countries = aData[13]",
-        "var full_text_journals = aData[14]",
-        "$('td:eq(2)', nRow).attr('title', full_text_title);",
-        "$('td:eq(4)', nRow).attr('title', full_text_author);",
-        "$('td:eq(5)', nRow).attr('title', full_text_countries);",
-        "$('td:eq(8)', nRow).attr('title', full_text_abs);",
-        "$('td:eq(9)', nRow).attr('title', full_text_journals);",
-        "}"
-        # "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
-        # "var full_text_title = aData[9]",
-        # "$('td:eq(7)', nRow).attr('title', full_text_title);",
-        # "}"
-        ))
+                                     "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
+                                     "var full_text_author = aData[6]",
+                                     "var full_text_title = aData[5]",
+                                     "$('td:eq(1)', nRow).attr('title', full_text_title);",
+                                     "$('td:eq(2)', nRow).attr('title', full_text_author);",
+                                     "}"
+                                     # "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
+                                     # "var full_text_title = aData[9]",
+                                     # "$('td:eq(7)', nRow).attr('title', full_text_title);",
+                                     # "}"
+                                   ))
       )
     })
     
     output$sel_question <- renderText({
       input$question
+    })
+    df_count_ordered <- data.table::fread(paste0(getwd(),"/dados/df_paises_count_ordered.csv")) %>%
+      dplyr::rename(NAME = Paises)
+    output$mapa_pub <- leaflet::renderLeaflet({
+      #map_count <- func_create_spdf_w_col_name(df_count_ordered, "count", TRUE)
+      map_count <- func_create_spdf_w_col_name(df_count_ordered, "count", debug)
+      ## Criando breaks e paleta de cores
+      mybins <- c(0,100,500,1000,5000,10000,25000,50000, 100000)
+      mypalette <- leaflet::colorBin( palette="YlOrBr", domain=map_count@data$count, na.color="transparent", bins=mybins)
+      
+      # Criando texto tooltip
+      mytext <- paste(
+        "Pais: ", map_count@data$NAME,"<br/>", 
+        # i18n$t("Publicações: "), map_count@data$count,
+        ("Publicações: "), map_count@data$count,
+        sep="") %>%
+        lapply(htmltools::HTML)
+      
+      m <- leaflet(map_count,
+                   options = list(zoomControl = T,
+                                  minZoom = 1, maxZoom = 3,
+                                  dragging = T, noWrap = T,
+                                  worldCopyJump = F,
+                                  maxBounds = list(
+                                    list(-150, -310),
+                                    list(150, 310)
+                                  ))) %>% 
+        addTiles()  %>% 
+        setView( lat=0, lng=22 , zoom=1) %>%
+        addPolygons( stroke=FALSE ,
+                     fillOpacity = 0.5, smoothFactor = 0.5,
+                     fillColor = ~mypalette(count),
+                     color = "white",
+                     weight = 0.3,
+                     label = mytext,
+                     labelOptions = labelOptions(
+                       style = list("font-weight" = "normal", padding = "3px 8px"), 
+                       textsize = "13px", 
+                       direction = "auto"
+                     )
+        ) %>%
+        addEasyButton(easyButton(
+          icon="fa-globe", title="Zoom to Level 1",
+          onClick=JS("function(btn, map){ map.setZoom(1); }"))) %>%
+        # addProviderTiles(options = providerTileOptions(noWrap = TRUE)) %>%
+        # addLegend(pal = mypalette, values = ~count, opacity=0.9, title = i18n$t("Publications"), position = "topright" )
+        addLegend(pal = mypalette, values = ~count, opacity=0.9, title = "Publications", position = "topright" )
+      
+      m
     })
   })
 }
