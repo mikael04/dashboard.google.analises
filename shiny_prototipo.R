@@ -46,6 +46,46 @@ solar_theme <- bs_theme(
 
 )
 
+func_continent_paises <- function(continent_sel, df_continentes_paises) {
+    continente_sel_paises <- df_continentes_paises %>%
+        dplyr::filter(Continent == continent_sel) %>%
+        dplyr::select(Country) %>%
+        dplyr::pull()
+    return(continente_sel_paises)
+}
+
+languages_choices <- function() {
+  languages <- c("pt-br", "en-us")
+  
+  flags <- c(
+    # "img/flags/br.png",
+    # "img/flags/us.png"
+    "https://cdn.rawgit.com/lipis/flag-icon-css/master/flags/4x3/br.svg",
+    "https://cdn.rawgit.com/lipis/flag-icon-css/master/flags/4x3/us.svg"
+  )
+  language_options <-mapply(languages, flags, FUN = function(languages, flagUrl) {
+      HTML(paste(
+          tags$img(src=flagUrl, width=20, height=15),
+          languages
+      ))
+  }, SIMPLIFY = FALSE, USE.NAMES = FALSE)
+  languages_ <-list(languages, language_options)
+  # languages_[[1]]
+  # languages_[[2]]
+  return(languages_)
+}
+
+languages <- c("pt-br", "en-us")
+
+flags <- c(
+  "img/flags/br.png",
+  "img/flags/us.png"
+  # "https://cdn.rawgit.com/lipis/flag-icon-css/master/flags/4x3/br.svg",
+  # "https://cdn.rawgit.com/lipis/flag-icon-css/master/flags/4x3/us.svg"
+)
+
+languages_opt <- languages_choices()
+# languages_opt[[1]]
 # Define UI for application that draws a histogram
 ui <- fluidPage(
     tags$head(
@@ -71,9 +111,38 @@ ui <- fluidPage(
                                         'date', 'Selecione a data', choices = character(0),
                                         multiple = TRUE, options = list(maxItems = 5)
                                     ),
-                                    selectizeInput(
-                                        'countries', 'Selecione os países', choices =  character(0),
-                                        multiple = TRUE
+                                    # selectizeInput(
+                                    #     'continents', 'Selecione os continentes', choices =  character(0),
+                                    #     multiple = TRUE
+                                    # ),
+                                    # selectizeInput(
+                                    #     'countries', 'Selecione os países', choices =  character(0),
+                                    #     multiple = TRUE
+                                    # )
+                                    dropdown(
+                                        label = ("Selecione o país"),
+                                        # inputId = ns("dropdown"),
+                                        inputId = "dropdown",
+                                        selectizeInput(
+                                          'continents', 'Selecione os continentes', choices =  character(0),
+                                          multiple = TRUE
+                                        ),
+                                        selectizeInput(
+                                          'continents_2', 'Selecione os continentes', choices =  character(0),
+                                          multiple = TRUE,
+                                          options = list(maxItems = 4, closeAfterSelect = TRUE)
+                                          
+                                        ),
+                                        selectizeInput(
+                                          'countries', 'Selecione os países', choices =  character(0),
+                                          multiple = TRUE
+                                        )
+                                    ),
+                                    pickerInput("languagess", "Selecione o idioma",
+                                                multiple = F,
+                                                choices = languages_opt[[1]],
+                                                choicesOpt = list(content = languages_opt[[2]]),
+                                                selected = "pt-br",
                                     )
                                     
                                 ),
@@ -142,6 +211,9 @@ server <- function(input, output, session) {
         dplyr::select(paises) %>%
         dplyr::distinct(paises)
     countries <- countries_$paises
+    continents <- c("Africa", "America", "Asia", "Europe", "Oceania")
+    selection_continents <- c("TODOS", continents)
+    countries <- c("TODOS", countries)
     type_ <- df_filtros %>%
         dplyr::select(tipo = type) %>%
         dplyr::distinct(tipo)
@@ -153,6 +225,9 @@ server <- function(input, output, session) {
         dplyr::mutate(data_text =  gsub("-.*$", "", data_text)) %>%
         dplyr::distinct(data, .keep_all = T)
     dates <- date_$data
+    
+    df_continentes_paises <- data.table::fread("dados/Countries_Continents_americas.csv")
+    
     
     tipo_pub_sel <- c("article", "book")
     ano_sel <- c("TODOS")
@@ -185,7 +260,14 @@ server <- function(input, output, session) {
     observe({
         updateSelectizeInput(session, 'article_type', choices = types, server = TRUE)
         updateSelectizeInput(session, 'date', choices = dates, server = TRUE)
+        updateSelectizeInput(session, 'continents', choices = selection_continents, server = TRUE)
+        updateSelectizeInput(session, 'continents_2', choices = selection_continents, server = TRUE)
         updateSelectizeInput(session, 'countries', choices = countries, server = TRUE)
+    })
+    observeEvent(input$continents, {
+        countries_continent <- func_continent_paises(input$continents, df_continentes_paises)
+        updateSelectizeInput(session, 'countries', choices = countries_continent, server = TRUE)
+        
     })
     # updateSelectizeInput(session, 'countries', choices = cbind(name = rownames(countries),countries),
     #                      server = TRUE)

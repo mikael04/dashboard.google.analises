@@ -4,6 +4,7 @@ library(dplyr)
 plot <- F
 dashboard <- F
 debug <- F
+write <- F
 ## 1. Lendo arquivo de banco de dados  ---------------------------------
 ## Setup, lendo a base de dados (pode ser usado qualquer outro formato)
 df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst") %>%
@@ -15,7 +16,8 @@ df_dimensions <- tibble::as_tibble(df_dimensions)
 df_dimensions_sample <- df_dimensions %>% 
   dplyr::sample_frac(0.01)
 
-# data.table::fwrite(df_dimensions_sample, "dados/df_sample.csv")
+# if(write)
+#    data.table::fwrite(df_dimensions_sample, "dados/df_sample.csv")
 
 ## não precisam rodar, só rodo para organizar melhor o banco (variáveis ficam em ordem alfabética,
 ## assim fica mais fácil de procurar por elas)
@@ -40,7 +42,8 @@ df_date_count <- df_dimensions  %>%
   #dplyr::mutate(date_normal = lubridate::format_ISO8601(date_normal, precision = "ym")) %>%
   dplyr::ungroup()
 
-data.table::fwrite(df_date_count, "/dados/df_date_count.csv")
+if(write)
+  data.table::fwrite(df_date_count, "/dados/df_date_count.csv")
 if(plot){
   p <- plotly::plot_ly(df_date_count, x = ~date_normal, y = ~count, mode = 'line', type = 'scatter') %>%
     plotly::layout(title = "Evolução de publicações de COVID19 no tempo",
@@ -64,7 +67,8 @@ df_dimensions_type_date <- df_dimensions %>%
   dplyr::summarise(count = n()) %>%
   dplyr::ungroup()
 
-data.table::fwrite(df_dimensions_type_date, "dados/df_dimensions_type_date.csv")
+if(write)
+  data.table::fwrite(df_dimensions_type_date, "dados/df_dimensions_type_date.csv")
 rm(df_dimensions_type_date)
 ## Publicações por país ---------------------------------
 
@@ -88,7 +92,8 @@ unique_values <- unique(rapply(paises_split, function(x) head(x, 30)))
 unique_values_ordered <- as.data.frame(stringr::str_sort(unique_values)) %>%
   dplyr::rename(pais = `stringr::str_sort(unique_values)`)
 
-data.table:: fwrite(unique_values_ordered, "dados/paises.csv")
+if(write)
+  data.table:: fwrite(unique_values_ordered, "dados/paises.csv")
 
 ## Transforma em dataframe para manipulação
 dt_list <- purrr::map(paises_split, data.table::as.data.table)
@@ -110,7 +115,8 @@ if(plot){
     p
   }
 }
-data.table::fwrite(df_count_ordered, "dados/df_paises_count_ordered.csv")
+if(write)
+  data.table::fwrite(df_count_ordered, "dados/df_paises_count_ordered.csv")
 # caso queira trabalhar com a sample
 # data.table::fwrite(df_count_ordered, "dados/df_sample_paises_count_ordered.csv")
 
@@ -175,7 +181,8 @@ df_categ_count_ordered <- df_categ %>%
 #                              across(where(is.character), ~"TOTAL")))
 
 ## Escrevendo tabela
-data.table::fwrite(df_categ_count_ordered, "dados/df_categ_count_ordered.csv")
+if(write)
+  data.table::fwrite(df_categ_count_ordered, "dados/df_categ_count_ordered.csv")
 df_categ <- data.table::fread("dados/df_categ_count_ordered.csv")
 
 ## Plota gráfico
@@ -221,7 +228,8 @@ df_dimensions_fund_org_sample <- df_dimensions_fund_org %>%
 
 skim_funder_orgs <- skimr::skim(df_dimensions_fund_org)
 
-data.table::fwrite(skim_funder_orgs, "dados/df_skim_funder_orgs.csv")
+if(write)
+  data.table::fwrite(skim_funder_orgs, "dados/df_skim_funder_orgs.csv")
 stringr::str_detect(df_dimensions_fund_org_sample$raw_affiliations, "vazio")
 sum(stringr::str_detect(df_dimensions_fund_org$raw_affiliations, "vazio"))
 sum(stringr::str_detect(df_dimensions_fund_org$raw_affiliations, "\\|"))
@@ -254,7 +262,8 @@ words <- c("the", "this", "can")
 df_r <- df %>%
   filter(!word %in% words)
 
-data.table::fwrite(df_r, "dados/df_word_cloud.csv")
+if(write)
+  data.table::fwrite(df_r, "dados/df_word_cloud.csv")
 
 rm(df, df_r, dtm, matrix, words,
   df_word_cloud, my_corpus, myStopwords)
@@ -342,19 +351,22 @@ df_count_autores <- df %>%
 
 df_autores_ordered_cit <- df_count_autores %>%
   dplyr::arrange(desc(count))
-data.table::fwrite(df_autores_ordered_cit, "dados/df_autores_cit_ordered.csv")
+
+if(write)
+  data.table::fwrite(df_autores_ordered_cit, "dados/df_autores_cit_ordered.csv")
 ## Apenas o top20
 # df_count_autores <- data.table::fread("dados/df_autores_cit_ordered.csv")
 df_autores_cit_top20 <- df_count_autores %>%
   dplyr::slice_head(n = 20)
-data.table::fwrite(df_autores_cit_top20, "dados/df_autores_cit_top20.csv")
+if(write)
+  data.table::fwrite(df_autores_cit_top20, "dados/df_autores_cit_top20.csv")
 
 
 
 # df_dimensions_sample_gist <- df_dimensions_sample %>%
 #   dplyr::select(id, authors, `authors/lastname`)
-# 
-# data.table::fwrite(df_dimensions_sample_gist, "dados/df_gist.csv")
+# if(write)
+#   data.table::fwrite(df_dimensions_sample_gist, "dados/df_gist.csv")
 ## Adicionando primeiro nome de autores
 df_autores_f_l <- df_dimensions_sample %>%
   # df_paises <- df_dimensions_sample %>%
@@ -412,10 +424,12 @@ df_citacoes_ordered <- df_dimensions %>%
 df_count_autores_ordered_top20 <- df_citacoes_ordered %>%
   dplyr::slice_head(n = 20)
 
-data.table::fwrite(df_citacoes_ordered, "dados/df_citacoes_ordered.csv")
-data.table::fwrite(df_count_autores_ordered_top20, "dados/df_citacoes_ordered_top20.csv")
-
+if(write){
+  data.table::fwrite(df_citacoes_ordered, "dados/df_citacoes_ordered.csv")
+  data.table::fwrite(df_count_autores_ordered_top20, "dados/df_citacoes_ordered_top20.csv")
+}
 ## BD autores e afiliações ---------------------------------
+
 
 df_raw_affiliation <- data.table::fread("dados/mikael_raw_affiliation.csv", sep = "/")
 df_raw_affiliation_clean <- df_raw_affiliation %>%
@@ -434,9 +448,10 @@ df_alt <- df_dimensions %>%
 df_alt_top20 <- df_alt %>%
   dplyr::slice_head(n = 20)
 
-
-data.table::fwrite(df_alt, "dados/df_alt.csv")
-data.table::fwrite(df_alt_top20, "dados/df_alt_top20.csv")
+if(write){
+  data.table::fwrite(df_alt, "dados/df_alt.csv")
+  data.table::fwrite(df_alt_top20, "dados/df_alt_top20.csv")
+}
 # rm(df_dimensions, df_dimensions_sa)
 ## Países Parquet  ---------------------------------
 
@@ -651,7 +666,8 @@ df_paises_long <- dplyr::inner_join(df_country, df_countries_count, by=c("id_pub
 
 rm(countries, df_countries_count, df_country)
 
-data.table::fwrite(df_paises_wider, "dados/df_paises_long.RDS")
+if(write)
+  data.table::fwrite(df_paises_wider, "dados/df_paises_long.RDS")
 # df_paises_wider <- data.table::fread("dados/df_wider_paises.RDS")
 
 ## 1.6 Doi - analisando -----
@@ -666,12 +682,14 @@ df_dimensions_doi_count_1 <- df_dimensions_doi_count %>%
   dplyr::filter(count > 1, doi != "")
 
 df_dimensions_doi_dup <- inner_join(df_dimensions, df_dimensions_doi_count_1, by=c("doi"))
-# data.table::fwrite(df_dimensions_doi_dup, "dados/df_dimensions_doi_dup.csv")
+# if(write)
+#   data.table::fwrite(df_dimensions_doi_dup, "dados/df_dimensions_doi_dup.csv")
 
 
 # sum(df_dimensions_doi_count$count)
 
-# data.table::fwrite(df_dimensions_doi_count, "dados/df_dimensions_doi_count.csv")
+# if(write)
+#   data.table::fwrite(df_dimensions_doi_count, "dados/df_dimensions_doi_count.csv")
 
 ## 1.7 Tabela - Perguntas e artigos resposta -------------------------
 library(dplyr)
@@ -758,7 +776,8 @@ df_dimensions_authors_countries_journal$authors_last_name <- stringr::str_replac
 df_dimensions_authors_countries_journal$countries <- stringr::str_replace(df_dimensions_authors_countries_journal$countries, "vazio ;", "-")
 df_dimensions_authors_countries_journal$journals <- stringr::str_replace(df_dimensions_authors_countries_journal$journals, "vazio ;", "-")
 
-data.table::fwrite(df_dimensions_authors_countries_journal, "dados/df_dimensions_tabelas_clean.csv")
+if(write)
+  data.table::fwrite(df_dimensions_authors_countries_journal, "dados/df_dimensions_tabelas_clean.csv")
 
 df_dimensions_authors_countries_journal <- data.table::fread("dados/df_dimensions_tabelas_clean.csv") %>%
   dplyr::select(id, doi, title_50char, type, authors_last_name, countries, metrics.times_cited,
@@ -783,7 +802,8 @@ df_dimensions_ij_perguntas <- dplyr::inner_join(df_dimensions_authors_countries_
 # df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
 #     dplyr::filter(!!as.name(col_name$Busca) == '1')
 # ## Escrevendo uma tabela exemplo
-# data.table::fwrite(df_dimensions_ij_perguntas_search, "dados/df_dimensions_ij_perguntas_search.csv")
+# if(write)
+#   data.table::fwrite(df_dimensions_ij_perguntas_search, "dados/df_dimensions_ij_perguntas_search.csv")
 # ###
 # # Para o app_tabela
 # col_name <- df_perguntas_dict[df_perguntas_dict$Pergunta == input$question]$Busca
@@ -811,10 +831,10 @@ df_citacoes_ordered <- df_dimensions_authors_countries_journal %>%
 
 df_count_autores_ordered_top20 <- df_citacoes_ordered %>%
   dplyr::slice_head(n = 20)
-
-data.table::fwrite(df_citacoes_ordered, "dados/df_citacoes_ordered.csv")
-data.table::fwrite(df_count_autores_ordered_top20, "dados/df_citacoes_ordered_top20.csv")
-
+if(write){
+  data.table::fwrite(df_citacoes_ordered, "dados/df_citacoes_ordered.csv")
+  data.table::fwrite(df_count_autores_ordered_top20, "dados/df_citacoes_ordered_top20.csv")
+}
 if(plot){
   DT::datatable(df_citacoes_ordered,
                 options = list(columnDefs = list(list(visible=FALSE, targets=c(5, 6))),
