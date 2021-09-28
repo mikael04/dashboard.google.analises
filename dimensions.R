@@ -7,10 +7,14 @@ debug <- F
 write <- F
 ## 1. Lendo arquivo de banco de dados  ---------------------------------
 ## Setup, lendo a base de dados (pode ser usado qualquer outro formato)
-df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst") %>%
-  select(id, doi, date_normal, type, research_org_country_names, raw_affiliations,
-         categories.for_v1.first_level.codes, title.preferred, abstract.preferred,
-         authors, `authors/lastname`, metrics.times_cited, altmetrics.score, journal_lists)
+# df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst") %>%
+  # select(id, doi, date_normal, type, research_org_country_names, raw_affiliations,
+  #        categories.for_v1.first_level.codes, title.preferred, abstract.preferred,
+  #        authors, `authors/lastname`, metrics.times_cited, altmetrics.score, journal_lists)
+
+# fst::write_fst(df_dimensions, "dados/dimensions_compressed_selected.fst")
+
+df_dimensions <- fst::read_fst("dados/dimensions_compressed_selected.fst")
 df_dimensions <- tibble::as_tibble(df_dimensions)
 
 df_dimensions_sample <- df_dimensions %>% 
@@ -131,28 +135,45 @@ df_dim_categories <- df_dimensions %>%
   dplyr::filter(length(categories.for_v1.first_level.codes) > 2) %>%
   dplyr::filter(stringr::str_detect(categories.for_v1.first_level.codes,"[0123456789]"))
 
-## Pega apenas a variável que quero para fazer contagem
-categoria <- df_dim_categories$categories.for_v1.first_level.codes
-#dplyr::filter(stringr::str_detect(., "[[:digit:]]"))
-list_categ <- lapply(categoria, stringr::str_replace_all, "'", "")
-list_categ <- lapply(list_categ, stringr::str_replace_all, " ", "")
-list_categ <- lapply(list_categ, stringr::str_replace_all, "\\[", "")
-list_categ <- lapply(list_categ, stringr::str_replace_all, "\\]", "")
-#list_categ <- lapply(df_dim_categories, stringr::str_replace_all, "\\[", "")
-## Separa em uma lista de mais de um elemento quando possui mais de um país
-list_categ_split <- list_categ %>%
-  stringr::str_split(., ',')
+df_dim_categories_clean <- df_dim_categories |> 
+  dplyr::rename(categ = categories.for_v1.first_level.codes) |> 
+  dplyr::mutate(categ = sapply(categ, stringr::str_replace_all, "'", "")) |> 
+  dplyr::mutate(categ = sapply(categ, stringr::str_replace_all, " ", "")) |> 
+  dplyr::mutate(categ = sapply(categ, stringr::str_replace_all, "\\[", "")) |> 
+  dplyr::mutate(categ = sapply(categ, stringr::str_replace_all, "\\]", ""))
+  
+## calculando o número máximo de categorias
+nmax <- max(stringr::str_count(df_dim_categories_clean$categ, ",")) + 1
+  
+df_dim_categories_manip <- df_dim_categories_clean |> 
+    tidyr::separate(categ, paste0("categ_", seq_len(nmax)), ",")
+df_dim_categories_manip <- df_dim_categories_manip |> 
+  tidyr::pivot_longer(!id, names_to = "categs_", values_to = "categ") %>%
+  dplyr::select(-categs_) %>%
+  dplyr::filter(!is.na(categ))
 
-## remove todos os caractéres menos letras e números
-#list_categ <- lapply(paises, stringr::str_replace_all, ";", "0")
-## Apenas valores únicos, para listar todos os países (sem repetição)
-unique_values <- unique(rapply(list_categ_split, function(x) head(x, 5)))
-
-## Transforma em dataframe para manipulação
-dt_list <- purrr::map(list_categ_split, data.table::as.data.table)
-dt <- data.table::rbindlist(dt_list, fill = TRUE, idcol = T)
+# ## Pega apenas a variável que quero para fazer contagem
+# categoria <- df_dim_categories$categories.for_v1.first_level.codes
+# #dplyr::filter(stringr::str_detect(., "[[:digit:]]"))
+# list_categ <- lapply(categoria, stringr::str_replace_all, "'", "")
+# list_categ <- lapply(list_categ, stringr::str_replace_all, " ", "")
+# list_categ <- lapply(list_categ, stringr::str_replace_all, "\\[", "")
+# list_categ <- lapply(list_categ, stringr::str_replace_all, "\\]", "")
+# #list_categ <- lapply(df_dim_categories, stringr::str_replace_all, "\\[", "")
+# ## Separa em uma lista de mais de um elemento quando possui mais de um país
+# list_categ_split <- list_categ %>%
+#   stringr::str_split(., ',')
+# 
+# ## remove todos os caractéres menos letras e números
+# #list_categ <- lapply(paises, stringr::str_replace_all, ";", "0")
+# ## Apenas valores únicos, para listar todos os países (sem repetição)
+# unique_values <- unique(rapply(list_categ_split, function(x) head(x, 5)))
+# 
+# ## Transforma em dataframe para manipulação
+# dt_list <- purrr::map(list_categ_split, data.table::as.data.table)
+# dt <- data.table::rbindlist(dt_list, fill = TRUE, idcol = T)
 ## Agrupa por país e conta quantas vezes aparece
-df_categ_count <- dt %>%
+df_categ_count <- df_dim_categories_manip %>%
   dplyr::filter(V1 != '' & V1 != ' ') %>%
   dplyr::group_by(V1) %>%
   dplyr::summarise(count = n()) %>%
@@ -324,6 +345,27 @@ rm(df_dimensions_perguntas_anti, df_perguntas_dupli_doi, df_perguntas_dupli_id,
 
 ## Top autores ---------------------------------
 
+### Nomes   ---------------------------------
+
+df_dimensions_authors <- df_dimensions %>%
+  dplyr::select(id, authors_fn, authors_ln) %>%
+  dplyr::mutate(authors_fn = if_else(authors_fn != "", authors_fn, "vazio")) |> 
+  dplyr::mutate(authors_ln = if_else(authors_ln != "", authors_ln, "vazio"))
+
+## calculando o número máximo de primeiros nomes
+nmax <- max(stringr::str_count(df_dimensions_authors$authors_fn, "\\|"), na.rm = T) + 1
+j = 1
+for(i in 1:nrow(df_dimensions_authors)){
+  max_names <- max(stringr::str_count(df_dimensions_authors[[2]][[i]], "\\|"), na.rm = T)
+  if(j < max_names){
+    j = max_names
+    max_authors <- i
+  }
+}
+
+df_dimensions_authors_top_names <- df_dimensions_authors %>%
+  dplyr::mutate(n_autores = stringr::str_count(authors_fn, "\\|"))
+
 ## Recebe apenas a coluna de paises
 df_autores <- df_dimensions %>%
   # df_paises <- df_dimensions_sample %>%
@@ -480,7 +522,8 @@ library(dplyr)
 # df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst") %>%
 #   dplyr::select(id, doi, authors_fn = authors,  authors_ln =  `authors/lastname`, metrics.times_cited, altmetrics.score, date_normal, type, title.preferred, abstract.preferred,
 #                 research_org_country_names, categories.for_v1.first_level.codes)
-df_dimensions <- tibble::as_tibble(df_dimensions)
+df_dimensions <- tibble::as_tibble(df_dimensions) %>%
+  dplyr::rename(authors_fn = authors,  authors_ln =  `authors/lastname`)
 
 set.seed(424242)
 df_dimensions_sample <- df_dimensions %>% 
@@ -681,6 +724,8 @@ df_dimensions_doi_count <- fst::read_fst("dados/dimensions_compressed.fst") %>%
 df_dimensions_doi_count_1 <- df_dimensions_doi_count %>%
   dplyr::filter(count > 1, doi != "")
 
+sum(df_dimensions_doi_count_1$count)
+
 df_dimensions_doi_dup <- inner_join(df_dimensions, df_dimensions_doi_count_1, by=c("doi"))
 # if(write)
 #   data.table::fwrite(df_dimensions_doi_dup, "dados/df_dimensions_doi_dup.csv")
@@ -694,50 +739,49 @@ df_dimensions_doi_dup <- inner_join(df_dimensions, df_dimensions_doi_count_1, by
 ## 1.7 Tabela - Perguntas e artigos resposta -------------------------
 library(dplyr)
 source("fct_manip_string_nome_pais_journal.R")
-df_dimensions_authors_countries_journal <- df_dimensions %>%
-  dplyr::rename(authors_fn = authors, authors_ln = `authors/lastname`) %>% 
-# df_dimensions_authors_countries_journal <- df_dimensions_sample %>%
+df_dimensions_authors_countries_journal <- df_dimensions |>
+  # df_dimensions_authors_countries_journal <- df_dimensions_sample |>
   dplyr::select(id, doi, authors_fn, authors_ln, research_org_country_names,
-                journal_lists) %>%
+                journal_lists) |>
   ## nomes
   ## transliteração de nomes, funciona para caractéres próximos do nosso alfabeto
   ## não vai funcionar pra outras línguas (ex: árabe e chinês)
-  dplyr::mutate(authors_fn = func_trans_names(authors_fn)) %>%
-  dplyr::mutate(authors_ln = func_trans_names(authors_ln)) %>%
+  dplyr::mutate(authors_fn = func_trans_names(authors_fn)) |>
+  dplyr::mutate(authors_ln = func_trans_names(authors_ln)) |>
   ## Criando variável para saber quantos autores temos
-  dplyr::mutate(count_authors = func_count_numbers(authors_ln, "\\|")) %>%
+  dplyr::mutate(count_authors = func_count_numbers(authors_ln, "\\|")) |>
   ## extraindo apenas nome (nome e sobrenome) do primeiro autor
-  dplyr::mutate(first_author_fn = func_first(authors_fn, "|")) %>%
-  dplyr::mutate(first_author_ln = func_first(authors_ln, "|")) %>%
+  dplyr::mutate(first_author_fn = func_first(authors_fn, "|")) |>
+  dplyr::mutate(first_author_ln = func_first(authors_ln, "|")) |>
   ## extraindo apenas nome (nome e sobrenome) do último autor
-  dplyr::mutate(last_author_fn = func_last(authors_fn, "|")) %>%
-  dplyr::mutate(last_author_ln = func_last(authors_ln, "|")) %>%
+  dplyr::mutate(last_author_fn = func_last(authors_fn, "|")) |>
+  dplyr::mutate(last_author_ln = func_last(authors_ln, "|")) |>
   ## removendo duplicatas, quando tem apenas um autor
   dplyr::mutate(last_author_ln = if_else(first_author_ln == last_author_ln, "",
-                                         paste0(if_else(count_authors > 2, "... ; ", ""),last_author_ln))) %>%
+                                         paste0(if_else(count_authors > 2, "... ; ", ""),last_author_ln))) |>
   dplyr::mutate(last_author_fn = if_else(first_author_fn == last_author_fn, "",
-                                         last_author_fn)) %>%
-                                         # paste0(last_author_fn, "..."))) %>% -> Se quiser adicionar os ... ao final
+                                         last_author_fn)) |>
+  # paste0(last_author_fn, "..."))) |> -> Se quiser adicionar os ... ao final
   ## paises
   ## Criando variável para saber quantos autores temos
-  dplyr::mutate(count_countries = func_count_numbers(research_org_country_names, ";")) %>%
+  dplyr::mutate(count_countries = func_count_numbers(research_org_country_names, ";")) |>
   ## Separando países e organizando
-  dplyr::mutate(first_country = func_first(research_org_country_names, ";")) %>%
-  dplyr::mutate(last_country = func_last(research_org_country_names, ";")) %>%
+  dplyr::mutate(first_country = func_first(research_org_country_names, ";")) |>
+  dplyr::mutate(last_country = func_last(research_org_country_names, ";")) |>
   dplyr::mutate(last_country = if_else(first_country == last_country, "",
-                                       paste0(if_else(count_countries > 2, "... ; ", ""), last_country))) %>%
-  dplyr::mutate(first_country = if_else(is.na(first_country), "vazio", first_country)) %>%
-  dplyr::mutate(last_country = if_else(is.na(last_country), "", last_country)) %>%
+                                       paste0(if_else(count_countries > 2, "... ; ", ""), last_country))) |>
+  dplyr::mutate(first_country = if_else(is.na(first_country), "vazio", first_country)) |>
+  dplyr::mutate(last_country = if_else(is.na(last_country), "", last_country)) |>
   ## journal
   ## Criando variável para saber quantos autores temos
-  dplyr::mutate(count_journal = func_count_numbers(journal_lists, ";")) %>%
+  dplyr::mutate(count_journal = func_count_numbers(journal_lists, ";")) |>
   ## Separando países e organizando
-  dplyr::mutate(first_journal = func_first(journal_lists, ";")) %>%
-  dplyr::mutate(last_journal = func_last(journal_lists, ";")) %>%
+  dplyr::mutate(first_journal = func_first(journal_lists, ";")) |>
+  dplyr::mutate(last_journal = func_last(journal_lists, ";")) |>
   dplyr::mutate(last_journal = if_else(first_journal == last_journal, "",
-                                       paste0(if_else(count_journal > 2, "... ; ", ""), last_journal))) %>%
-  dplyr::mutate(first_journal = if_else(is.na(first_journal), "vazio", first_journal)) %>%
-  dplyr::mutate(last_journal = if_else(is.na(last_journal), "", last_journal)) %>%
+                                       paste0(if_else(count_journal > 2, "... ; ", ""), last_journal))) |>
+  dplyr::mutate(first_journal = if_else(is.na(first_journal), "vazio", first_journal)) |>
+  dplyr::mutate(last_journal = if_else(is.na(last_journal), "", last_journal)) |>
   
   
   dplyr::select(-doi, -research_org_country_names, -journal_lists)
@@ -751,30 +795,38 @@ df_dimensions_authors_countries_journal <- df_dimensions %>%
 #   ##nesse caso, eu sei que as colunas estão ordenadas
 #   colnames(df_perguntas)[i+3] <- newnames[i]
 # }
-# df_dimensions <- dplyr::inner_join(df_dimensions_authors_countries_journal, df_dimensions, by="id") %>%
-df_dimensions_authors_countries_journal <- dplyr::inner_join(df_dimensions_authors_countries_journal, df_dimensions, by="id") %>%
-  dplyr::mutate(authors_last_name = paste0(first_author_ln, " ; ", last_author_ln)) %>%
-  dplyr::mutate(countries = paste0(first_country, " ; ", last_country)) %>%
-  dplyr::mutate(journals = paste0(first_journal, " ; ", last_journal)) %>%
+# df_dimensions <- dplyr::inner_join(df_dimensions_authors_countries_journal, df_dimensions, by="id") |>
+df_tabela_authors_countries_journal <- dplyr::inner_join(df_dimensions_authors_countries_journal, df_dimensions, by="id") |>
+  dplyr::mutate(authors_last_name = paste0(first_author_ln, " ; ", last_author_ln))  |> 
+  dplyr::mutate(countries = paste0(first_country, " ; ", last_country)) |>
+  dplyr::mutate(journals = paste0(first_journal, " ; ", last_journal)) |>
   dplyr::select(id, doi, title.preferred, type, authors_last_name, countries, journals,
                 metrics.times_cited, altmetrics.score, abstract.preferred,
-                authors_ln, research_org_country_names, journal_lists) %>%
-  dplyr::rowwise() %>%
+                authors_ln = authors_ln.x, research_org_country_names, journal_lists) |>
+  dplyr::rowwise() |>
   dplyr::mutate(title_50char = dplyr::case_when(nchar(title.preferred) > 50 ~
-                                                     paste(stringr::str_sub(title.preferred, 1, 50), "..."),
-                                                   nchar(title.preferred) <= 50 ~ title.preferred))  %>%
+                                                  paste(stringr::str_sub(title.preferred, 1, 50), "..."),
+                                                nchar(title.preferred) <= 50 ~ title.preferred))  |>
   dplyr::mutate(abstract_50char = dplyr::case_when(nchar(abstract.preferred) > 50 ~
-                                                        paste(stringr::str_sub(abstract.preferred, 1, 50), "..."),
-                                                      nchar(abstract.preferred) <= 50 ~ abstract.preferred)) %>%
-  dplyr::mutate(altmetrics.score = if_else(is.na(altmetrics.score), 0, as.double(altmetrics.score)))
+                                                     paste(stringr::str_sub(abstract.preferred, 1, 50), "..."),
+                                                   nchar(abstract.preferred) <= 50 ~ abstract.preferred)) |>
+  dplyr::mutate(altmetrics.score = if_else(is.na(altmetrics.score), 0, as.double(altmetrics.score))) |> 
+  dplyr::ungroup() 
 
-
+df_dimensions_authors_countries_journal <- df_tabela_authors_countries_journal
 ## Organizando para ficar melhor apresentável
 df_dimensions_authors_countries_journal$authors_ln <- stringr::str_replace_all(df_dimensions_authors_countries_journal$authors_ln, "vazio", "-")
 df_dimensions_authors_countries_journal$authors_ln <- stringr::str_replace_all(df_dimensions_authors_countries_journal$authors_ln, "\\|", "; ")
 df_dimensions_authors_countries_journal$authors_last_name <- stringr::str_replace(df_dimensions_authors_countries_journal$authors_last_name, "vazio ;", "-")
 df_dimensions_authors_countries_journal$countries <- stringr::str_replace(df_dimensions_authors_countries_journal$countries, "vazio ;", "-")
 df_dimensions_authors_countries_journal$journals <- stringr::str_replace(df_dimensions_authors_countries_journal$journals, "vazio ;", "-")
+
+## Organizando para impressão
+df_dimensions_authors_countries_journal <- df_dimensions_authors_countries_journal |> 
+  dplyr::select(authors_last_name, title_50char, abstract_50char, journals, countries, type,
+                doi, citations = metrics.times_cited, altmetrics = altmetrics.score,
+                authors_ln, title = title.preferred, abstract = abstract.preferred,
+                journal_lists, research_org_country_names, id)
 
 if(write)
   data.table::fwrite(df_dimensions_authors_countries_journal, "dados/df_dimensions_tabelas_clean.csv")
@@ -793,17 +845,17 @@ newnames = df_perguntas_dict$Pergunta
 df_dimensions_ij_perguntas <- dplyr::inner_join(df_dimensions_authors_countries_journal, df_perguntas, by="id") %>%
   dplyr::select(-V1, -id, doi = doi.x)
 
-# ###
-# # Como é feito no app
-# arvore_no_sel = 'What are the prodromal symptoms in COVID-19?'
-# col_name <- df_perguntas_dict %>%
-#   dplyr::filter(Pergunta == arvore_no_sel) %>%
-#   dplyr::select(Busca)
-# df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
-#     dplyr::filter(!!as.name(col_name$Busca) == '1')
-# ## Escrevendo uma tabela exemplo
-# if(write)
-#   data.table::fwrite(df_dimensions_ij_perguntas_search, "dados/df_dimensions_ij_perguntas_search.csv")
+###
+# Como é feito no app
+arvore_no_sel = 'What are the prodromal symptoms in COVID-19?'
+col_name <- df_perguntas_dict %>%
+  dplyr::filter(Pergunta == arvore_no_sel) %>%
+  dplyr::select(Busca)
+df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
+    dplyr::filter(!!as.name(col_name$Busca) == '1')
+## Escrevendo uma tabela exemplo
+if(write)
+  data.table::fwrite(df_dimensions_ij_perguntas_search, "dados/df_dimensions_ij_perguntas_search.csv")
 # ###
 # # Para o app_tabela
 # col_name <- df_perguntas_dict[df_perguntas_dict$Pergunta == input$question]$Busca
@@ -852,3 +904,27 @@ if(plot){
                                ))
   )
 }
+
+## 1.9 Publicações por categoria (ANZSRC_FoR)  ---------------------------------
+
+df_dim_categories <- df_dimensions %>%
+  dplyr::select(id, categories.for_v1.first_level.codes) %>%
+  dplyr::filter(length(categories.for_v1.first_level.codes) > 2) %>%
+  dplyr::filter(stringr::str_detect(categories.for_v1.first_level.codes,"[0123456789]"))
+
+df_dim_categories_clean <- df_dim_categories |> 
+  dplyr::rename(categ = categories.for_v1.first_level.codes) |> 
+  dplyr::mutate(categ = sapply(categ, stringr::str_replace_all, "'", "")) |> 
+  dplyr::mutate(categ = sapply(categ, stringr::str_replace_all, " ", "")) |> 
+  dplyr::mutate(categ = sapply(categ, stringr::str_replace_all, "\\[", "")) |> 
+  dplyr::mutate(categ = sapply(categ, stringr::str_replace_all, "\\]", ""))
+
+## calculando o número máximo de categorias
+nmax <- max(stringr::str_count(df_dim_categories_clean$categ, ",")) + 1
+
+df_dim_categories_manip <- df_dim_categories_clean |> 
+  tidyr::separate(categ, paste0("categ_", seq_len(nmax)), ",")
+df_dim_categories_manip <- df_dim_categories_manip |> 
+  tidyr::pivot_longer(!id, names_to = "categs_", values_to = "categ") %>%
+  dplyr::select(-categs_) %>%
+  dplyr::filter(!is.na(categ))
