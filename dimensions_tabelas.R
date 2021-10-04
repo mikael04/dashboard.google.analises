@@ -1,10 +1,14 @@
 library(dplyr)
 
-## Caso queira testar alguns gráficos e tabelas gerados, dois parâmetros abaixo
-plot <- F
-dashboard <- F
+## Caso queira rodar algum tipo de teste e ver suas saídas
 debug <- F
+## Caso queira escrever as tabelas que forem geradas
 write <- F
+## Se remove = T, vai removendo bases e variáveis que não serão mais usadas,
+## para usar menos RAM durante a execução
+remove <- T
+## Se teste = T, vai rodar com base de dados de sample (1% da base)
+teste <- T
 ## 1. Lendo arquivo de banco de dados  ---------------------------------
 ## Setup, lendo a base de dados (pode ser usado qualquer outro formato)
 # df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst") |> 
@@ -16,14 +20,16 @@ write <- F
 
 # df_dimensions <- fst::read_fst("dados/dimensions_compressed_selected.fst")
 df_dimensions <- arrow::read_parquet("dados/standard_dimensions_19092021_base_variaveis_selecionadas_19092021.parquet")
-# fst::write_fst(df_dimensions, "dados/dimensions_compressed_selected.fst")
-# df_dimensions <- fst::read_fst("dados/dimensions_compressed_selected.fst")
-# df_dimensions_basemik_parquet <- arrow::read_parquet("dados/standard_dimensions_19092021_base_mikael.parquet")
-# df_dimensions_basemerg_parquet <- arrow::read_parquet("dados/standard_dimensions_19092021_base_merge.parquet")
+df_dimensions <- tibble::as_tibble(df_dimensions) |> 
+  dplyr::rename(authors_fn = authors,  authors_ln =  `authors/lastname`)
 
-# set.seed(424242)
-# df_dimensions_sample <- df_dimensions |>  
-#   dplyr::sample_frac(0.01)
+set.seed(424242)
+df_dimensions_sample <- df_dimensions |>  
+  dplyr::sample_frac(0.01)
+
+if(teste){
+  df_dimensions <- df_dimensions_sample
+}
 
 ## 2. Criação de tabelas  ---------------------------------
 ## quais campos preciso? id +
@@ -38,12 +44,6 @@ df_dimensions <- arrow::read_parquet("dados/standard_dimensions_19092021_base_va
 # df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst") |> 
 #   dplyr::select(id, doi, authors_fn = authors,  authors_ln =  `authors/lastname`, metrics.times_cited, altmetrics.score, date_normal, type, title.preferred, abstract.preferred,
 #                 research_org_country_names, categories.for_v1.first_level.codes)
-df_dimensions <- tibble::as_tibble(df_dimensions) |> 
-  dplyr::rename(authors_fn = authors,  authors_ln =  `authors/lastname`)
-
-set.seed(424242)
-df_dimensions_sample <- df_dimensions |>  
-  dplyr::sample_frac(0.01)
 
 ### 2.1 Países  ---------------------------------
 ## Forma antiga, antes precisava de todos os países, agora,
@@ -104,7 +104,10 @@ df_dimensions_type_date <- df_dimensions |>
 
 
 ## 3 Tabela base - Países, data, tipo de artigo   ---------------------------------
-
+### 3.0 Gráficos ----
+  # - Mapa de publicações
+  # - Publicações no tempo
+  # - Publicações por país
 ## Criando a tabela base para junções posteriores
 
 ### 3.1 Tabela completa -----
@@ -121,11 +124,17 @@ df_count_base_filtros <- df_tabela_base_filtros |>
   dplyr::summarise(count = n()) |> 
   dplyr::ungroup()
 
-if(remove)
+if(remove){
+  rm(df_count_base_filtros, df_dimensions_country, df_dimensions_type_date)
+}
 ## 4 Junções com as demais variáveis ---------------------------------
+### 4.0 Gráficos ----
+    # - Publicações por categoria;
+    # - Autores mais citados;
+    # - Tabela de artigos, (doi, autor último nome, citações e altimetria)
 
 ### 4.1 Categorias ---------------------------------
-
+  # - Publicações por categoria;
 func_remove_non_numbers <- function (x){
   # gsub("[:graph:]", "", x)
   out <- gsub("\\[", "", x)
@@ -160,15 +169,18 @@ df_count_base_plus_categ <- df_tabela_base_plus_categ |>
   dplyr::summarise(count = n()) |> 
   dplyr::ungroup()
 
-### 4.2 Nomes (Em espera)  ---------------------------------
-
+if(remove){
+  rm(df_count_base_plus_categ, df_dimensions_categ, df_tabela_base_plus_categ)
+}
+### 4.2 Nomes  ---------------------------------
+  # - Autores mais citados;
+  # - Tabela de artigos, (doi, autor último nome, citações e altimetria)
 df_dimensions_authors <- df_dimensions_sample |> 
-  dplyr::select(id, doi, authors_fn, authors_ln) |> 
-  dplyr::mutate(authors_fn = if_else(authors_fn != "", authors_fn, "vazio")) |> 
+  dplyr::select(id, doi, authors_ln) |> 
   dplyr::mutate(authors_ln = if_else(authors_ln != "", authors_ln, "vazio"))
 
-## calculando o número máximo de primeiros nomes
-# nmax <- max(stringr::str_count(df_dimensions_authors$authors_fn, "\\|"), na.rm = T) + 1
+## calculando o número máximo de últimos nomes
+# nmax <- max(stringr::str_count(df_dimensions_authors$authors_ln, "\\|"), na.rm = T) + 1
 # for(i in 1:nrow(df_dimensions_authors)){
 #   max_names <- max(stringr::str_count(df_dimensions_authors[[2]][[i]], "\\|"), na.rm = T)
 #   if(j < max_names){
@@ -178,23 +190,31 @@ df_dimensions_authors <- df_dimensions_sample |>
 # }
 
 # df_dimensions_authors_top_names <- df_dimensions_authors |> 
-#   dplyr::mutate(n_autores = stringr::str_count(authors_fn, "\\|"))
+#   dplyr::mutate(n_autores = stringr::str_count(authors_ln, "\\|"))
 
 # max(stringr::str_count(df_dimensions_authors[[2]][[32631]], "\\|"))+1
 # df_dimensions_authors[[1]][[32631]]
 
 ## Formato wide
-df_dimensions_authors_ln <- df_dimensions_authors |> 
+df_dimensions_authors <- df_dimensions_authors |> 
   tidyr::separate_rows(authors_ln, sep = "\\|")
 
-## Formato wide
-df_dimensions_authors_fn <- df_dimensions_authors |> 
-  tidyr::separate_rows(authors_fn, sep = "\\|")
+#### 4.2.1 Tabela completa -----
+# com todas as linhas, sem agrupamento, campos: id, paises, data, tipo
+# id, country, date, type
+df_tabela_base_plus_name <- inner_join(df_tabela_base_filtros, df_dimensions_authors, by="id") |> 
+  dplyr::mutate(authors_ln = dplyr::if_else(authors_ln == "vazio", " ", authors_ln))
 
-# df_dimensions_authors_join <- full_join(df_dimensions_authors_ln, df_dimensions_authors_fn)
+#### 4.2.2 Tabela de contagem ----
+## Removendo "vazio" para plot
+df_tabela_base_plus_name <- df_tabela_base_plus_name |> 
+  dplyr::filter(authors_ln != " ") |> 
+  dplyr::group_by(type, date, country, authors_ln) |> 
+  dplyr::summarise(count = n()) |> 
+  dplyr::ungroup()
 
 ## 5 Tabela de resposta   ---------------------------------
-
+  
 source("fct_manip_string_nome_pais_journal.R")
 df_dimensions_authors_countries_journal <- df_dimensions |>
   # df_dimensions_authors_countries_journal <- df_dimensions_sample |>
@@ -301,6 +321,7 @@ df_dimensions_authors_countries_journal_sample <- df_dimensions_authors_countrie
                 journal_lists, research_org_country_names)
   
 DT::datatable(df_dimensions_authors_countries_journal_sample[,1:14],
+              extensions = "Buttons",
               options = list(columnDefs = list(list(visible=FALSE, targets=c(10, 11, 12, 13, 14))),
                              rowCallback = DT::JS(
                                "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
@@ -319,7 +340,15 @@ DT::datatable(df_dimensions_authors_countries_journal_sample[,1:14],
                                # "var full_text_title = aData[9]",
                                # "$('td:eq(7)', nRow).attr('title', full_text_title);",
                                # "}"
-                             ))
+                             ),
+                             dom = 'Bfrtip',
+                             buttons = 
+                               list(list(
+                                 extend = 'collection',
+                                 buttons = c('csv', 'excel', 'pdf'),
+                                 text = 'Baixar tabela'
+                               ))
+                             )
 )
 ## Apenas os que precisarão de tradução
 # df_utf8 <- df_dimensions_authors |> 
