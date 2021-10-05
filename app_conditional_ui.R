@@ -62,11 +62,11 @@ ui <- navbarPage(
   tabPanel("Citações",
              id = "cit",
              sidebarLayout(
-               # sidebarPanel(
-               #   pickerInput("picker", "selecione mn",
-               #               choices = c("1", "2"))
-               # ),
-               uiOutput("sidebar_"),
+               sidebarPanel(
+                 pickerInput("picker", "selecione mn",
+                             choices = c("1", "2"))
+               ),
+               # uiOutput("sidebar_"),
                mainPanel(
                  # tabsetPanel(id = "pub_temp_tabs",
                  plotOutput("hist2")

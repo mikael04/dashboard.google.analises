@@ -1,14 +1,17 @@
 library(dplyr)
-
+## 0. Variáveis Globais ----
 ## Caso queira rodar algum tipo de teste e ver suas saídas
 debug <- F
 ## Caso queira escrever as tabelas que forem geradas
-write <- F
+write <- T
+## Gerar apenas as que serão usadas pelo app, se F vai gerar todas
+## Quando for gerar para o app, vai mandar para pasta dados/app/
+write_app <- T
 ## Se remove = T, vai removendo bases e variáveis que não serão mais usadas,
 ## para usar menos RAM durante a execução
 remove <- T
 ## Se teste = T, vai rodar com base de dados de sample (1% da base)
-teste <- T
+teste <- F
 ## 1. Lendo arquivo de banco de dados  ---------------------------------
 ## Setup, lendo a base de dados (pode ser usado qualquer outro formato)
 # df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst") |> 
@@ -118,11 +121,26 @@ df_tabela_base_filtros <- inner_join(df_dimensions_type_date, df_dimensions_coun
   dplyr::mutate(country = tidyr::replace_na(country, "NoCountry")) |>
   dplyr::mutate(type = tidyr::replace_na(type, "NoType"))
 
+if(write){
+  if(write_app){ ## Não precisa ser gerada para o app
+  }else{ ## Não está gerando para o app
+    fst::write.fst(df_tabela_base_filtros, "dados/df_tabela_base_filtros.fst")
+  }
+}
+
 ### 3.2 Tabela de contagem ----
 df_count_base_filtros <- df_tabela_base_filtros |> 
   dplyr::group_by(type, date, country) |> 
   dplyr::summarise(count = n()) |> 
   dplyr::ungroup()
+
+if(write){
+  if(write_app){ ##As que ficarem "repetidas" no ifelse deverão ser geradas de quaisquer forma
+    fst::write.fst(df_count_base_filtros, "dados/app/df_count_base_filtros.fst")
+  }else{ ## Não está gerando para o app
+    fst::write.fst(df_count_base_filtros, "dados/df_count_base_filtros.fst")
+  }
+}
 
 if(remove){
   rm(df_count_base_filtros, df_dimensions_country, df_dimensions_type_date)
@@ -161,6 +179,12 @@ df_dimensions_categ <- df_dimensions_categ |>
 df_tabela_base_plus_categ <- inner_join(df_tabela_base_filtros, df_dimensions_categ, by="id") |> 
   dplyr::mutate(categ = tidyr::replace_na(categ, "00"))
 
+if(write){
+  if(write_app){ ## Não precisa ser gerada para o app
+  }else{ ## Não está gerando para o app
+    fst::write.fst(df_tabela_base_plus_categ, "dados/df_tabela_base_plus_categ.fst")
+  }
+}
 #### 4.1.2 Tabela de contagem ----
 df_count_base_plus_categ <- df_tabela_base_plus_categ |> 
   # dplyr::mutate(first_country = tidyr::replace_na(first_country, "NoCountry")) |> 
@@ -169,13 +193,21 @@ df_count_base_plus_categ <- df_tabela_base_plus_categ |>
   dplyr::summarise(count = n()) |> 
   dplyr::ungroup()
 
+if(write){
+  if(write_app){ ##As que ficarem "repetidas" no ifelse deverão ser geradas de quaisquer forma
+    fst::write.fst(df_count_base_plus_categ, "dados/app/df_count_base_plus_categ.fst")
+  }else{ ## Não está gerando para o app
+    fst::write.fst(df_count_base_plus_categ, "dados/df_count_base_plus_categ.fst")
+  }
+}
 if(remove){
-  rm(df_count_base_plus_categ, df_dimensions_categ, df_tabela_base_plus_categ)
+  rm(df_count_base_plus_categ, df_dimensions_categ, df_tabela_base_plus_categ,
+     func_remove_non_numbers)
 }
 ### 4.2 Nomes  ---------------------------------
   # - Autores mais citados;
   # - Tabela de artigos, (doi, autor último nome, citações e altimetria)
-df_dimensions_authors <- df_dimensions_sample |> 
+df_dimensions_authors <- df_dimensions |> 
   dplyr::select(id, doi, authors_ln) |> 
   dplyr::mutate(authors_ln = if_else(authors_ln != "", authors_ln, "vazio"))
 
@@ -205,14 +237,30 @@ df_dimensions_authors <- df_dimensions_authors |>
 df_tabela_base_plus_name <- inner_join(df_tabela_base_filtros, df_dimensions_authors, by="id") |> 
   dplyr::mutate(authors_ln = dplyr::if_else(authors_ln == "vazio", " ", authors_ln))
 
+if(write){
+  if(write_app){ ## Não precisa ser gerada para o app
+  }else{ ## Não está gerando para o app
+    fst::write.fst(df_tabela_base_plus_name, "dados/df_tabela_base_plus_name.fst")
+  }
+}
 #### 4.2.2 Tabela de contagem ----
 ## Removendo "vazio" para plot
-df_tabela_base_plus_name <- df_tabela_base_plus_name |> 
+df_count_base_plus_name <- df_tabela_base_plus_name |> 
   dplyr::filter(authors_ln != " ") |> 
   dplyr::group_by(type, date, country, authors_ln) |> 
   dplyr::summarise(count = n()) |> 
   dplyr::ungroup()
 
+if(write){
+  if(write_app){ ##As que ficarem "repetidas" no ifelse deverão ser geradas de quaisquer forma
+    fst::write.fst(df_count_base_plus_name, "dados/app/df_count_base_plus_name.fst")
+  }else{ ## Não está gerando para o app
+    fst::write.fst(df_count_base_plus_name, "dados/df_count_base_plus_name.fst")
+  }
+}
+if(remove){
+  rm(df_dimensions_authors, df_tabela_base_plus_name, df_count_base_plus_name)
+}
 ## 5 Tabela de resposta   ---------------------------------
   
 source("fct_manip_string_nome_pais_journal.R")
@@ -304,10 +352,21 @@ df_dimensions_authors_countries_journal <- df_dimensions_authors_countries_journ
                 doi, citations = metrics.times_cited, altmetrics = altmetrics.score,
                 authors_ln, title = title.preferred, abstract = abstract.preferred,
                 journal_lists, research_org_country_names, id)
-# if(write)
-  # data.table::fwrite(df_dimensions_authors_countries_journal, "dados/df_dimensions_tabelas_clean.csv")
-  # data.table::fwrite(df_dimensions_authors_countries_journal_sample, "dados/df_dimensions_tabelas_clean_sample.csv")
-
+if(write){
+  if(write_app){ ##As que ficarem "repetidas" no ifelse deverão ser geradas de quaisquer forma
+    if(teste){ ##Trabalhando com sample
+      data.table::fwrite(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean_sample.csv")
+    }else{
+      data.table::fwrite(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean.csv")
+    }
+  }else{ ## Não está gerando para o app
+    if(teste){ ##Trabalhando com sample
+      data.table::fwrite(df_dimensions_authors_countries_journal, "dados/df_dimensions_tabelas_clean_sample.csv")
+    }else{
+      data.table::fwrite(df_dimensions_authors_countries_journal, "dados/df_dimensions_tabelas_clean.csv")
+    }
+  }
+}
 # df_dimensions_authors_countries_journal <- data.table::fread("dados/df_dimensions_tabelas_clean.csv")
 
 set.seed(424242)
@@ -350,6 +409,15 @@ DT::datatable(df_dimensions_authors_countries_journal_sample[,1:14],
                                ))
                              )
 )
+
+if(remove){
+  rm(df_dimensions_authors_countries_journal, df_tabela_authors_countries_journal,
+     df_dimensions_authors_countries_journal_sample,
+     func_trans_names, func_count_numbers, func_first, func_first_author,
+     func_first_country, func_first_journal, func_last, func_last_author,
+     func_last_country, func_last_journal)
+}
+
 ## Apenas os que precisarão de tradução
 # df_utf8 <- df_dimensions_authors |> 
 #   dplyr::filter(first_author_ln_typeofchar == "UTF-8")
