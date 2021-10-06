@@ -9,7 +9,7 @@ write <- T
 write_app <- T
 ## Se remove = T, vai removendo bases e variáveis que não serão mais usadas,
 ## para usar menos RAM durante a execução
-remove <- T
+remove <- F
 ## Se teste = T, vai rodar com base de dados de sample (1% da base)
 teste <- F
 ## 1. Lendo arquivo de banco de dados  ---------------------------------

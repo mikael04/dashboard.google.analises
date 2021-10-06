@@ -17,6 +17,7 @@ write <- F
 df_dimensions <- fst::read_fst("dados/dimensions_compressed_selected.fst")
 df_dimensions <- tibble::as_tibble(df_dimensions)
 
+
 df_dimensions_sample <- df_dimensions %>% 
   dplyr::sample_frac(0.01)
 
@@ -508,6 +509,18 @@ glimpse(df_country)
 
 rm(df_country)
 
+## Título ----
+max_lenght = 1
+for(i in 1:nrow(df_dimensions)){
+  # stringr::str_count(df_dimensions[[8]][i])
+  col_length <- stringr::str_count(df_dimensions[[8]][i])
+  #print(col_length)
+  if(col_length > max_lenght){
+    col_name <- i
+    max_lenght <- col_length
+  }
+}
+# df_dimensions[[8]][260139]
 ## 1. Criação de tabelas  ---------------------------------
 ## quais campos preciso? id +
 ## artigos_autores -> 
