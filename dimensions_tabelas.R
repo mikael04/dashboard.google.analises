@@ -177,7 +177,17 @@ df_dimensions_categ <- df_dimensions_categ |>
 # com todas as linhas, sem agrupamento, campos: id, paises, data, tipo
 # id, country, date, type
 df_tabela_base_plus_categ <- inner_join(df_tabela_base_filtros, df_dimensions_categ, by="id") |> 
-  dplyr::mutate(categ = tidyr::replace_na(categ, "00"))
+  dplyr::mutate(categ = tidyr::replace_na(categ, "00")) |> 
+  dplyr::mutate(categ_aux = as.numeric(categ))
+
+## Tabela ANZSRC
+df_anzsrc <- data.table::fread("dados/ANZSRC_FoR.csv")
+# df_anzsrc$ID
+df_tabela_base_plus_categ <- dplyr::left_join(df_tabela_base_plus_categ, df_anzsrc,
+                                              by=c("categ_aux" = "ID")) |> 
+  dplyr::mutate(categ_name = paste0(categ, " - ", FoR))|> 
+  dplyr::mutate(categ_name = dplyr::if_else(is.na(FoR), "NoCateg", categ_name)) |> 
+  dplyr::select(-categ_aux, -FoR) 
 
 if(write){
   if(write_app){ ## Não precisa ser gerada para o app
@@ -187,15 +197,24 @@ if(write){
 }
 #### 4.1.2 Tabela de contagem ----
 df_count_base_plus_categ <- df_tabela_base_plus_categ |> 
-  # dplyr::mutate(first_country = tidyr::replace_na(first_country, "NoCountry")) |> 
-  # dplyr::mutate(last_country = tidyr::replace_na(last_country, "NoCountry")) |> 
   dplyr::group_by(type, date, country, categ) |> 
-  dplyr::summarise(count = n()) |> 
+  dplyr::mutate(count = n()) |>
+  dplyr::distinct(type, date, country, categ, .keep_all = T) |> 
   dplyr::ungroup()
+
+df_count_base_plus_categ_first_plot <- df_count_base_plus_categ |> 
+  dplyr::filter(!categ == "00") |> 
+  dplyr::group_by(categ) |> 
+  dplyr::mutate(count_ = sum(count)) |> 
+  dplyr::distinct(count_, .keep_all = T) |> 
+  dplyr::ungroup() |> 
+  dplyr::select(-count, -id, -date, -type, -country) |> 
+  dplyr::rename(count = count_)
 
 if(write){
   if(write_app){ ##As que ficarem "repetidas" no ifelse deverão ser geradas de quaisquer forma
     fst::write.fst(df_count_base_plus_categ, "dados/app/df_count_base_plus_categ.fst")
+    fst::write.fst(df_count_base_plus_categ_first_plot, "dados/app/df_count_base_plus_categ_first_plot.fst")
   }else{ ## Não está gerando para o app
     fst::write.fst(df_count_base_plus_categ, "dados/df_count_base_plus_categ.fst")
   }
@@ -235,7 +254,8 @@ df_dimensions_authors <- df_dimensions_authors |>
 # com todas as linhas, sem agrupamento, campos: id, paises, data, tipo
 # id, country, date, type
 df_tabela_base_plus_name <- inner_join(df_tabela_base_filtros, df_dimensions_authors, by="id") |> 
-  dplyr::mutate(authors_ln = dplyr::if_else(authors_ln == "vazio", " ", authors_ln))
+  dplyr::mutate(authors_ln = dplyr::if_else(authors_ln == "vazio", " ", authors_ln)) |> 
+  dplyr::select(-doi)
 
 if(write){
   if(write_app){ ## Não precisa ser gerada para o app
@@ -246,14 +266,24 @@ if(write){
 #### 4.2.2 Tabela de contagem ----
 ## Removendo "vazio" para plot
 df_count_base_plus_name <- df_tabela_base_plus_name |> 
-  dplyr::filter(authors_ln != " ") |> 
-  dplyr::group_by(type, date, country, authors_ln) |> 
-  dplyr::summarise(count = n()) |> 
+  dplyr::filter(authors_ln != " ") |>
+  dplyr::group_by(authors_ln) |> 
+  dplyr::mutate(count = n()) |>
+  dplyr::distinct(type, date, country, authors_ln, .keep_all = T) |> 
   dplyr::ungroup()
+
+df_count_base_plus_name_first_plot <- df_count_base_plus_name |> 
+  dplyr::group_by(authors_ln) |> 
+  dplyr::mutate(count_ = sum(count)) |> 
+  dplyr::distinct(count_, .keep_all = T) |> 
+  dplyr::ungroup() |> 
+  dplyr::select(-count, -id, -date, -type, -country) |> 
+  dplyr::rename(count = count_)
 
 if(write){
   if(write_app){ ##As que ficarem "repetidas" no ifelse deverão ser geradas de quaisquer forma
     fst::write.fst(df_count_base_plus_name, "dados/app/df_count_base_plus_name.fst")
+    fst::write.fst(df_count_base_plus_name_first_plot, "dados/app/df_count_base_plus_name_first_plot.fst")
   }else{ ## Não está gerando para o app
     fst::write.fst(df_count_base_plus_name, "dados/df_count_base_plus_name.fst")
   }

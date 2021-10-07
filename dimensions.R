@@ -520,7 +520,6 @@ for(i in 1:nrow(df_dimensions)){
     max_lenght <- col_length
   }
 }
-# df_dimensions[[8]][260139]
 ## 1. Criação de tabelas  ---------------------------------
 ## quais campos preciso? id +
 ## artigos_autores -> 
