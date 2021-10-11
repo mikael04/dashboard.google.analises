@@ -9,19 +9,22 @@
 
 library(shiny)
 library(shinydashboard)
+library(shinyjs)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
     #tags$link(rel = "stylesheet", href = "https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"),
-    navbarPage("COVID-19/CIDACS",
+    navbarPage(div(img(src='marca_ric_covid.svg',style="margin-top: 0px; padding-right:5px;padding-bottom:5px", width = 300))
+               %>% 
+                   tagAppendAttributes(class = 'logo'),
+               #theme = "journal",
+               windowTitle = "Repositório de informações sobre COVID-19",
                id = "navbar",
                #selected = "pub_temp_loc",
                theme = "navbar.css",
                #fluid = T,
                        tabPanel("Publicações ao longo do tempo e local",
                                 id = "pub_temp_loc"),
-                       tabPanel("Colaborações e financiamento",
-                                id = "col_fin"),
                        tabPanel("Citação e altmetria",
                                 id = "cit_alt")
                ),
