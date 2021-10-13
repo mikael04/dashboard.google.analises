@@ -1,5 +1,6 @@
 .well{
     background-color: #DEEBF0;
+    height: 900px;
 }
 #idAno{
     background-color: white !important;
@@ -14,4 +15,7 @@
 .selectize-dropdown, .selectize-input, .selectize-input input{
     color: black !important;
     background-color: white !important;
+}
+#filtro_tit{
+    color: #660909;
 }

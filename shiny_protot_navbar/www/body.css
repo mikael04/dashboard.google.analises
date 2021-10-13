@@ -1,3 +1,7 @@
-#row_perg{
+#perguntas{
     text-align: left !important;
+    color: #64C1C7;
+}
+#dropdown_state{
+    width: 1200px;
 }

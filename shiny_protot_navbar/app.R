@@ -12,6 +12,8 @@ library(shinydashboard)
 library(shinyjs)
 library(thematic)
 library(shinipsum)
+library(shinyTree)
+library(shinyWidgets)
 
 
 thematic_shiny(font = "auto")
@@ -53,30 +55,57 @@ ui <- tagList(
                         id = "pub_temp_loc",
                         sidebarLayout(
                             sidebarPanel(
-                                tags$h4("Filtros"),
-                                id = "sidebar",
-                                width = 2,
-                                selectInput("idAno", "Selecione o ano:",
-                                            choices = c("Todos os anos", 2020, 2021),
-                                            selectize = T),
-                                selectInput("idPais", "Selecione o país:", choices = c("Todos os países", "Brasil", "Argentina", "Chile", "Estados Unidos", "Uruguai")),
-                                selectInput("idPub", "Selecione o tipo de publicação:", choices = c("Todos os tipos", "Artigo", "Capítulo", "Livro", "Monografia", "Preprint"))
+                                    id = "sidebar",
+                                    div(id="filtro_tit",
+                                        tags$h4("FILTROS")
+                                        ),
+                                    width = 2,
+                                    selectInput("idAno", "Selecione o ano:",
+                                                choices = c("Todos os anos", 2020, 2021),
+                                                selectize = T),
+                                    selectInput("idPais", "Selecione o país:", choices = c("Todos os países", "Brasil", "Argentina", "Chile", "Estados Unidos", "Uruguai")),
+                                    selectInput("idPub", "Selecione o tipo de publicação:", choices = c("Todos os tipos", "Artigo", "Capítulo", "Livro", "Monografia", "Preprint"))
                             ),
                             mainPanel(
                                 width = 10,
                                 #### 1.1.2.1 Linha de perguntas ----
                                 fluidRow(
-                                    div(id="row_perg",
+                                    div(id="perguntas",
                                         # actionButton("toggleSidebar", "Toggle sidebar"),
-                                        tags$h4("Perguntas"),
+                                        tags$h4("PERGUNTAS"),
                                         column(3,
-                                               actionButton(
-                                                   inputId = "sel_perg",
+                                               # actionButton(
+                                               #     inputId = "sel_perg",
+                                               #     label = "SELECIONE O ASSUNTO OU PERGUNTA",
+                                               #     # inputId = ns("dropdown"),
+                                               #     icon = icon("question"),
+                                               #     circle = FALSE
+                                               # ),
+                                               # selectInput("idPerg",
+                                               #             "SELECIONE O ASSUNTO OU PERGUNTA",
+                                               #             )
+                                                dropdownButton(
                                                    label = "Selecione o assunto ou pergunta",
+                                                   width = "100%",
                                                    # inputId = ns("dropdown"),
+                                                   inputId = "dropdown",
                                                    icon = icon("question"),
-                                                   circle = FALSE
-                                               ),
+                                                   circle = FALSE,
+                                                   tags$div(
+                                                       # actionButton(inputId = ns("toggle2"),
+                                                       actionButton(inputId = "toggle2",
+                                                                    label = "Selecionar")
+                                                   ),
+                                                   tags$div(style = "margin:10px",
+                                                            column(2, align="center",
+                                                                   #mod_arvore_busca_nosel_ui("arvore_busca_nosel_1"),
+                                                                   # mod_arvore_busca_ui(ns("arvore_busca_1")),
+                                                                   shinyTree("tree",
+                                                                             search=TRUE, searchtime = 1000,
+                                                                             theme="proton", themeIcons = FALSE, themeDots = T)
+                                                            )
+                                                   )
+                                               )
                                         ),
                                         column(7,
                                                # mod_arvore_busca_nosel_ui(ns("arvore_busca_nosel_1")
@@ -131,6 +160,9 @@ server <- function(input, output) {
     output$distPlot5 <- renderPlot({
         shinipsum::random_ggplot("bar")
     })
+    df <- data.table::fread("../dados/perguntas_full_clean.csv")
+    tree <- dfToTree(df, c("EIXO", "TOPICS", "QUERIES", "QUESTIONS"))
+    output$tree <- renderTree({tree})
 }
 
 # Run the application 

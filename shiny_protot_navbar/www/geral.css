@@ -1,3 +1,6 @@
 body{
     color:black !important; 
 }
+#sidebar{
+    text-align: left !important;
+}
