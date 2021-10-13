@@ -18,19 +18,26 @@ thematic_shiny(font = "auto")
 
 # Define UI for application that draws a histogram
 ui <- tagList(
+    tags$link(rel = "stylesheet", type = "text/css", href = "geral.css"),
+    tags$link(rel = "stylesheet", type = "text/css", href = "navbar.css"),
+    tags$link(rel = "stylesheet", type = "text/css", href = "sidebar.css"),
+    tags$link(rel = "stylesheet", type = "text/css", href = "body.css"),
+    # includeCSS("www/geral.css"),
+    # includeCSS("www/navbar.css"),
+    # includeCSS("www/sidebar.css"),
     tags$head(
-        tags$link(rel = "stylesheet", type = "text/css", href = "navbar.css")
     ),
     navbarPage(
-        # theme = bslib::bs_theme(
-        #     version = 3,
-        #     bg = "#ecf0f5", fg = "#660909", primary = "#64C1C7",
-        #     # bslib also makes it easy to import CSS fonts
-        #     base_font = bslib::font_google("Comfortaa")
-        #     # base_font = bslib::font_link("Comfortaa", href = "https://fonts.googleapis.com/css2?family=Comfortaa&display=swap"),
-        #     # code_font = bslib::font_link("Comfortaa", href = "https://fonts.googleapis.com/css2?family=Comfortaa&display=swap"),
-        #     # heading_font = bslib::font_link("Comfortaa", href = "https://fonts.googleapis.com/css2?family=Comfortaa&display=swap")
-        # ),
+        theme = bslib::bs_theme(
+            version = 3,
+            bg = "#ecf0f5", fg = "#660909", primary = "#000000",
+            # bg = "#324C63", fg = "#660909", primary = "#000000",
+            # bslib also makes it easy to import CSS fonts
+            base_font = bslib::font_google("Comfortaa")
+            # base_font = bslib::font_link("Comfortaa", href = "https://fonts.googleapis.com/css2?family=Comfortaa&display=swap"),
+            # code_font = bslib::font_link("Comfortaa", href = "https://fonts.googleapis.com/css2?family=Comfortaa&display=swap"),
+            # heading_font = bslib::font_link("Comfortaa", href = "https://fonts.googleapis.com/css2?family=Comfortaa&display=swap")
+        ),
         #tags$link(rel = "stylesheet", href = "https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"),
     
         div(img(src='marca_ric_covid.svg',style="margin-top: 0px; padding-right:5px;padding-bottom:5px", width = 380)) |>
@@ -39,20 +46,58 @@ ui <- tagList(
                windowTitle = "Repositório de informações sobre COVID-19",
                id = "navbar",
                #selected = "pub_temp_loc",
-               theme = "navbar.css",
+               # theme = "navbar.css",
                #fluid = T,
                tabPanel("Sobre", id = "sobre"),
                tabPanel("Publicações no tempo",
                         id = "pub_temp_loc",
                         sidebarLayout(
                             sidebarPanel(
+                                tags$h4("Filtros"),
                                 id = "sidebar",
-                                selectInput("idAno", "Selecione o ano:", choices = c("Todos os anos", 2020, 2021)),
+                                width = 2,
+                                selectInput("idAno", "Selecione o ano:",
+                                            choices = c("Todos os anos", 2020, 2021),
+                                            selectize = T),
                                 selectInput("idPais", "Selecione o país:", choices = c("Todos os países", "Brasil", "Argentina", "Chile", "Estados Unidos", "Uruguai")),
                                 selectInput("idPub", "Selecione o tipo de publicação:", choices = c("Todos os tipos", "Artigo", "Capítulo", "Livro", "Monografia", "Preprint"))
                             ),
                             mainPanel(
-                                plotOutput("distPlot")
+                                width = 10,
+                                #### 1.1.2.1 Linha de perguntas ----
+                                fluidRow(
+                                    div(id="row_perg",
+                                        # actionButton("toggleSidebar", "Toggle sidebar"),
+                                        tags$h4("Perguntas"),
+                                        column(3,
+                                               actionButton(
+                                                   inputId = "sel_perg",
+                                                   label = "Selecione o assunto ou pergunta",
+                                                   # inputId = ns("dropdown"),
+                                                   icon = icon("question"),
+                                                   circle = FALSE
+                                               ),
+                                        ),
+                                        column(7,
+                                               # mod_arvore_busca_nosel_ui(ns("arvore_busca_nosel_1")
+                                               htmlOutput("Pergunta/tema selecionado X"),
+                                        ),
+                                    )
+                                ),
+                                fluidRow(
+                                    column(
+                                        width = 6,
+                                        
+                                        plotOutput("distPlot"),
+                                        plotOutput("distPlot2")
+                                    ),
+                                    column(
+                                        width = 6,
+                                        plotOutput("distPlot3"),
+                                        plotOutput("distPlot4")
+                                    )
+                                    
+                                )
                             )
                             
                         )),
@@ -70,14 +115,21 @@ ui <- tagList(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-
+    
     output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white')
+        shinipsum::random_ggplot("bar")
+    })
+    output$distPlot2 <- renderPlot({
+        shinipsum::random_ggplot("bar")
+    })
+    output$distPlot3 <- renderPlot({
+        shinipsum::random_ggplot("bar")
+    })
+    output$distPlot4 <- renderPlot({
+        shinipsum::random_ggplot("bar")
+    })
+    output$distPlot5 <- renderPlot({
+        shinipsum::random_ggplot("bar")
     })
 }
 

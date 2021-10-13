@@ -1,0 +1,17 @@
+.well{
+    background-color: #DEEBF0;
+}
+#idAno{
+    background-color: white !important;
+}
+#idPais{
+    background-color: white !important;
+}
+#idPub{
+    background-color: white !important;
+}
+
+.selectize-dropdown, .selectize-input, .selectize-input input{
+    color: black !important;
+    background-color: white !important;
+}
