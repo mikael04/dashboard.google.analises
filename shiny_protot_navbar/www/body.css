@@ -5,3 +5,26 @@
 #dropdown_state{
     width: 1200px;
 }
+/* .btn-default > #dropdown{
+    color: black;
+    background-color: #ECF0F5;
+    border-color: #D1C2C6;
+} */
+
+.btn-default{
+    color: black;
+    background-color: #ECF0F5;
+    border-color: #D1C2C6;
+}
+.nav-tabs{
+    border-bottom: 3px solid #64C1C7;
+}
+
+.tabbable ul li a{
+    background-color: #FFFFFF;
+    color: #64C1C7;
+}
+.nav-tabs>li.active>a{
+    background-color: #64C1C7 !important;
+    color: white !important;
+}

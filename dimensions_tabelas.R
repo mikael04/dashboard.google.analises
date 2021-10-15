@@ -385,13 +385,15 @@ df_dimensions_authors_countries_journal <- df_dimensions_authors_countries_journ
 if(write){
   if(write_app){ ##As que ficarem "repetidas" no ifelse deverão ser geradas de quaisquer forma
     if(teste){ ##Trabalhando com sample
-      data.table::fwrite(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean_sample.csv")
+      data.table::fwrite(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean.csv")
+      # data.table::fwrite(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean_sample.csv")
     }else{
       data.table::fwrite(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean.csv")
     }
   }else{ ## Não está gerando para o app
     if(teste){ ##Trabalhando com sample
-      data.table::fwrite(df_dimensions_authors_countries_journal, "dados/df_dimensions_tabelas_clean_sample.csv")
+      data.table::fwrite(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean.csv")
+      # data.table::fwrite(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean_sample.csv")
     }else{
       data.table::fwrite(df_dimensions_authors_countries_journal, "dados/df_dimensions_tabelas_clean.csv")
     }
@@ -409,36 +411,36 @@ df_dimensions_authors_countries_journal_sample <- df_dimensions_authors_countrie
                 type, doi, citations, altmetrics, authors_ln, title, abstract,
                 journal_lists, research_org_country_names)
   
-DT::datatable(df_dimensions_authors_countries_journal_sample[,1:14],
-              extensions = "Buttons",
-              options = list(columnDefs = list(list(visible=FALSE, targets=c(10, 11, 12, 13, 14))),
-                             rowCallback = DT::JS(
-                               "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
-                               "var full_text_author = aData[10]",
-                               "var full_text_title = aData[11]",
-                               "var full_text_abs = aData[12]",
-                               "var full_text_journals = aData[13]",
-                               "var full_text_countries = aData[14]",
-                               "$('td:eq(1)', nRow).attr('title', full_text_author);",
-                               "$('td:eq(2)', nRow).attr('title', full_text_title);",
-                               "$('td:eq(3)', nRow).attr('title', full_text_abs);",
-                               "$('td:eq(4)', nRow).attr('title', full_text_journals);",
-                               "$('td:eq(5)', nRow).attr('title', full_text_countries);",
-                               "}"
-                               # "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
-                               # "var full_text_title = aData[9]",
-                               # "$('td:eq(7)', nRow).attr('title', full_text_title);",
-                               # "}"
-                             ),
-                             dom = 'Bfrtip',
-                             buttons = 
-                               list(list(
-                                 extend = 'collection',
-                                 buttons = c('csv', 'excel', 'pdf'),
-                                 text = 'Baixar tabela'
-                               ))
-                             )
-)
+# DT::datatable(df_dimensions_authors_countries_journal_sample[,1:14],
+#               extensions = "Buttons",
+#               options = list(columnDefs = list(list(visible=FALSE, targets=c(10, 11, 12, 13, 14))),
+#                              rowCallback = DT::JS(
+#                                "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
+#                                "var full_text_author = aData[10]",
+#                                "var full_text_title = aData[11]",
+#                                "var full_text_abs = aData[12]",
+#                                "var full_text_journals = aData[13]",
+#                                "var full_text_countries = aData[14]",
+#                                "$('td:eq(1)', nRow).attr('title', full_text_author);",
+#                                "$('td:eq(2)', nRow).attr('title', full_text_title);",
+#                                "$('td:eq(3)', nRow).attr('title', full_text_abs);",
+#                                "$('td:eq(4)', nRow).attr('title', full_text_journals);",
+#                                "$('td:eq(5)', nRow).attr('title', full_text_countries);",
+#                                "}"
+#                                # "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
+#                                # "var full_text_title = aData[9]",
+#                                # "$('td:eq(7)', nRow).attr('title', full_text_title);",
+#                                # "}"
+#                              ),
+#                              dom = 'Bfrtip',
+#                              buttons = 
+#                                list(list(
+#                                  extend = 'collection',
+#                                  buttons = c('csv', 'excel', 'pdf'),
+#                                  text = 'Baixar tabela'
+#                                ))
+#                              )
+# )
 
 if(remove){
   rm(df_dimensions_authors_countries_journal, df_tabela_authors_countries_journal,

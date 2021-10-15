@@ -1,14 +1,9 @@
-.container-fluid{
-  width: 100%;
-  padding-left: 0;
-  padding-right: 0;
-  text-align: center;
-}
 .navbar-header{
   width:30%;
   text-align: center;
   height: 60px;
 }
+.navbar-nav 
 .navbar-brand {
   position: relative;
   left: 0%;
@@ -28,6 +23,7 @@
 #navbar li{
   width: 33.33%;
   height: 60px;
+  text-align: center;
 }
 .sidebar-menu{
   width: 20%;
@@ -56,6 +52,7 @@
   background-color: #64C1C7;
 }
 
-.navbar.navbar-default ul.nav.navbar-nav>li>a.active{
-  color:white;
+.navbar-default .navbar-nav>.active>a{
+  background-color: #64C1C7 !important;
+  color:white !important;
 }

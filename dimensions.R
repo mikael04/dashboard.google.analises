@@ -940,3 +940,106 @@ df_dim_categories_manip <- df_dim_categories_manip |>
   tidyr::pivot_longer(!id, names_to = "categs_", values_to = "categ") %>%
   dplyr::select(-categs_) %>%
   dplyr::filter(!is.na(categ))
+
+## 2.0 Novas tabelas de busca ----
+
+df_buscas <- arrow::read_parquet("dados/Banco1909PerguntasAmostra.parquet")
+df_buscas_relacao <- data.table::fread("dados/relacaoColunaPergunta.csv") |> 
+  dplyr::select(col_name = `Nome da Coluna`, col_name_plus_abs = `Nome da Coluna Abs`, perg = Pergunta)
+
+# perg_sel <- "Child and Adolescent Health and Education" ##Não existe no df tree
+# perg_sel <- "Does pregnancy increase the risk for severe COVID-19?"
+# "Can breast milk transmit SARS-CoV-2 to newborns?"
+# "Can mode of delivery transmit SARS-CoV-2 to neonates?"
+# "What are the precautions for breastfeeding for a SARS-CoV-2 positive mother?"
+# "What are the safest methods for neonatal feeding for a SARS-CoV-2 positive mother?"
+# "Women's Health and Gender" <- QUERIE
+
+pergs_topics_sel <- c("Does pregnancy increase the risk for severe COVID-19?",
+                      "Can breast milk transmit SARS-CoV-2 to newborns?",
+                      "Can mode of delivery transmit SARS-CoV-2 to neonates?",
+                      "What are the precautions for breastfeeding for a SARS-CoV-2 positive mother?",
+                      "What are the safest methods for neonatal feeding for a SARS-CoV-2 positive mother?",
+                      "Women's Health and Gender")
+
+df_buscas_relacao_filtered <- df_buscas_relacao |> 
+  dplyr::filter(perg %in% pergs_topics_sel)
+
+df_buscas_relacao_filtered[[2]][[1]]
+buscas_tit <- NULL
+df_buscas_filtered <- NULL
+df_merge <- data.frame()
+df_merge <- df_buscas |> 
+  dplyr::filter(!!as.name(buscas_tit[1]) == 1) |> 
+  dplyr::select(id, doi_busc = doi, !!as.name(buscas_tit[1]))
+# df_merge <- colnames(df_merge)
+for(i in 2:nrow(df_buscas_relacao_filtered)){
+  buscas_tit[i] <- df_buscas_relacao_filtered[[2]][[i]]
+  
+  df_buscas_filtered <- df_buscas |> 
+    dplyr::filter(!!as.name(buscas_tit[i]) == 1) |> 
+    dplyr::select(id, doi_busc = doi, !!as.name(buscas_tit[i]))
+  
+  df_merge <- dplyr::inner_join(df_merge, df_buscas_filtered)
+}
+df_buscas_relacao_filtered <- df_buscas_relacao |> 
+  dplyr::filter(perg == perg_sel)
+
+buscas_tit <-  df_buscas_relacao_filtered$col_name
+buscas_tit_abs <-  df_buscas_relacao_filtered$col_name_plus_abs
+
+df_buscas_filtered <- df_buscas |> 
+  dplyr::filter(!!as.name(buscas_tit) == 1) |> 
+  dplyr::select(id, doi_busc = doi, !!as.name(buscas_tit))
+
+# df_dim_au_co_jo <- data.table::fread("dados/app/df_dimensions_tabelas_clean.csv")
+# df_dim_au_co_jo <- fst::write_fst(df_dim_au_co_jo, "dados/app/df_dimensions_tabelas_clean.fst")
+df_dim_au_co_jo <- fst::read_fst("dados/app/df_dimensions_tabelas_clean.fst")
+
+df_dim_au_co_jo_filtered <- dplyr::inner_join(df_dim_au_co_jo, df_buscas_filtered, by="id") |> 
+  dplyr::select(-!!as.name(buscas_tit), -doi_busc)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

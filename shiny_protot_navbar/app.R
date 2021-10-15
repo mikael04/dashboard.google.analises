@@ -113,17 +113,25 @@ ui <- tagList(
                                         ),
                                     )
                                 ),
+                                br(),
                                 fluidRow(
-                                    column(
-                                        width = 6,
-                                        
-                                        plotOutput("distPlot"),
-                                        plotOutput("distPlot2")
-                                    ),
-                                    column(
-                                        width = 6,
-                                        plotOutput("distPlot3"),
-                                        plotOutput("distPlot4")
+                                    tabsetPanel(type = "tabs",
+                                                tabPanel("Plots",
+                                                         id="plots",
+                                                         column(
+                                                             width = 6,
+                                                             
+                                                             plotOutput("distPlot"),
+                                                             plotOutput("distPlot2")
+                                                         ),
+                                                         column(
+                                                             width = 6,
+                                                             plotOutput("distPlot3"),
+                                                             plotOutput("distPlot4")
+                                                         )
+                                                         ),
+                                                tabPanel("Table",
+                                                         id = "table")
                                     )
                                     
                                 )
