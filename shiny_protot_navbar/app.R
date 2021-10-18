@@ -24,9 +24,8 @@ ui <- tagList(
     tags$link(rel = "stylesheet", type = "text/css", href = "navbar.css"),
     tags$link(rel = "stylesheet", type = "text/css", href = "sidebar.css"),
     tags$link(rel = "stylesheet", type = "text/css", href = "body.css"),
+    tags$link(rel = "stylesheet", type = "text/css", href = "footer.css"),
     # includeCSS("www/geral.css"),
-    # includeCSS("www/navbar.css"),
-    # includeCSS("www/sidebar.css"),
     tags$head(
     ),
     navbarPage(
@@ -44,103 +43,117 @@ ui <- tagList(
     
         div(img(src='marca_ric_covid.svg',style="margin-top: 0px; padding-right:5px;padding-bottom:5px", width = 380)) |>
             tagAppendAttributes(class = 'logo'),
-               #theme = "journal",
-               windowTitle = "Repositório de informações sobre COVID-19",
-               id = "navbar",
-               #selected = "pub_temp_loc",
-               # theme = "navbar.css",
-               #fluid = T,
-               tabPanel("Sobre", id = "sobre"),
-               tabPanel("Publicações no tempo",
-                        id = "pub_temp_loc",
-                        sidebarLayout(
-                            sidebarPanel(
-                                    id = "sidebar",
-                                    div(id="filtro_tit",
-                                        tags$h4("FILTROS")
-                                        ),
-                                    width = 2,
-                                    selectInput("idAno", "Selecione o ano:",
-                                                choices = c("Todos os anos", 2020, 2021),
-                                                selectize = T),
-                                    selectInput("idPais", "Selecione o país:", choices = c("Todos os países", "Brasil", "Argentina", "Chile", "Estados Unidos", "Uruguai")),
-                                    selectInput("idPub", "Selecione o tipo de publicação:", choices = c("Todos os tipos", "Artigo", "Capítulo", "Livro", "Monografia", "Preprint"))
-                            ),
-                            mainPanel(
-                                width = 10,
-                                #### 1.1.2.1 Linha de perguntas ----
-                                fluidRow(
-                                    div(id="perguntas",
-                                        # actionButton("toggleSidebar", "Toggle sidebar"),
-                                        tags$h4("PERGUNTAS"),
-                                        column(3,
-                                               # actionButton(
-                                               #     inputId = "sel_perg",
-                                               #     label = "SELECIONE O ASSUNTO OU PERGUNTA",
-                                               #     # inputId = ns("dropdown"),
-                                               #     icon = icon("question"),
-                                               #     circle = FALSE
-                                               # ),
-                                               # selectInput("idPerg",
-                                               #             "SELECIONE O ASSUNTO OU PERGUNTA",
-                                               #             )
-                                                dropdownButton(
-                                                   label = "Selecione o assunto ou pergunta",
-                                                   width = "100%",
-                                                   # inputId = ns("dropdown"),
-                                                   inputId = "dropdown",
-                                                   icon = icon("question"),
-                                                   circle = FALSE,
-                                                   tags$div(
-                                                       # actionButton(inputId = ns("toggle2"),
-                                                       actionButton(inputId = "toggle2",
-                                                                    label = "Selecionar")
-                                                   ),
-                                                   tags$div(style = "margin:10px",
-                                                            column(2, align="center",
-                                                                   #mod_arvore_busca_nosel_ui("arvore_busca_nosel_1"),
-                                                                   # mod_arvore_busca_ui(ns("arvore_busca_1")),
-                                                                   shinyTree("tree",
-                                                                             search=TRUE, searchtime = 1000,
-                                                                             theme="proton", themeIcons = FALSE, themeDots = T)
-                                                            )
-                                                   )
-                                               )
-                                        ),
-                                        column(7,
-                                               # mod_arvore_busca_nosel_ui(ns("arvore_busca_nosel_1")
-                                               htmlOutput("Pergunta/tema selecionado X"),
-                                        ),
-                                    )
+        
+        #theme = "journal",
+        windowTitle = "Repositório de informações sobre COVID-19",
+        id = "navbar",
+        #selected = "pub_temp_loc",
+        # theme = "navbar.css",
+        #fluid = T,
+        tabPanel("Sobre", id = "sobre"),
+        tabPanel("Publicações no tempo",
+                 id = "pub_temp_loc",
+                 sidebarLayout(
+                    sidebarPanel(
+                            id = "sidebar",
+                            div(id="filtro_tit",
+                                tags$h4("FILTROS")
                                 ),
-                                br(),
-                                fluidRow(
-                                    tabsetPanel(type = "tabs",
-                                                tabPanel("Plots",
-                                                         id="plots",
-                                                         column(
-                                                             width = 6,
-                                                             
-                                                             plotOutput("distPlot"),
-                                                             plotOutput("distPlot2")
-                                                         ),
-                                                         column(
-                                                             width = 6,
-                                                             plotOutput("distPlot3"),
-                                                             plotOutput("distPlot4")
-                                                         )
-                                                         ),
-                                                tabPanel("Table",
-                                                         id = "table")
-                                    )
-                                    
-                                )
+                            width = 2,
+                            selectInput("idAno", "Selecione o ano:",
+                                        choices = c("Todos os anos", 2020, 2021),
+                                        selectize = T),
+                            selectInput("idPais", "Selecione o país:", choices = c("Todos os países", "Brasil", "Argentina", "Chile", "Estados Unidos", "Uruguai")),
+                            selectInput("idPub", "Selecione o tipo de publicação:", choices = c("Todos os tipos", "Artigo", "Capítulo", "Livro", "Monografia", "Preprint"))
+                    ),
+                    mainPanel(
+                        width = 10,
+                        #### 1.1.2.1 Linha de perguntas ----
+                        fluidRow(
+                            div(id="perguntas",
+                                # actionButton("toggleSidebar", "Toggle sidebar"),
+                                tags$h4("PERGUNTAS"),
+                                column(3,
+                                       # actionButton(
+                                       #     inputId = "sel_perg",
+                                       #     label = "SELECIONE O ASSUNTO OU PERGUNTA",
+                                       #     # inputId = ns("dropdown"),
+                                       #     icon = icon("question"),
+                                       #     circle = FALSE
+                                       # ),
+                                       # selectInput("idPerg",
+                                       #             "SELECIONE O ASSUNTO OU PERGUNTA",
+                                       #             )
+                                        dropdownButton(
+                                           label = "Selecione o assunto ou pergunta",
+                                           width = "100%",
+                                           # inputId = ns("dropdown"),
+                                           inputId = "dropdown",
+                                           icon = icon("question"),
+                                           circle = FALSE,
+                                           tags$div(
+                                               # actionButton(inputId = ns("toggle2"),
+                                               actionButton(inputId = "toggle2",
+                                                            label = "Selecionar")
+                                           ),
+                                           tags$div(style = "margin:10px",
+                                                    column(2, align="center",
+                                                           #mod_arvore_busca_nosel_ui("arvore_busca_nosel_1"),
+                                                           # mod_arvore_busca_ui(ns("arvore_busca_1")),
+                                                           shinyTree("tree",
+                                                                     search=TRUE, searchtime = 1000,
+                                                                     theme="proton", themeIcons = FALSE, themeDots = T)
+                                                    )
+                                           )
+                                       )
+                                ),
+                                column(7,
+                                       # mod_arvore_busca_nosel_ui(ns("arvore_busca_nosel_1")
+                                       htmlOutput("Pergunta/tema selecionado X"),
+                                ),
+                            )
+                        ),
+                        br(),
+                        fluidRow(
+                            tabsetPanel(type = "tabs",
+                                        tabPanel("Plots",
+                                                 id="plots",
+                                                 column(
+                                                     width = 6,
+                                                     
+                                                     plotOutput("distPlot"),
+                                                     plotOutput("distPlot2")
+                                                 ),
+                                                 column(
+                                                     width = 6,
+                                                     plotOutput("distPlot3"),
+                                                     plotOutput("distPlot4")
+                                                 )
+                                                 ),
+                                        tabPanel("Table",
+                                                 id = "table")
                             )
                             
-                        )),
-               tabPanel("Citações e altimetria",
-                        id = "cit_alt")
-               )
+                        )
+                    )
+                    
+                )),
+        tabPanel("Citações e altimetria",
+                id = "cit_alt")
+        ),
+
+        tags$footer(class = "footer",
+                    div(class = "text",
+                        span(id = "site",
+                             "www.cidacs.bahia.fiocruz.br/riccovid"),
+                        br(),
+                        span(id = "localicazao",
+                             "Technological Park of Bahia | Edf. Technocentre, 121 World Street - Trobogy, Salvador - BA, CEP.:41745-715")
+                    ),
+                    div(class="marcas_svg",
+                        img(src='marcas_suporte.svg',style="margin-top: 0px; padding-right:5px;padding-bottom:5px", width = 430) |>
+                            tagAppendAttributes(class = 'logo'))
+                    )
 
     # Sidebar with a slider input for number of bins
         # sidebarMenu(id = "sidebar",
