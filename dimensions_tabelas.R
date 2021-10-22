@@ -7,6 +7,8 @@ write <- T
 ## Gerar apenas as que serão usadas pelo app, se F vai gerar todas
 ## Quando for gerar para o app, vai mandar para pasta dados/app/
 write_app <- T
+## Escrever em formato .RDS, testar performance
+write_rds <- F
 ## Se remove = T, vai removendo bases e variáveis que não serão mais usadas,
 ## para usar menos RAM durante a execução
 remove <- F
@@ -123,8 +125,17 @@ df_tabela_base_filtros <- inner_join(df_dimensions_type_date, df_dimensions_coun
 
 if(write){
   if(write_app){ ## Não precisa ser gerada para o app
+    if(write_rds){
+      
+    }else{
+      fst::write.fst(df_tabela_base_filtros, "dados/app/df_tabela_base_filtros.fst") 
+    }
   }else{ ## Não está gerando para o app
-    fst::write.fst(df_tabela_base_filtros, "dados/df_tabela_base_filtros.fst")
+    if(write_rds){
+      
+    }else{
+      fst::write.fst(df_tabela_base_filtros, "dados/df_tabela_base_filtros.fst")
+    }
   }
 }
 
@@ -136,9 +147,17 @@ df_count_base_filtros <- df_tabela_base_filtros |>
 
 if(write){
   if(write_app){ ##As que ficarem "repetidas" no ifelse deverão ser geradas de quaisquer forma
-    fst::write.fst(df_count_base_filtros, "dados/app/df_count_base_filtros.fst")
+    if(write_rds){
+      
+    }else{
+      fst::write.fst(df_count_base_filtros, "dados/app/df_count_base_filtros.fst")
+    }
   }else{ ## Não está gerando para o app
-    fst::write.fst(df_count_base_filtros, "dados/df_count_base_filtros.fst")
+    if(write_rds){
+      
+    }else{
+      fst::write.fst(df_count_base_filtros, "dados/df_count_base_filtros.fst")
+    }
   }
 }
 
@@ -190,9 +209,18 @@ df_tabela_base_plus_categ <- dplyr::left_join(df_tabela_base_plus_categ, df_anzs
   dplyr::select(-categ_aux, -FoR) 
 
 if(write){
-  if(write_app){ ## Não precisa ser gerada para o app
+  if(write_app){ ##
+    if(write_rds){
+      
+    }else{
+      fst::write.fst(df_tabela_base_plus_categ, "dados/app/df_tabela_base_plus_categ.fst")
+    }
   }else{ ## Não está gerando para o app
-    fst::write.fst(df_tabela_base_plus_categ, "dados/df_tabela_base_plus_categ.fst")
+    if(write_rds){
+      
+    }else{
+      fst::write.fst(df_tabela_base_plus_categ, "dados/df_tabela_base_plus_categ.fst")
+    }
   }
 }
 #### 4.1.2 Tabela de contagem ----
@@ -213,10 +241,18 @@ df_count_base_plus_categ_first_plot <- df_count_base_plus_categ |>
 
 if(write){
   if(write_app){ ##As que ficarem "repetidas" no ifelse deverão ser geradas de quaisquer forma
-    fst::write.fst(df_count_base_plus_categ, "dados/app/df_count_base_plus_categ.fst")
-    fst::write.fst(df_count_base_plus_categ_first_plot, "dados/app/df_count_base_plus_categ_first_plot.fst")
+    if(write_rds){
+      
+    }else{
+      fst::write.fst(df_count_base_plus_categ, "dados/app/df_count_base_plus_categ.fst")
+      fst::write.fst(df_count_base_plus_categ_first_plot, "dados/app/df_count_base_plus_categ_first_plot.fst")
+    }
   }else{ ## Não está gerando para o app
-    fst::write.fst(df_count_base_plus_categ, "dados/df_count_base_plus_categ.fst")
+    if(write_rds){
+      
+    }else{
+      fst::write.fst(df_count_base_plus_categ, "dados/df_count_base_plus_categ.fst")
+    }
   }
 }
 if(remove){
@@ -260,7 +296,11 @@ df_tabela_base_plus_name <- inner_join(df_tabela_base_filtros, df_dimensions_aut
 if(write){
   if(write_app){ ## Não precisa ser gerada para o app
   }else{ ## Não está gerando para o app
-    fst::write.fst(df_tabela_base_plus_name, "dados/df_tabela_base_plus_name.fst")
+    if(write_rds){
+      
+    }else{
+      fst::write.fst(df_tabela_base_plus_name, "dados/df_tabela_base_plus_name.fst")
+    }
   }
 }
 #### 4.2.2 Tabela de contagem ----
@@ -282,10 +322,18 @@ df_count_base_plus_name_first_plot <- df_count_base_plus_name |>
 
 if(write){
   if(write_app){ ##As que ficarem "repetidas" no ifelse deverão ser geradas de quaisquer forma
-    fst::write.fst(df_count_base_plus_name, "dados/app/df_count_base_plus_name.fst")
-    fst::write.fst(df_count_base_plus_name_first_plot, "dados/app/df_count_base_plus_name_first_plot.fst")
+    if(write_rds){
+      
+    }else{
+      fst::write.fst(df_count_base_plus_name, "dados/app/df_count_base_plus_name.fst")
+      fst::write.fst(df_count_base_plus_name_first_plot, "dados/app/df_count_base_plus_name_first_plot.fst")
+    }
   }else{ ## Não está gerando para o app
-    fst::write.fst(df_count_base_plus_name, "dados/df_count_base_plus_name.fst")
+    if(write_rds){
+      
+    }else{
+      fst::write.fst(df_count_base_plus_name, "dados/df_count_base_plus_name.fst")
+    }
   }
 }
 if(remove){
@@ -359,9 +407,9 @@ df_tabela_authors_countries_journal <- dplyr::inner_join(df_dimensions_authors_c
                 metrics.times_cited, altmetrics.score, abstract.preferred,
                 authors_ln = authors_ln.x, research_org_country_names, journal_lists) |>
   dplyr::rowwise() |>
-  dplyr::mutate(title_50char = dplyr::case_when(nchar(title.preferred) > 50 ~
-                                                  paste(stringr::str_sub(title.preferred, 1, 50), "..."),
-                                                nchar(title.preferred) <= 50 ~ title.preferred))  |>
+  dplyr::mutate(title_n_char = dplyr::case_when(nchar(title.preferred) > 100 ~
+                                                  paste(stringr::str_sub(title.preferred, 1, 100), "..."),
+                                                nchar(title.preferred) <= 100 ~ title.preferred))  |>
   dplyr::mutate(abstract_50char = dplyr::case_when(nchar(abstract.preferred) > 50 ~
                                                      paste(stringr::str_sub(abstract.preferred, 1, 50), "..."),
                                                    nchar(abstract.preferred) <= 50 ~ abstract.preferred)) |>
@@ -378,69 +426,46 @@ df_dimensions_authors_countries_journal$journals <- stringr::str_replace(df_dime
 
 ## Organizando para impressão
 df_dimensions_authors_countries_journal <- df_dimensions_authors_countries_journal |> 
-  dplyr::select(authors_last_name, title_50char, abstract_50char, journals, countries, type,
+  dplyr::select(authors_last_name, title_n_char, abstract_50char, journals, countries, type,
                 doi, citations = metrics.times_cited, altmetrics = altmetrics.score,
                 authors_ln, title = title.preferred, abstract = abstract.preferred,
                 journal_lists, research_org_country_names, id)
 if(write){
   if(write_app){ ##As que ficarem "repetidas" no ifelse deverão ser geradas de quaisquer forma
     if(teste){ ##Trabalhando com sample
-      data.table::fwrite(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean.csv")
-      # data.table::fwrite(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean_sample.csv")
+      if(write_rds){
+        saveRDS(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean")
+        # saveRDS(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean_sample")
+      }else{
+        # data.table::fwrite(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean.csv")
+        fst::write.fst(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean.fst")
+      }
     }else{
-      data.table::fwrite(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean.csv")
+      if(write_rds){
+        saveRDS(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean.rds")
+      }else{
+        fst::write.fst(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean.fst")
+      }
     }
   }else{ ## Não está gerando para o app
     if(teste){ ##Trabalhando com sample
-      data.table::fwrite(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean.csv")
-      # data.table::fwrite(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean_sample.csv")
+      if(write_rds){
+        
+      }else{
+        fst::write.fst(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean.fst"))
+        # data.table::fwrite(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean_sample.csv")
+        
+      }
     }else{
-      data.table::fwrite(df_dimensions_authors_countries_journal, "dados/df_dimensions_tabelas_clean.csv")
+      if(write_rds){
+        
+      }else{
+        fst::write.fst(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean.fst")
+      }
     }
   }
 }
-# df_dimensions_authors_countries_journal <- data.table::fread("dados/df_dimensions_tabelas_clean.csv")
 
-set.seed(424242)
-
-df_dimensions_authors_countries_journal_sample <- df_dimensions_authors_countries_journal |> 
-  # dplyr::select(-id) |> 
-  dplyr::slice_sample(prop = 0.01) |> 
-  # dplyr::select(authors_ln, tittle_50char, journals, countries, type)
-  dplyr::select(authors_last_name, title_50char, abstract_50char, journals, countries,
-                type, doi, citations, altmetrics, authors_ln, title, abstract,
-                journal_lists, research_org_country_names)
-  
-# DT::datatable(df_dimensions_authors_countries_journal_sample[,1:14],
-#               extensions = "Buttons",
-#               options = list(columnDefs = list(list(visible=FALSE, targets=c(10, 11, 12, 13, 14))),
-#                              rowCallback = DT::JS(
-#                                "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
-#                                "var full_text_author = aData[10]",
-#                                "var full_text_title = aData[11]",
-#                                "var full_text_abs = aData[12]",
-#                                "var full_text_journals = aData[13]",
-#                                "var full_text_countries = aData[14]",
-#                                "$('td:eq(1)', nRow).attr('title', full_text_author);",
-#                                "$('td:eq(2)', nRow).attr('title', full_text_title);",
-#                                "$('td:eq(3)', nRow).attr('title', full_text_abs);",
-#                                "$('td:eq(4)', nRow).attr('title', full_text_journals);",
-#                                "$('td:eq(5)', nRow).attr('title', full_text_countries);",
-#                                "}"
-#                                # "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
-#                                # "var full_text_title = aData[9]",
-#                                # "$('td:eq(7)', nRow).attr('title', full_text_title);",
-#                                # "}"
-#                              ),
-#                              dom = 'Bfrtip',
-#                              buttons = 
-#                                list(list(
-#                                  extend = 'collection',
-#                                  buttons = c('csv', 'excel', 'pdf'),
-#                                  text = 'Baixar tabela'
-#                                ))
-#                              )
-# )
 
 if(remove){
   rm(df_dimensions_authors_countries_journal, df_tabela_authors_countries_journal,

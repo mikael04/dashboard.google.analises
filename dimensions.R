@@ -816,7 +816,7 @@ df_tabela_authors_countries_journal <- dplyr::inner_join(df_dimensions_authors_c
                 metrics.times_cited, altmetrics.score, abstract.preferred,
                 authors_ln = authors_ln.x, research_org_country_names, journal_lists) |>
   dplyr::rowwise() |>
-  dplyr::mutate(title_50char = dplyr::case_when(nchar(title.preferred) > 50 ~
+  dplyr::mutate(title_n_char = dplyr::case_when(nchar(title.preferred) > 50 ~
                                                   paste(stringr::str_sub(title.preferred, 1, 50), "..."),
                                                 nchar(title.preferred) <= 50 ~ title.preferred))  |>
   dplyr::mutate(abstract_50char = dplyr::case_when(nchar(abstract.preferred) > 50 ~
@@ -835,7 +835,7 @@ df_dimensions_authors_countries_journal$journals <- stringr::str_replace(df_dime
 
 ## Organizando para impressão
 df_dimensions_authors_countries_journal <- df_dimensions_authors_countries_journal |> 
-  dplyr::select(authors_last_name, title_50char, abstract_50char, journals, countries, type,
+  dplyr::select(authors_last_name, title_n_char, abstract_50char, journals, countries, type,
                 doi, citations = metrics.times_cited, altmetrics = altmetrics.score,
                 authors_ln, title = title.preferred, abstract = abstract.preferred,
                 journal_lists, research_org_country_names, id)
@@ -844,7 +844,7 @@ if(write)
   data.table::fwrite(df_dimensions_authors_countries_journal, "dados/df_dimensions_tabelas_clean.csv")
 
 df_dimensions_authors_countries_journal <- data.table::fread("dados/df_dimensions_tabelas_clean.csv") %>%
-  dplyr::select(id, doi, title_50char, type, authors_last_name, countries, metrics.times_cited,
+  dplyr::select(id, doi, title_n_char, type, authors_last_name, countries, metrics.times_cited,
                 altmetrics.score, abstract_50char, title.preferred, abstract.preferred, authors_ln,
                 research_org_country_names, journal_lists)
 
@@ -999,29 +999,103 @@ df_dim_au_co_jo <- fst::read_fst("dados/app/df_dimensions_tabelas_clean.fst")
 df_dim_au_co_jo_filtered <- dplyr::inner_join(df_dim_au_co_jo, df_buscas_filtered, by="id") |> 
   dplyr::select(-!!as.name(buscas_tit), -doi_busc)
 
+## 3.0 Testes de junção perguntas e base ----
 
 
+df_tabela_base_filtros <- fst::read_fst("dados/app/df_tabela_base_filtros.fst")
+
+df_tabela_perguntas <- fst::read_fst("dados/app/df_dimensions_tabelas_clean.fst")
 
 
+ano_sel <- "2021"
+tipo_sel <- c("article", "preprint", "book")
+# unique(df_tabela_base_filtros$country)
+pais_sel <- c("Brazil", "Canada", "United Kingdom", "Japan", "United States", "Argentina", "South Africa", "Spain", "Russia", "China", "Germany", "Haiti", "Italy")
+
+## seleção de linhas
+ids <- df_tabela_base_filtros |> 
+  dplyr::filter(lubridate::year(date) == ano_sel, type %in% tipo_sel, country %in% pais_sel) |> 
+  dplyr::pull(id)
+
+## tabela filtrada com filtros
+df_tabela_perguntas_filtered <- df_tabela_perguntas |> 
+  dplyr::filter(id %in% ids)
 
 
+df_buscas <- arrow::read_parquet("dados/Banco1909PerguntasAmostra.parquet")
+df_buscas_relacao <- data.table::fread("dados/relacaoColunaPergunta.csv") |> 
+  dplyr::select(col_name = `Nome da Coluna`, col_name_plus_abs = `Nome da Coluna Abs`, perg = Pergunta)
+df_perguntas <- data.table::fread("dados/perguntas_full_clean.csv")
 
+perg_sel <- "Does pregnancy increase the risk for severe COVID-19?"
 
+df_buscas_relacao_filtered <- df_buscas_relacao |> 
+  dplyr::filter(perg == perg_sel)
 
+buscas_tit <-  df_buscas_relacao_filtered$col_name
+buscas_tit_abs <-  df_buscas_relacao_filtered$col_name_plus_abs
 
+df_buscas_filtered <- df_buscas |> 
+  dplyr::filter(!!as.name(buscas_tit) == 1) |> 
+  dplyr::select(id, doi_busc = doi, !!as.name(buscas_tit))
 
+df_tabela_perg_filt <- dplyr::inner_join(df_tabela_perguntas_filtered, df_buscas_filtered, by="id") |> 
+  dplyr::select(-!!as.name(buscas_tit), -doi_busc)
 
+## Escrevendo exemplo pra teste no app (teste em analises ainda)
+if(write_test)
+  fst::write.fst(df_tabela_perg_filt, "dados/df_tabela_perg_filt.fst")
 
+# df_dimensions_authors_countries_journal <- data.table::fread("dados/df_dimensions_tabelas_clean.csv")
 
+set.seed(424242)
 
+df_tabela_perg_filt <- df_tabela_perg_filt |>
+  # dplyr::select(authors_ln, tittle_50char, journals, countries, type)
+  dplyr::select(authors_last_name, title_n_char, abstract_50char, journals, countries,
+                type, doi, citations, altmetrics, authors_ln, title, abstract,
+                journal_lists, research_org_country_names) |> 
+  dplyr::rename(`Autor(es)` = authors_last_name, `Título` = title_n_char,
+                `Resumo` = abstract_50char, `Revista` = journals,
+                `País` = countries, `Tipo` = type, doi = doi,
+                `Citações` = citations, `Altmetria` = altmetrics,
+                `Autor(es) nome completo` = authors_ln,
+                `Título completo` =  title,`Resumo completo` = abstract,
+                `Revistas completo` = journal_lists,
+                `Países completo` = research_org_country_names)
 
-
-
-
-
-
-
-
+DT::datatable(df_tabela_perg_filt[,1:14],
+              extensions = c("Buttons", "Responsive"),
+              options = list(autoWidth = T,
+                             columnDefs = list(list(visible=FALSE, targets=c(10, 11, 12, 13, 14)),
+                                               list(width = '200px', targets = c("2"))),
+                             rowCallback = DT::JS(
+                               "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
+                               "var full_text_author = aData[10]",
+                               "var full_text_title = aData[11]",
+                               "var full_text_abs = aData[12]",
+                               "var full_text_journals = aData[13]",
+                               "var full_text_countries = aData[14]",
+                               "$('td:eq(1)', nRow).attr('title', full_text_author);",
+                               "$('td:eq(2)', nRow).attr('title', full_text_title);",
+                               "$('td:eq(3)', nRow).attr('title', full_text_abs);",
+                               "$('td:eq(4)', nRow).attr('title', full_text_journals);",
+                               "$('td:eq(5)', nRow).attr('title', full_text_countries);",
+                               "}"
+                               # "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
+                               # "var full_text_title = aData[9]",
+                               # "$('td:eq(7)', nRow).attr('title', full_text_title);",
+                               # "}"
+                             ),
+                             dom = 'Bfrtip',
+                             buttons =
+                               list(list(
+                                 extend = 'collection',
+                                 buttons = c('csv', 'excel', 'pdf'),
+                                 text = 'Baixar tabela'
+                               ))
+              )
+)
 
 
 
