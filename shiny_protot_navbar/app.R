@@ -14,7 +14,15 @@ library(thematic)
 library(shinipsum)
 library(shinyTree)
 library(shinyWidgets)
+library(ggplot2)
 source("mod_arvore_busca.R")
+source("mod_evol_pub_tipo.R")
+source("mod_paises_pub_2.R")
+source("fct_no_sel.R")
+source("fct_filtrar_dim.R")
+source("fct_tratar_ano_sel.R")
+source("fct_tratar_pais_sel.R")
+source("fct_tratar_tipo_pub_sel.R")
 
 
 thematic_shiny(font = "auto")
@@ -61,11 +69,13 @@ ui <- tagList(
                                 tags$h4("FILTROS")
                                 ),
                             width = 2,
-                            selectInput("idAno", "Selecione o ano:",
+                            selectInput("date", "Selecione o ano:",
                                         choices = c("Todos os anos", 2020, 2021),
                                         selectize = T),
-                            selectInput("idPais", "Selecione o país:", choices = c("Todos os países", "Brasil", "Argentina", "Chile", "Estados Unidos", "Uruguai")),
-                            selectInput("idPub", "Selecione o tipo de publicação:", choices = c("Todos os tipos", "Artigo", "Capítulo", "Livro", "Monografia", "Preprint"))
+                            selectInput("countries", "Selecione o país:", choices = c("TODOS", "Brazil", "Argentina", "Chile", "United States", "Uruguai")),
+                            selectInput("article_type", "Selecione o tipo de publicação:", choices = c("TODOS", "article", "book", "chapter", "monography", "preprint")),
+                            actionButton(inputId = "act_btn_filtros_perg",
+                                         label = "Selecionar filtro")
                     ),
                     mainPanel(
                         width = 10,
@@ -122,8 +132,8 @@ ui <- tagList(
                                                  column(
                                                      width = 6,
                                                      
-                                                     plotOutput("distPlot"),
-                                                     plotOutput("distPlot2")
+                                                     mod_evol_pub_tipo_ui("evol_pub_tipo_1"),
+                                                     mod_paises_pub_2_ui("paises_pub_2_1")
                                                  ),
                                                  column(
                                                      width = 6,
@@ -167,6 +177,74 @@ ui <- tagList(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+    debug = T
+    df_dim_au_co_jo <- fst::read_fst("../dados/app/df_dimensions_tabelas_clean.fst") |> 
+        dplyr::rename(date = date_normal)
+    df_tabela_base_plus_categ <- fst::read_fst("../dados/app/df_tabela_base_plus_categ.fst")
+    df_perguntas <- data.table::fread("../dados/perguntas_full_clean.csv")
+    # dplyr::glimpse(df_tabela_base_plus_categ)
+    select_test <- F
+    first_plot <- reactiveVal(value = T)
+    list_parameters <- eventReactive(input$act_btn_filtros_perg, {
+        print("Começando lista de parâmetros")
+        # toggleDropdownButton(inputId = "dropdown")
+        ## Artigos resposta
+        # no_sel <- func_ret_no_sel(input$`arvore_busca_1-tree`, debug)
+        # mod_tabela_artg_server("tabela_artg_1", no_sel)
+        if(select_test){
+            input <- NULL
+            input$article_type <- "article"
+            input$date <- "2020"
+            input$countries <- "Brazil"
+        }
+        
+        # first_plot$value <- FALSE
+        ## tipo de publicação selecionado
+        tipo_pub_sel <- func_trat_tipo_pub(input$article_type)
+        ## Ano selecionado
+        ano_sel <- func_trat_ano(input$date)
+        ## país selecionado
+        pais_sel <- func_trat_pais(input$countries)
+        ## lista com parâmetros
+        list_parameters <- list(tipo_pub_sel, ano_sel, pais_sel)
+        print(list_parameters)
+        if(select_test){
+            list_parameters <- as.list("article", "2020", "Brazil")
+        }
+        browser()
+        list_parameters
+    }, ignoreInit = FALSE)
+    
+    
+    #### 1.0.4.2 Base de artigos resultante -----
+    ## Base pós seleção de filtros
+    df_tabela_base_plus_categ_filtered <- eventReactive(input$act_btn_filtros_perg, {
+        print("Começando filtro")
+        ## Tabela base (id) filtrada
+        browser()
+        func_filtrar_dim_tabela(df_tabela_base_plus_categ, list_parameters(), debug)
+        #teste
+        # df_tabela_base_plus_categ_filtered <- func_filtrar_dim_tabela(df_tabela_base_plus_categ, list_parameters, debug)
+    })
+    df_dim_au_co_jo_filtered_tab <- reactive({
+        print("Começando df_dim graph")
+        browser()
+        ids <- df_tabela_base_plus_categ_filtered() |> 
+            dplyr::select(id) |> 
+            pull()
+        df_dim_au_co_jo |> 
+            dplyr::filter(id %in% ids)
+    })
+    observeEvent(input$act_btn_filtros_perg, {
+        browser()
+        print("observe button, create graph")
+        mod_evol_pub_tipo_server("evol_pub_tipo_1",
+                                 df_dimensions_type_date_country = df_tabela_base_plus_categ_filtered(),
+                                 plotly = F, teste = F, debug = T)
+        mod_paises_pub_2_server("paises_pub_2_1", df_filtros = df_tabela_base_plus_categ_filtered(),
+                                plotly = F, teste = F, debug = F)
+    })
+    
     
     output$distPlot <- renderPlot({
         shinipsum::random_ggplot("bar")
@@ -183,7 +261,6 @@ server <- function(input, output) {
     output$distPlot5 <- renderPlot({
         shinipsum::random_ggplot("bar")
     })
-    df_perguntas <- data.table::fread("../dados/perguntas_full_clean.csv")
     # tree <- dfToTree(df, c("EIXO", "TOPICS", "QUERIES", "QUESTIONS"))
     # output$tree <- renderTree({tree})
     #### 1.1.3.1 Módulo de perguntas ----

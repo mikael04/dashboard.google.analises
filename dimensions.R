@@ -1001,19 +1001,22 @@ df_dim_au_co_jo_filtered <- dplyr::inner_join(df_dim_au_co_jo, df_buscas_filtere
 
 ## 3.0 Testes de junção perguntas e base ----
 
+# library(data.table)
+# library(dtplyr)
+# library(dplyr, warn.conflicts = FALSE)
 
-df_tabela_base_filtros <- fst::read_fst("dados/app/df_tabela_base_filtros.fst")
+df_tabela_base_filtros_plus_categ <- fst::read_fst("dados/app/df_tabela_base_plus_categ.fst")
 
 df_tabela_perguntas <- fst::read_fst("dados/app/df_dimensions_tabelas_clean.fst")
 
 
 ano_sel <- "2021"
 tipo_sel <- c("article", "preprint", "book")
-# unique(df_tabela_base_filtros$country)
+# unique(df_tabela_base_filtros_plus_categ$country)
 pais_sel <- c("Brazil", "Canada", "United Kingdom", "Japan", "United States", "Argentina", "South Africa", "Spain", "Russia", "China", "Germany", "Haiti", "Italy")
 
 ## seleção de linhas
-ids <- df_tabela_base_filtros |> 
+ids <- df_tabela_base_filtros_plus_categ |> 
   dplyr::filter(lubridate::year(date) == ano_sel, type %in% tipo_sel, country %in% pais_sel) |> 
   dplyr::pull(id)
 
@@ -1023,7 +1026,7 @@ df_tabela_perguntas_filtered <- df_tabela_perguntas |>
 
 
 df_buscas <- arrow::read_parquet("dados/Banco1909PerguntasAmostra.parquet")
-df_buscas_relacao <- data.table::fread("dados/relacaoColunaPergunta.csv") |> 
+df_buscas_relacao <- as.data.frame(data.table::fread("dados/relacaoColunaPergunta.csv")) |> 
   dplyr::select(col_name = `Nome da Coluna`, col_name_plus_abs = `Nome da Coluna Abs`, perg = Pergunta)
 df_perguntas <- data.table::fread("dados/perguntas_full_clean.csv")
 
@@ -1050,11 +1053,13 @@ if(write_test)
 
 set.seed(424242)
 
+df_count_perg_filt <- df_tabela_perg_filt |> 
+  dplyr::select(id, countries, type, date = date_normal)
 df_tabela_perg_filt <- df_tabela_perg_filt |>
   # dplyr::select(authors_ln, tittle_50char, journals, countries, type)
   dplyr::select(authors_last_name, title_n_char, abstract_50char, journals, countries,
                 type, doi, citations, altmetrics, authors_ln, title, abstract,
-                journal_lists, research_org_country_names) |> 
+                journal_lists, research_org_country_names, date_normal) |> 
   dplyr::rename(`Autor(es)` = authors_last_name, `Título` = title_n_char,
                 `Resumo` = abstract_50char, `Revista` = journals,
                 `País` = countries, `Tipo` = type, doi = doi,
@@ -1062,12 +1067,13 @@ df_tabela_perg_filt <- df_tabela_perg_filt |>
                 `Autor(es) nome completo` = authors_ln,
                 `Título completo` =  title,`Resumo completo` = abstract,
                 `Revistas completo` = journal_lists,
-                `Países completo` = research_org_country_names)
+                `Países completo` = research_org_country_names,
+                `Data` = date_normal)
 
-DT::datatable(df_tabela_perg_filt[,1:14],
+DT::datatable(df_tabela_perg_filt[,1:15],
               extensions = c("Buttons", "Responsive"),
               options = list(autoWidth = T,
-                             columnDefs = list(list(visible=FALSE, targets=c(10, 11, 12, 13, 14)),
+                             columnDefs = list(list(visible=FALSE, targets=c(10, 11, 12, 13, 14, 15)),
                                                list(width = '200px', targets = c("2"))),
                              rowCallback = DT::JS(
                                "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
@@ -1096,6 +1102,7 @@ DT::datatable(df_tabela_perg_filt[,1:14],
                                ))
               )
 )
+
 
 
 

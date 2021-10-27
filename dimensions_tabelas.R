@@ -1,4 +1,6 @@
-library(dplyr)
+library(data.table)
+library(dtplyr)
+library(dplyr, warn.conflicts = FALSE)
 ## 0. Variáveis Globais ----
 ## Caso queira rodar algum tipo de teste e ver suas saídas
 debug <- F
@@ -342,7 +344,14 @@ if(remove){
 ## 5 Tabela de resposta   ---------------------------------
   
 source("fct_manip_string_nome_pais_journal.R")
+
+## Arrumando a data
 df_dimensions_authors_countries_journal <- df_dimensions |>
+  dplyr::filter(as.Date(date_normal) > "2020-01-01") |>  ##não pegar arquivos que possuem apenas ano para não distorcer gráfico
+  dplyr::mutate(date = lubridate::floor_date(lubridate::as_date(date_normal), "month")) 
+  
+
+df_dimensions_authors_countries_journal <- df_dimensions_authors_countries_journal |>
   # df_dimensions_authors_countries_journal <- df_dimensions_sample |>
   dplyr::select(id, doi, authors_fn, authors_ln, research_org_country_names,
                 journal_lists) |>
@@ -405,7 +414,8 @@ df_tabela_authors_countries_journal <- dplyr::inner_join(df_dimensions_authors_c
   dplyr::mutate(journals = paste0(first_journal, " ; ", last_journal)) |>
   dplyr::select(id, doi, title.preferred, type, authors_last_name, countries, journals,
                 metrics.times_cited, altmetrics.score, abstract.preferred,
-                authors_ln = authors_ln.x, research_org_country_names, journal_lists) |>
+                authors_ln = authors_ln.x, research_org_country_names, journal_lists,
+                date_normal) |>
   dplyr::rowwise() |>
   dplyr::mutate(title_n_char = dplyr::case_when(nchar(title.preferred) > 100 ~
                                                   paste(stringr::str_sub(title.preferred, 1, 100), "..."),
@@ -424,27 +434,31 @@ df_dimensions_authors_countries_journal$authors_last_name <- stringr::str_replac
 df_dimensions_authors_countries_journal$countries <- stringr::str_replace(df_dimensions_authors_countries_journal$countries, "vazio ;", "-")
 df_dimensions_authors_countries_journal$journals <- stringr::str_replace(df_dimensions_authors_countries_journal$journals, "vazio ;", "-")
 
+## Adicionando coluna de categoria
+df_tabela_base_plus_categ <- fst::read.fst("dados/app/df_tabela_base_plus_categ.fst") |> 
+  dplyr::select(id, categ, categ_name)
+df_dim_aut_coun_jou <- inner_join(df_dimensions_authors_countries_journal, df_tabela_base_plus_categ, by="id")
 ## Organizando para impressão
-df_dimensions_authors_countries_journal <- df_dimensions_authors_countries_journal |> 
+df_dim_aut_coun_jou <- df_dim_aut_coun_jou |> 
   dplyr::select(authors_last_name, title_n_char, abstract_50char, journals, countries, type,
                 doi, citations = metrics.times_cited, altmetrics = altmetrics.score,
                 authors_ln, title = title.preferred, abstract = abstract.preferred,
-                journal_lists, research_org_country_names, id)
+                journal_lists, research_org_country_names, id, date_normal, categ, categ_name)
 if(write){
   if(write_app){ ##As que ficarem "repetidas" no ifelse deverão ser geradas de quaisquer forma
     if(teste){ ##Trabalhando com sample
       if(write_rds){
-        saveRDS(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean")
-        # saveRDS(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean_sample")
+        saveRDS(df_dim_aut_coun_jou, "dados/app/df_dimensions_tabelas_clean")
+        # saveRDS(df_dim_aut_coun_jou, "dados/app/df_dimensions_tabelas_clean_sample")
       }else{
-        # data.table::fwrite(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean.csv")
-        fst::write.fst(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean.fst")
+        # data.table::fwrite(df_dim_aut_coun_jou, "dados/app/df_dimensions_tabelas_clean.csv")
+        fst::write.fst(df_dim_aut_coun_jou, "dados/app/df_dimensions_tabelas_clean.fst")
       }
     }else{
       if(write_rds){
-        saveRDS(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean.rds")
+        saveRDS(df_dim_aut_coun_jou, "dados/app/df_dimensions_tabelas_clean.rds")
       }else{
-        fst::write.fst(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean.fst")
+        fst::write.fst(df_dim_aut_coun_jou, "dados/app/df_dimensions_tabelas_clean.fst")
       }
     }
   }else{ ## Não está gerando para o app
@@ -452,15 +466,15 @@ if(write){
       if(write_rds){
         
       }else{
-        fst::write.fst(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean.fst"))
-        # data.table::fwrite(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean_sample.csv")
+        fst::write.fst(df_dim_aut_coun_jou, "dados/app/df_dimensions_tabelas_clean.fst")
+        # data.table::fwrite(df_dim_aut_coun_jou, "dados/app/df_dimensions_tabelas_clean_sample.csv")
         
       }
     }else{
       if(write_rds){
         
       }else{
-        fst::write.fst(df_dimensions_authors_countries_journal, "dados/app/df_dimensions_tabelas_clean.fst")
+        fst::write.fst(df_dim_aut_coun_jou, "dados/app/df_dimensions_tabelas_clean.fst")
       }
     }
   }
@@ -469,7 +483,7 @@ if(write){
 
 if(remove){
   rm(df_dimensions_authors_countries_journal, df_tabela_authors_countries_journal,
-     df_dimensions_authors_countries_journal_sample,
+     df_dimensions_authors_countries_journal_sample, df_dim_aut_coun_jou,
      func_trans_names, func_count_numbers, func_first, func_first_author,
      func_first_country, func_first_journal, func_last, func_last_author,
      func_last_country, func_last_journal)
