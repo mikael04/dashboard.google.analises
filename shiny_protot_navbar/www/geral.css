@@ -4,3 +4,6 @@ body{
 #sidebar{
     text-align: left !important;
 }
+.modal-backdrop {
+    background-color: gray;
+ }

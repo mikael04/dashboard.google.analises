@@ -30,6 +30,3 @@ html {
     padding: 20px;
     filter: invert(100%) sepia(0%) saturate(1691%) hue-rotate(141deg) brightness(115%) contrast(100%);
   }
-  .modal-backdrop {
-    background-color: gray;
- }

@@ -31,11 +31,12 @@ mod_evol_pub_tipo_server <- function(id, df_dimensions_type_date_country, plotly
         print("teste == true, usando database teste")
       }
     }else{
+      # browser()
       df_type_date <- df_dimensions_type_date_country |>
         dplyr::filter(!is.na(date)) |>
         # dplyr::mutate(date_normal = format(as.Date(date_normal), "%Y-%m")) |>
         dplyr::group_by(date, type) |>
-        dplyr::summarise(count_date_type = n()) |>
+        dplyr::summarise(count_date_type = dplyr::n()) |>
         # dplyr::distinct(date, .keep_all = T) |>
         dplyr::ungroup() |> 
         dplyr::rename(count = count_date_type)

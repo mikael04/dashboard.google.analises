@@ -32,7 +32,7 @@ mod_paises_pub_2_server <- function(id, df_filtros, plotly, teste, debug){
       df_filtros_graph <- df_filtros |>
         dplyr::filter(!is.na(country) & country != "NoCountry") |>
         dplyr::group_by(country) |>
-        dplyr::summarise(Count = n()) |>
+        dplyr::summarise(Count = dplyr::n()) |>
         dplyr::arrange(desc(Count)) |>
         dplyr::slice_head(n = 20) |>
         dplyr::ungroup() |> 

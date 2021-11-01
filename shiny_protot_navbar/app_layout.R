@@ -37,6 +37,11 @@ ui <- tagList(
     tags$link(rel = "stylesheet", type = "text/css", href = "footer.css"),
     # includeCSS("www/geral.css"),
     tags$head(
+        tags$script("
+          Shiny.addCustomMessageHandler('background-color', function(color) {
+            document.body.style.backgroundColor = color;
+          });
+        ")
     ),
     navbarPage(
         theme = bslib::bs_theme(
@@ -57,103 +62,129 @@ ui <- tagList(
         #theme = "journal",
         windowTitle = "Repositório de informações sobre COVID-19",
         id = "navbar",
-        #selected = "pub_temp_loc",
+        #selected = "dashboard",
         # theme = "navbar.css",
         #fluid = T,
         tabPanel("Sobre", id = "sobre"),
         tabPanel("Dashboard",
-                 id = "pub_temp_loc",
-                 sidebarLayout(
-                    sidebarPanel(
-                            id = "sidebar",
-                            div(id="filtro_tit",
-                                tags$h4("FILTROS")
-                                ),
-                            width = 2,
-                            selectInput("date", "Selecione o ano:",
-                                        choices = c("TODOS", 2020, 2021),
-                                        selectize = T),
-                            selectInput("countries", "Selecione o país:", choices = c("TODOS", "Brazil", "Argentina", "Chile", "United States", "Uruguai")),
-                            selectInput("article_type", "Selecione o tipo de publicação:", choices = c("TODOS", "article", "book", "chapter", "monography", "preprint")),
-                            actionButton(inputId = "act_btn_filtros_perg",
-                                         label = "Selecionar filtro"),
-                            actionButton(inputId = "sel_perg_teste",
-                                         label = "Selecionar pergunta")
-                    ),
-                    mainPanel(
-                        width = 10,
-                        #### 1.1.2.1 Linha de perguntas ----
-                        fluidRow(
-                            div(id="perguntas",
-                                # actionButton("toggleSidebar", "Toggle sidebar"),
-                                tags$h4("PERGUNTAS"),
-                                column(3,
-                                       actionButton(
-                                           inputId = "sel_perg",
-                                           label = "SELECIONE O ASSUNTO OU PERGUNTA",
-                                           # inputId = ns("dropdown"),
-                                           icon = icon("question"),
-                                           circle = FALSE
-                                       )
-                                       # selectInput("idPerg",
-                                       #             "SELECIONE O ASSUNTO OU PERGUNTA",
-                                       #             )
-                                       #  dropdownButton(
-                                       #     label = "Selecione o assunto ou pergunta",
-                                       #     width = "100%",
-                                       #     # inputId = ns("dropdown"),
-                                       #     inputId = "dropdown",
-                                       #     icon = icon("question"),
-                                       #     circle = FALSE,
-                                       #     tags$div(
-                                       #         # actionButton(inputId = ns("toggle2"),
-                                       #         actionButton(inputId = "toggle2",
-                                       #                      label = "Selecionar")
-                                       #     ),
-                                       #     tags$div(style = "margin:10px",
-                                       #              column(2, align="center",
-                                       #                     #mod_arvore_busca_nosel_ui("arvore_busca_nosel_1"),
-                                       #                     # mod_arvore_busca_ui(ns("arvore_busca_1")),
-                                       #                     shinyTree("tree",
-                                       #                               search=TRUE, searchtime = 1000,
-                                       #                               theme="proton", themeIcons = FALSE, themeDots = T)
-                                       #              )
-                                       #     )
-                                       # )
-                                ),
-                                column(7,
-                                       # mod_arvore_busca_nosel_ui(ns("arvore_busca_nosel_1")
-                                       htmlOutput("Pergunta/tema selecionado X"),
-                                ),
-                            )
-                        ),
-                        br(),
-                        fluidRow(
-                            tabsetPanel(type = "tabs",
-                                        tabPanel("Plots",
-                                                 id="plots",
-                                                 column(
-                                                     width = 6,
-                                                     
-                                                     mod_evol_pub_tipo_ui("evol_pub_tipo_1"),
-                                                     mod_paises_pub_2_ui("paises_pub_2_1")
-                                                 ),
-                                                 column(
-                                                     width = 6,
-                                                     plotOutput("distPlot3"),
-                                                     plotOutput("distPlot4")
-                                                 )
-                                                 ),
-                                        tabPanel("Table",
-                                                 id = "table",
-                                                 mod_tabela_artg_ui("tabela_artg_1"))
-                                                 # shinycssloaders::withSpinner(DT::dataTableOutput("tabela_perg")))
-                            )
-                            
-                        )
-                    )
-                    
-                ))
+                 id = "dashboard",
+                 fluidRow(
+                     tabsetPanel(type = "tabs",
+                                 id = "tabs_dash",
+                                 tabPanel("Plots",
+                                          id="plots",
+                                          sidebarLayout(
+                                              sidebarPanel(
+                                                  id = "sidebar_g",
+                                                  div(id="filtro_grap",
+                                                      tags$h4("FILTROS")
+                                                  ),
+                                                  width = 2,
+                                                  selectInput("date", "Selecione o ano:",
+                                                              choices = c("TODOS", 2020, 2021),
+                                                              selectize = T),
+                                                  selectInput("countries", "Selecione o país:", choices = c("TODOS", "Brazil", "Argentina", "Chile", "United States", "Uruguai")),
+                                                  selectInput("article_type", "Selecione o tipo de publicação:", choices = c("TODOS", "article", "book", "chapter", "monography", "preprint"))
+                                              ),
+                                              mainPanel(
+                                                  width = 10,
+                                                  #### 1.1.2.1 Linha de perguntas ----
+                                                  fluidRow(
+                                                      div(id="perguntas",
+                                                          # actionButton("toggleSidebar", "Toggle sidebar"),
+                                                          tags$h4("PERGUNTAS"),
+                                                          column(3,
+                                                                 actionButton(
+                                                                     inputId = "sel_perg",
+                                                                     label = "SELECIONE O ASSUNTO OU PERGUNTA",
+                                                                     # inputId = ns("dropdown"),
+                                                                     icon = icon("question"),
+                                                                     circle = FALSE
+                                                                 )
+                                                                 # selectInput("idPerg",
+                                                                 #             "SELECIONE O ASSUNTO OU PERGUNTA",
+                                                                 #             )
+                                                                 #  dropdownButton(
+                                                                 #     label = "Selecione o assunto ou pergunta",
+                                                                 #     width = "100%",
+                                                                 #     # inputId = ns("dropdown"),
+                                                                 #     inputId = "dropdown",
+                                                                 #     icon = icon("question"),
+                                                                 #     circle = FALSE,
+                                                                 #     tags$div(
+                                                                 #         # actionButton(inputId = ns("toggle2"),
+                                                                 #         actionButton(inputId = "toggle2",
+                                                                 #                      label = "Selecionar")
+                                                                 #     ),
+                                                                 #     tags$div(style = "margin:10px",
+                                                                 #              column(2, align="center",
+                                                                 #                     #mod_arvore_busca_nosel_ui("arvore_busca_nosel_1"),
+                                                                 #                     # mod_arvore_busca_ui(ns("arvore_busca_1")),
+                                                                 #                     shinyTree("tree",
+                                                                 #                               search=TRUE, searchtime = 1000,
+                                                                 #                               theme="proton", themeIcons = FALSE, themeDots = T)
+                                                                 #              )
+                                                                 #     )
+                                                                 # )
+                                                          ),
+                                                          column(7,
+                                                                 # mod_arvore_busca_nosel_ui(ns("arvore_busca_nosel_1")
+                                                                 htmlOutput("Pergunta/tema selecionado X"),
+                                                          ),
+                                                      )
+                                                  ),
+                                                  br(),
+                                                  fluidRow(
+                                                       column(
+                                                           width = 6,
+                                                           
+                                                           mod_evol_pub_tipo_ui("evol_pub_tipo_1"),
+                                                           mod_paises_pub_2_ui("paises_pub_2_1")
+                                                       ),
+                                                       column(
+                                                           width = 6,
+                                                           plotOutput("distPlot3"),
+                                                           plotOutput("distPlot4")
+                                                       )
+                                                      )
+                                                      
+                                                  )
+                                              ),
+                                          actionButton(inputId = "att_grap_filtros_perg",
+                                                       label = "Atualizar 1")
+                                          ),
+                                 tabPanel("Table",
+                                          id = "table",
+                                          sidebarLayout(
+                                              sidebarPanel(
+                                                  id = "sidebar_t",
+                                                  # div(class="sidebar",
+                                                      div(id="filtro_tab",
+                                                          tags$h4("FILTROS")
+                                                      ),
+                                                      width = 2,
+                                                      selectInput("date_tab", "Selecione o ano:",
+                                                                  choices = c("TODOS", 2020, 2021),
+                                                                  selectize = T),
+                                                      selectInput("countries_tab", "Selecione o país:", choices = c("TODOS", "Brazil", "Argentina", "Chile", "United States", "Uruguai")),
+                                                      selectInput("article_type_tab", "Selecione o tipo de publicação:", choices = c("TODOS", "article", "book", "chapter", "monography", "preprint"))
+                                                  # )
+                                              ),
+                                              mainPanel(
+                                                  div(class="table-responsive",
+                                                      mod_tabela_artg_ui("tabela_artg_1")
+                                                  )
+                                                  
+                                                  )
+                                          ),
+                                          actionButton(inputId = "att_tab_filtros_perg",
+                                                       label = "Atualizar 2")
+                                 )
+                                 
+                     )
+                 )
+                     
+                )
         ),
 
         tags$footer(class = "footer",
@@ -178,7 +209,7 @@ ui <- tagList(
 )
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output, session) {
     debug = T
     df_dim_au_co_jo <- fst::read_fst("../dados/app/df_dimensions_tabelas_clean.fst") |> 
         dplyr::rename(date = date_normal)
@@ -187,7 +218,7 @@ server <- function(input, output) {
     # dplyr::glimpse(df_tabela_base_plus_categ)
     select_test <- F
     first_plot <- reactiveVal(value = T)
-    list_parameters <- eventReactive(input$act_btn_filtros_perg | input$sel_perg_teste, {
+    list_parameters <- eventReactive(input$att_tab_filtros_perg | input$sel_perg_teste, {
         print("Começando lista de parâmetros")
         # toggleDropdownButton(inputId = "dropdown")
         ## Artigos resposta
@@ -220,7 +251,7 @@ server <- function(input, output) {
     
     #### 1.0.4.2 Base de artigos resultante -----
     ## Base pós seleção de filtros
-    df_tabela_base_plus_categ_filtered <- eventReactive(input$act_btn_filtros_perg | input$sel_perg_teste, {
+    df_tabela_base_plus_categ_filtered <- eventReactive(input$att_tab_filtros_perg | input$sel_perg_teste, {
         print("Começando filtro")
         ## Tabela base (id) filtrada
         # browser()
@@ -237,13 +268,13 @@ server <- function(input, output) {
         df_dim_au_co_jo |> 
             dplyr::filter(id %in% ids)
     })
-    no_sel <- reactiveVal(NULL)
+    no_sel <- reactiveVal("Does pregnancy increase the risk for severe COVID-19?" )
     observeEvent(input$sel_perg_teste, {
         new_value <- "Does pregnancy increase the risk for severe COVID-19?" 
         no_sel(new_value)
     })
     
-    observeEvent(input$act_btn_filtros_perg | input$sel_perg_teste, {
+    observeEvent(input$att_tab_filtros_perg | input$sel_perg_teste, {
         # browser()
         print("observe button, create graph")
         mod_evol_pub_tipo_server("evol_pub_tipo_1",
@@ -258,6 +289,7 @@ server <- function(input, output) {
         df_buscas_relacao <- data.table::fread("../dados/relacaoColunaPergunta.csv") |>
             dplyr::select(col_name = `Nome da Coluna`, col_name_plus_abs = `Nome da Coluna Abs`, perg = Pergunta)
         
+        # browser()
         mod_tabela_artg_server("tabela_artg_1", no_sel(), node_tier, df_buscas,
                                df_buscas_relacao, df_dim_au_co_jo_filtered_tab(),
                                teste = F, debug = T)
@@ -314,7 +346,7 @@ server <- function(input, output) {
                           `Países completo` = research_org_country_names)
         
         DT::datatable(df_tabela_perg_filt[,1:14],
-                      extensions = c("Buttons", "Responsive"),
+                      extensions = c('Responsive'),
                       options = list(autoWidth = T,
                                      columnDefs = list(list(visible=FALSE, targets=c(10, 11, 12, 13, 14)),
                                                        list(width = '600px', targets = c(2))),
@@ -337,6 +369,7 @@ server <- function(input, output) {
                                          # "}"
                                      ),
                                      dom = 'Bfrtip',
+                                     responsive = TRUE,
                                      buttons =
                                          list(list(
                                              extend = 'collection',
@@ -345,6 +378,15 @@ server <- function(input, output) {
                                          ))
                       )
         )
+    })
+    ## Mudar a cor de background
+    observeEvent(input$tabs_dash, {
+        if(input$tabs_dash == "Plots"){
+            session$sendCustomMessage("background-color", "#ecf0f5")
+        } else {
+            session$sendCustomMessage("background-color", "#faf6f6")
+            session$sendCustomMessage("background-color", "#ecf0f5")
+        }
     })
 }
 

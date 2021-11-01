@@ -28,3 +28,24 @@
     background-color: #64C1C7 !important;
     color: white !important;
 }
+
+/* #att_grap_filtros_perg{
+    right:0% !important;
+    top: 80px !important;
+} */
+
+
+#att_grap_filtros_perg{
+    position: absolute;
+    right:1%;
+    top: 80px;
+    background-color: #64C1C7;
+    color: white;
+}
+#att_tab_filtros_perg{
+    position: absolute;
+    right:1%;
+    top: 80px;
+    background-color: #660909;
+    color: white;
+}

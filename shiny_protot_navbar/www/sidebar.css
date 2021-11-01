@@ -1,6 +1,7 @@
 .well{
-    background-color: #DEEBF0;
+    background-color: white;
     height: 950px;
+    margin: 10px;
 }
 #idAno{
     background-color: white !important;
@@ -16,6 +17,9 @@
     color: black !important;
     background-color: white !important;
 }
-#filtro_tit{
+#filtro_grap{
+    color: #64C1C7;
+}
+#filtro_tab{
     color: #660909;
 }
