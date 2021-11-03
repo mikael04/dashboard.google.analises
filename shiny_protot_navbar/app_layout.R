@@ -63,7 +63,7 @@ ui <- tagList(
                         //$('.navbar-default .navbar-nav .active a').css({'background-color': '#660909'})
                         
                         //$('.navbar-default .navbar-nav .active a').css({'background-color': '#660909'})
-                        
+                        $('.well').css({'height': '850px'})
                     }else{ // Plots
                         // Aba de navegação topo
                         $('.navbar-default .navbar-nav a').css({'background-color': '#DEEBF0'})
@@ -110,7 +110,7 @@ ui <- tagList(
             # heading_font = bslib::font_link("Comfortaa", href = "https://fonts.googleapis.com/css2?family=Comfortaa&display=swap")
         ),
         #tags$link(rel = "stylesheet", href = "https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"),
-    
+        
         div(img(src='marca_ric_covid.svg',style="margin-top: 0px; padding-right:5px;padding-bottom:5px", width = 380)) |>
             tagAppendAttributes(class = 'logo'),
         
@@ -139,8 +139,8 @@ ui <- tagList(
                                                               selectize = T),
                                                   selectInput("countries", "Selecione o país:", choices = c("TODOS", "Brazil", "Argentina", "Chile", "United States", "Uruguai")),
                                                   selectInput("article_type", "Selecione o tipo de publicação:", choices = c("TODOS", "article", "book", "chapter", "monography", "preprint")),
-                                                  actionButton("ref_perg", label = "Refinar pesquisa",
-                                                                           icon = icon("search-plus"))
+                                                  shinyWidgets::actionBttn("ref_perg", label = "Refinar pesquisa",
+                                                                           icon = icon("search-plus", style = "fill"))
                                                   # shinyWidgets::actionBttn("ref_perg", label = "Refinar pesquisa",
                                                   #                          icon = icon("search-plus"), style = "material-flat")
                                               ),
@@ -192,69 +192,97 @@ ui <- tagList(
                                                   #     )
                                                   # ),
                                                   div(class="graphs-box",
-                                                    fluidRow(
-                                                      br(),
                                                       fluidRow(
-                                                          column(
-                                                              width = 6,
-                                                              plotOutput("distPlot1")
+                                                          br(),
+                                                          fluidRow(
+                                                              column(
+                                                                  width = 6,
+                                                                  plotOutput("distPlot1")
+                                                              ),
+                                                              column(
+                                                                  width = 6,
+                                                                  plotOutput("distPlot2")
+                                                              )
                                                           ),
-                                                          column(
-                                                              width = 6,
-                                                              plotOutput("distPlot2")
-                                                          )
-                                                      ),
-                                                      br(),
-                                                      fluidRow(
-                                                          column(
-                                                              width = 12,
-                                                              plotOutput("distPlot3")
-                                                          )
-                                                      ),
-                                                      br(),
-                                                      fluidRow(
-                                                          column(
-                                                              width = 6,
-                                                              plotOutput("distPlot4")
+                                                          br(),
+                                                          fluidRow(
+                                                              column(
+                                                                  width = 12,
+                                                                  plotOutput("distPlot3")
+                                                              )
                                                           ),
-                                                          column(
-                                                              width = 6,
-                                                              plotOutput("distPlot5")
+                                                          br(),
+                                                          fluidRow(
+                                                              column(
+                                                                  width = 6,
+                                                                  plotOutput("distPlot4")
+                                                              ),
+                                                              column(
+                                                                  width = 6,
+                                                                  plotOutput("distPlot5")
+                                                              )
                                                           )
                                                       )
-                                                      )
-                                                    )
-                                                      
                                                   )
-                                              ),
-                                          actionButton(inputId = "att_grap_filtros_perg",
-                                                       label = "Atualizar",
-                                                       icon = icon("sync"))
+                                                  
+                                              )
                                           ),
+                                          shinyWidgets::actionBttn(inputId = "att_grap_filtros_perg",
+                                                                   label = "Atualizar",
+                                                                   icon = icon("sync"),
+                                                                   style = "fill")
+                                 ),
                                  tabPanel("Table",
                                           id = "table",
                                           sidebarLayout(
                                               sidebarPanel(
                                                   id = "sidebar_t",
                                                   # div(class="sidebar",
-                                                      div(id="filtro_tab",
-                                                          tags$h4("FILTROS")
-                                                      ),
-                                                      width = 2,
-                                                      selectInput("date_tab", "Selecione o ano:",
-                                                                  choices = c("TODOS", 2020, 2021),
-                                                                  selectize = T),
-                                                      selectInput("countries_tab", "Selecione o país:", choices = c("TODOS", "Brazil", "Argentina", "Chile", "United States", "Uruguai")),
-                                                      selectInput("article_type_tab", "Selecione o tipo de publicação:", choices = c("TODOS", "article", "book", "chapter", "monography", "preprint"))
+                                                  div(id="filtro_tab",
+                                                      tags$h4("FILTROS")
+                                                  ),
+                                                  width = 2,
+                                                  selectInput("date_tab", "Selecione o ano:",
+                                                              choices = c("TODOS", 2020, 2021),
+                                                              selectize = T),
+                                                  selectInput("countries_tab", "Selecione o país:", choices = c("TODOS", "Brazil", "Argentina", "Chile", "United States", "Uruguai")),
+                                                  selectInput("article_type_tab", "Selecione o tipo de publicação:", choices = c("TODOS", "article", "book", "chapter", "monography", "preprint"))
                                                   # )
                                               ),
                                               mainPanel(
                                                   width = 10,
-                                                  div(class="dt-responsive",
-                                                      DT::DTOutput("tabela_perg")
+                                                  div(class = "background-table",
+                                                      fluidRow(
+                                                          br(),
+                                                          column(
+                                                              width = 5,
+                                                              actionButton(inputId =  "sel_perg",
+                                                                           label = "Selecione: EIXO / TÓPICO / CONSULTA / PERGUNTA")
+                                                          ),
+                                                          column(
+                                                              width = 2
+                                                          ),
+                                                          column(
+                                                              width = 3,
+                                                              # radioButtons(inputId = "sel_estrategia",
+                                                              #              label = "Escolha a estratégia de busca",
+                                                              #              choices = c("Título", "Título e Abstract"))
+                                                              awesomeRadio(
+                                                                  inputId = "sel_estrategia",
+                                                                  label = "Escolha a estratégia de busca", 
+                                                                  choices = c("Título", "Título e Abstract"),
+                                                                  selected = "Título",
+                                                                  inline = TRUE, 
+                                                                  status = "success"
+                                                              )
+                                                          )
+                                                      ),
+                                                      br(),
+                                                      div(class="dt-responsive",
+                                                          DT::DTOutput("tabela_perg")
+                                                      )
                                                   )
-                                                  
-                                                  )
+                                              )
                                           ),
                                           actionButton(inputId = "att_tab_filtros_perg",
                                                        label = "Atualizar",
@@ -263,30 +291,30 @@ ui <- tagList(
                                  
                      )
                  )
-                     
-                ),
-        tabPanel("Sobre", id = "sobre")
+                 
         ),
-
-        tags$footer(class = "footer",
-                    div(class = "text",
-                        span(id = "site",
-                             "www.cidacs.bahia.fiocruz.br/riccovid"),
-                        br(),
-                        span(id = "localicazao",
-                             "Technological Park of Bahia | Edf. Technocentre, 121 World Street - Trobogy, Salvador - BA, CEP.:41745-715")
-                    ),
-                    div(class="marcas_svg",
-                        img(src='marcas_suporte.svg',style="margin-top: 0px; padding-right:5px;padding-bottom:5px", width = 430) |>
-                            tagAppendAttributes(class = 'logo'))
-                    )
-
+        tabPanel("Sobre", id = "sobre")
+    ),
+    
+    tags$footer(class = "footer",
+                div(class = "text",
+                    span(id = "site",
+                         "www.cidacs.bahia.fiocruz.br/riccovid"),
+                    br(),
+                    span(id = "localicazao",
+                         "Technological Park of Bahia | Edf. Technocentre, 121 World Street - Trobogy, Salvador - BA, CEP.:41745-715")
+                ),
+                div(class="marcas_svg",
+                    img(src='marcas_suporte.svg',style="margin-top: 0px; padding-right:5px;padding-bottom:5px", width = 430) |>
+                        tagAppendAttributes(class = 'logo'))
+    )
+    
     # Sidebar with a slider input for number of bins
-        # sidebarMenu(id = "sidebar",
-        #                  selectInput("idAno", "Selecione o ano:", choices = c("Todos os anos", 2020, 2021)),
-        #                  selectInput("idPais", "Selecione o país:", choices = c("Todos os países", "Brasil", "Argentina", "Chile", "Estados Unidos", "Uruguai")),
-        #                  selectInput("idPub", "Selecione o tipo de publicação:", choices = c("Todos os tipos", "Artigo", "Capítulo", "Livro", "Monografia", "Preprint")))
-                    
+    # sidebarMenu(id = "sidebar",
+    #                  selectInput("idAno", "Selecione o ano:", choices = c("Todos os anos", 2020, 2021)),
+    #                  selectInput("idPais", "Selecione o país:", choices = c("Todos os países", "Brasil", "Argentina", "Chile", "Estados Unidos", "Uruguai")),
+    #                  selectInput("idPub", "Selecione o tipo de publicação:", choices = c("Todos os tipos", "Artigo", "Capítulo", "Livro", "Monografia", "Preprint")))
+    
 )
 
 # Define server logic required to draw a histogram
@@ -460,41 +488,41 @@ server <- function(input, output, session) {
                                          ))
                       ),
         )
-        })
-        # proxy = dataTableProxy('tabela_perg') %>%
-        #     hideCols(hide = 3)
-        # DT::datatable(df_tabela_perg_filt[,1:14],
-        #               extensions="Responsive",
-        #               options = list(autoWidth = T,
-        #                              columnDefs = list(list(visible=FALSE, targets=c(10, 11, 12, 13, 14))),
-        #                              rowCallback = DT::JS(
-        #                                  "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
-        #                                  "var full_text_author = aData[10]",
-        #                                  "var full_text_title = aData[11]",
-        #                                  "var full_text_abs = aData[12]",
-        #                                  "var full_text_journals = aData[13]",
-        #                                  "var full_text_countries = aData[14]",
-        #                                  "$('td:eq(1)', nRow).attr('title', full_text_author);",
-        #                                  "$('td:eq(2)', nRow).attr('title', full_text_title);",
-        #                                  "$('td:eq(3)', nRow).attr('title', full_text_abs);",
-        #                                  "$('td:eq(4)', nRow).attr('title', full_text_journals);",
-        #                                  "$('td:eq(5)', nRow).attr('title', full_text_countries);",
-        #                                  "}"
-        #                                  # "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
-        #                                  # "var full_text_title = aData[9]",
-        #                                  # "$('td:eq(7)', nRow).attr('title', full_text_title);",
-        #                                  # "}"
-        #                              ),
-        #                              dom = 'Bfrtip',
-        #                              responsive = TRUE,
-        #                              buttons =
-        #                                  list(list(
-        #                                      extend = 'collection',
-        #                                      buttons = c('csv', 'excel', 'pdf'),
-        #                                      text = 'Baixar tabela'
-        #                                  ))
-        #               )
-        # )
+    })
+    # proxy = dataTableProxy('tabela_perg') %>%
+    #     hideCols(hide = 3)
+    # DT::datatable(df_tabela_perg_filt[,1:14],
+    #               extensions="Responsive",
+    #               options = list(autoWidth = T,
+    #                              columnDefs = list(list(visible=FALSE, targets=c(10, 11, 12, 13, 14))),
+    #                              rowCallback = DT::JS(
+    #                                  "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
+    #                                  "var full_text_author = aData[10]",
+    #                                  "var full_text_title = aData[11]",
+    #                                  "var full_text_abs = aData[12]",
+    #                                  "var full_text_journals = aData[13]",
+    #                                  "var full_text_countries = aData[14]",
+    #                                  "$('td:eq(1)', nRow).attr('title', full_text_author);",
+    #                                  "$('td:eq(2)', nRow).attr('title', full_text_title);",
+    #                                  "$('td:eq(3)', nRow).attr('title', full_text_abs);",
+    #                                  "$('td:eq(4)', nRow).attr('title', full_text_journals);",
+    #                                  "$('td:eq(5)', nRow).attr('title', full_text_countries);",
+    #                                  "}"
+    #                                  # "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
+    #                                  # "var full_text_title = aData[9]",
+    #                                  # "$('td:eq(7)', nRow).attr('title', full_text_title);",
+    #                                  # "}"
+    #                              ),
+    #                              dom = 'Bfrtip',
+    #                              responsive = TRUE,
+    #                              buttons =
+    #                                  list(list(
+    #                                      extend = 'collection',
+    #                                      buttons = c('csv', 'excel', 'pdf'),
+    #                                      text = 'Baixar tabela'
+    #                                  ))
+    #               )
+    # )
     # })
     ## Mudar a cor de background
     observeEvent(input$tabs_dash, {

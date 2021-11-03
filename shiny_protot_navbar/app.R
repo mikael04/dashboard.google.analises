@@ -278,6 +278,15 @@ ui <- tagList(
                                                       )
                                                   ),
                                                   br(),
+                                                  fluidRow(
+                                                      div(class = "selecionados",
+                                                      textOutput("eixo_sel"),
+                                                      textOutput("topico_sel"),
+                                                      textOutput("consulta_sel"),
+                                                      textOutput("pergunta_sel"),
+                                                      br()
+                                                      )
+                                                  ),
                                                   div(class="dt-responsive",
                                                       DT::DTOutput("tabela_perg")
                                                   )
@@ -421,6 +430,18 @@ server <- function(input, output, session) {
     })
     output$distPlot5 <- renderPlot({
         shinipsum::random_ggplot("bar")
+    })
+    output$eixo_sel <- renderText({
+        paste0("EIXO: ")
+    })
+    output$topico_sel <- renderText({
+        paste0("TÓPICO: ")
+    })
+    output$consulta_sel <- renderText({
+        paste0("CONSULTA: ")
+    })
+    output$pergunta_sel <- renderText({
+        paste0("PERGUNTA: ")
     })
     # tree <- dfToTree(df, c("EIXO", "TOPICS", "QUERIES", "QUESTIONS"))
     # output$tree <- renderTree({tree})

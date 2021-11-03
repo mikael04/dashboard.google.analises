@@ -54,13 +54,22 @@
     color: white;
     margin-left: 10px;
 }
-.sel_estrategia{
+#sel_estrategia{
     float: right;
-    color: #660909;
 }
+#sel_estrategia .control-label{
+    color: #660909 !important;
+}
+#sel_estrategia :after{
+    background-color:#660909;
+    }
 .awesome-radio{
     padding-right: 10px;
     padding-left: 10px;
+    color: black !important;
+}
+.selecionados{
+    padding-left: 30px;    
 }
 
 .dataTables_wrapper{
