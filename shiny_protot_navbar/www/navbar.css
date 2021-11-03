@@ -39,20 +39,20 @@
   background-color: white;
 }
 
-.navbar-default .navbar-nav>li>a{
+/* .navbar-default .navbar-nav>li>a{
   color:black !important;
 }
 .navbar-default .navbar-nav>.active>a{
   color:white !important;
-}
-/* .navbar-default .navbar-nav>.active>a{
+} */
+.navbar-default .navbar-nav>.active>a{
   background-color: #64C1C7;
   color:white !important;
 }
 .navbar-default .navbar-nav>li>a{
   background-color: #DEEBF0;
-  color:rgb(71, 65, 65);
-} */
+  color:black !important;
+}
 
 #navbar{
   width: 50%;
