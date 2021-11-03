@@ -103,9 +103,9 @@ gif = "nyancat.gif"
 # df_dimensions$countries <- stringr::str_replace(df_dimensions$countries, "vazio ;", "-")
 # 
 # data.table::fwrite(df_dimensions, "dados/df_dimensions_tabelas_clean.csv")
-df_dimensions <- data.table::fread("dados/df_dimensions_tabelas_clean.csv") %>%
-  dplyr::select(id, doi, title_50char, type, authors_last_name, countries, metrics.times_cited,
-                altmetrics.score, abstract_50char, journals, title.preferred, abstract.preferred,
+df_dimensions <- data.table::fread("dados/app/df_dimensions_tabelas_clean.csv") %>%
+  dplyr::select(id, doi, title_n_char, type, authors_last_name, countries, citations,
+                altmetrics, abstract_50char, journals, title, abstract,
                 authors_ln, research_org_country_names, journal_lists)
 
 df_perguntas <- data.table::fread("dados/buscaCompleta2305.csv") %>%

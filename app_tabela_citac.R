@@ -31,7 +31,7 @@ gif = "nyancat.gif"
 # df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst")
 # 
 # df_dimensions_filter <- df_dimensions %>%
-#   dplyr::select(id, doi, authors_fn = authors,  authors_ln =  `authors/lastname`, metrics.times_cited, altmetrics.score, date_normal, type, title.preferred, abstract.preferred,
+#   dplyr::select(id, doi, authors_fn = authors,  authors_ln =  `authors/lastname`, citations, altmetrics, date_normal, type, title, abstract.preferred,
 #                 research_org_country_names, categories.for_v1.first_level.codes)
 # df_dimensions_filter <- tibble::as_tibble(df_dimensions_filter)
 # 
@@ -109,11 +109,11 @@ gif = "nyancat.gif"
 # df_dimensions <- dplyr::inner_join(df_dimensions_filter_authors_countries, df_dimensions_filter_sample, by="id") %>%
 #   dplyr::mutate(authors_last_name = paste0(first_author_ln, " ; ", last_author_ln)) %>%
 #   dplyr::mutate(countries = paste0(first_country, " ; ", last_country)) %>%
-#   dplyr::select(id, title.preferred, type, authors_last_name, countries, metrics.times_cited, abstract.preferred, authors_ln = authors_ln.x,  research_org_country_names = research_org_country_names.x) %>%
+#   dplyr::select(id, title, type, authors_last_name, countries, citations, abstract.preferred, authors_ln = authors_ln.x,  research_org_country_names = research_org_country_names.x) %>%
 #   dplyr::rowwise() %>%
-#   dplyr::mutate(title_50char = dplyr::case_when(nchar(title.preferred) > 50 ~
-#                                                      paste(stringr::str_sub(title.preferred, 1, 50), "..."),
-#                                                    nchar(title.preferred) <= 50 ~ title.preferred))  %>%
+#   dplyr::mutate(title_50char = dplyr::case_when(nchar(title) > 50 ~
+#                                                      paste(stringr::str_sub(title, 1, 50), "..."),
+#                                                    nchar(title) <= 50 ~ title))  %>%
 #   dplyr::mutate(abstract_50char = dplyr::case_when(nchar(abstract.preferred) > 50 ~
 #                                                         paste(stringr::str_sub(abstract.preferred, 1, 50), "..."),
 #                                                       nchar(abstract.preferred) <= 50 ~ abstract.preferred))
@@ -125,10 +125,10 @@ gif = "nyancat.gif"
 # df_dimensions$countries <- stringr::str_replace(df_dimensions$countries, "vazio ;", "-")
 # 
 # data.table::fwrite(df_dimensions, "dados/df_dimensions_tabelas_clean.csv")
-df_dimensions <- data.table::fread("dados/df_dimensions_tabelas_clean.csv") %>%
-  dplyr::select(id, doi, title_50char, type, authors_last_name, countries, metrics.times_cited,
-                altmetrics.score, abstract_50char, journals, title.preferred, abstract.preferred,
-                authors_ln, research_org_country_names, journal_lists)
+df_dimensions <- data.table::fread("dados/app/df_dimensions_tabelas_clean.csv") %>%
+  dplyr::select(title_n_char, type, authors_last_name, countries, doi, citations,
+                altmetrics, abstract_50char, journals, title, abstract,
+                authors_ln, research_org_country_names, journal_lists, id)
 
 df_perguntas <- data.table::fread("dados/buscaCompleta2305.csv") %>%
   dplyr::select(-abstract.preferred, -title.preferred)
@@ -168,7 +168,7 @@ ui <- fluidPage(
 )
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-  df_dim_auth_count_journ <- data.table::fread("dados/df_dimensions_tabelas_clean.csv")
+  df_dim_auth_count_journ <- data.table::fread("dados/app/df_dimensions_tabelas_clean.csv")
   
   output$sel_question <- renderText({
     "Selecione uma pergunta"
@@ -190,8 +190,8 @@ server <- function(input, output) {
     # df_dimensions_ij_perguntas_search <- df_dimensions_ij_perguntas %>%
     #   dplyr::filter(!!as.name(col_name) == '1')
     df_citacoes_ordered <- df_dim_auth_count_journ %>%
-      dplyr::select(doi, authors_last_name, metrics.times_cited, altmetrics.score, title.preferred, authors_ln) %>%
-      dplyr::arrange(desc(metrics.times_cited))
+      dplyr::select(doi, authors_last_name, citations, altmetrics, title, authors_ln) %>%
+      dplyr::arrange(desc(citations))
     
     output$tabela_artigos_auth_cit <- DT::renderDataTable({
       DT::datatable(df_citacoes_ordered,

@@ -147,7 +147,6 @@ ui <- fluidPage(
     tags$style(".fullwidth { width: 100% !important; }"),
     theme = solar_theme,
     dashboardPage(title = "COVID-19/CIDACS",
-               id = "navbar_panel",
                    tabPanel("Publicações ao longo do tempo e local",
                             id = "pub_temp_loc",
                             div(id = "page_pub_temp_loc",
@@ -210,7 +209,7 @@ ui <- fluidPage(
                                                dropdownButton(
                                                    inputId = "mydropdown",
                                                    label = "Controls",
-                                                   icon = icon("sliders"),
+                                                   icon = icon("sliders-h"),
                                                    status = "primary",
                                                    circle = FALSE,
                                                    sliderInput(

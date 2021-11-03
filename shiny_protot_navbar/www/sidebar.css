@@ -1,6 +1,6 @@
 .well{
     background-color: white;
-    height: 950px;
+    height: 1250px;
     margin: 10px;
 }
 #idAno{
@@ -22,4 +22,8 @@
 }
 #filtro_tab{
     color: #660909;
+}
+#ref_perg{
+    background-color: #64C1C7;
+    color: white;
 }
