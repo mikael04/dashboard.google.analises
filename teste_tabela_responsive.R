@@ -20,7 +20,7 @@ ui = tagList(
   fluidPage(
     shinyWidgets::actionBttn("ref_perg", label = "Refinar pesquisa",
                              icon = icon("refresh"), style = "jelly"),
-    # DT::dataTableOutput('tbl')
+    DT::dataTableOutput('tbl')
   )
 )
 server = function(input, output) {
@@ -40,7 +40,7 @@ server = function(input, output) {
                   `Revistas completo` = journal_lists,
                   `Países completo` = research_org_country_names)
   output$tbl = DT::renderDataTable(
-    df_tabela_perg_filt,extensions="Responsive",
+    df_tabela_perg_filt,extensions="Buttons",
       options = list(autoWidth = T,
                      columnDefs = list(list(visible=FALSE, targets=c(10, 11, 12, 13, 14)),
                                        list(width = '200px', targets = "_all")),
