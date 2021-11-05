@@ -5,30 +5,40 @@
 #dropdown_state{
     width: 1200px;
 }
-/* .btn-default > #dropdown{
-    color: black;
-    background-color: #ECF0F5;
-    border-color: #D1C2C6;
-} */
 
+/* Removendo a borda de baixo*/
 .nav-tabs{
-    border-bottom: 3px solid #64C1C7;
+    border-bottom: 1px solid transparent;
 }
 
+/* Mudando a cor do tabpanel não selecionado */
 .tabbable ul li a{
-    background-color: #FFFFFF;
-    color: #64C1C7;
+    color: black;
 }
+/* Mudando a cor da aba selecionada*/
 .nav-tabs>li.active>a{
-    background-color: #64C1C7 !important;
-    color: white !important;
+    background-color: transparent !important;
+    color: black;
+    border: 1px solid transparent;
+}
+/* Mudando a cor do mouseover*/
+.nav-tabs>li.active>a, .nav-tabs>li.active>a:hover, .nav-tabs>li.active>a:focus {
+    color: black;
+    cursor: default;
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-bottom-color: transparent;
+}
+/* Mudando a cor do mouseover*/
+.nav-tabs>li>a, .nav-tabs>li>a:hover, .nav-tabs>li>a:focus {
+    color: black;
+    cursor: default;
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-bottom-color: transparent;
 }
 
-/* #att_grap_filtros_perg{
-    right:0% !important;
-    top: 80px !important;
-} */
-
+/* Atualizar - Mudando posição e cor do botão de gráficos */
 #att_grap_filtros_perg{
     position: absolute;
     right:1%;
@@ -37,6 +47,7 @@
     color: #660909;
     color: white;
 }
+/* Atualizar - Mudando posição e cor do botão de tabelas */
 #att_tab_filtros_perg{
     position: absolute;
     right:1%;
@@ -44,7 +55,46 @@
     background-color: #660909;
     color: white;
 }
+/* Seletor abas - Mudando posição botão de gráficos */
+.sel_aba{
+    position: absolute;
+    left: 150px;
+    top: 80px;
+}
+/* PrettyInput, mudando tamanho e cores */
+/* Cor */
+.pretty.p-switch.p-fill input:checked~.state:before{
+    border-color: transparent;
+    background-color: #BE9797!important;
+}
+/* Tamanho da "caixa de seleção" e cor padrão */
+.pretty.p-switch .state:before{
+    width: 4em !important;
+    background-color: #B5DDE2;
+    border: 1px solid transparent;
+}
 
+/* posição do seletor (lado direito)*/
+.pretty.p-switch.p-fill input:checked~.state label:after{
+    left: 2.5em;
+}
+/* cor da parte não selecionada #B5DDE2 */
+/* Mudando cor do botão ao inicar*/
+.pretty.p-switch .state label:after {
+    background-color: #64C1C7 !important;
+    border: 1px solid transparent;
+}
+
+/* Mudando cor do botão ao selecionar (mudar seletor)*/
+.pretty.p-switch.p-fill input:checked ~ .state label:after {
+    background-color: #660909 !important;
+}
+/* Aumentando a área para selecionar o switch */
+.pretty.p-switch input {
+    min-width: 4em;
+}
+
+/* Fim do seletor de abas */
 .background-table{
     background-color: white;
     margin-top: 10px;
@@ -75,4 +125,7 @@
 .dataTables_wrapper{
     padding-right: 10px;
     padding-left: 10px;
+}
+.btn-default{
+    color: black;
 }

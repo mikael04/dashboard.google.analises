@@ -36,52 +36,8 @@ ui <- tagList(
     tags$link(rel = "stylesheet", type = "text/css", href = "body.css"),
     tags$link(rel = "stylesheet", type = "text/css", href = "footer.css"),
     # includeCSS("www/geral.css"),
+    tags$script(src = "change_color.js"),
     tags$head(
-        tags$script("
-          Shiny.addCustomMessageHandler('background-color', function(color) {
-            document.body.style.backgroundColor = color;
-          });
-          $(document).ready(function() {
-            console.log('pronto');
-            $('#tabs_dash li a').on('click', function() {
-                aba_anterior = $(this).text()
-                console.log('Clickando Aba (anterior) 1', aba_anterior);
-                console.log('Clickando  6', $(this).text());
-                //if(aba_anterior == aba_aux){ //Nesse caso, o usuário apenas clicou na mesma aba já selecionada
-                //}else{
-                    if(aba_anterior == 'Table'){ // Tabela
-                        // Aba de navegação topo
-                        $('.navbar-default .navbar-nav li a').css({'background-color': '#EADDDD'})
-                        $('.navbar-default .navbar-nav .active a').css({'background-color': '#660909'})
-                        
-                        // Aba de navegação (Gráfico/Tabela)
-                        //$('').css({'background-color': '#660909'})
-          
-                        // Footer
-                        $('.footer').css({'background-color': '#660909'})
-                        
-                        //$('.navbar-default .navbar-nav .active a').css({'background-color': '#660909'})
-                        
-                        //$('.navbar-default .navbar-nav .active a').css({'background-color': '#660909'})
-                        $('.well').css({'height': '850px'})
-                    }else{ // Plots
-                        // Aba de navegação topo
-                        $('.navbar-default .navbar-nav a').css({'background-color': '#DEEBF0'})
-                        $('.navbar-default .navbar-nav .active a').css({'background-color': '#64C1C7'})
-                        
-                        // Aba de navegação (Gráfico/Tabela)
-                        //$('.tabbable ul li a').css({'background-color': '#64C1C7'})
-          
-                        // Footer
-                        $('.footer').css({'background-color': '#64C1C7'})
-                        
-                    }
-                //}
-                
-            })
-            
-          });
-        "),
         tags$head(
             tags$style(
                 HTML("
@@ -296,7 +252,16 @@ ui <- tagList(
                                           actionButton(inputId = "att_tab_filtros_perg",
                                                        label = "Atualizar",
                                                        icon = icon("sync"))
-                                 )
+                                 ),
+                                 div(class = "sel_aba",
+                                     prettySwitch(
+                                         inputId = "sel_aba",
+                                         label = "", 
+                                         fill = TRUE,
+                                         bigger = T,
+                                         width = NULL
+                                     )
+                                )
                                  
                      )
                  )
@@ -477,10 +442,9 @@ server <- function(input, output, session) {
     
     output$tabela_perg <- DT::renderDataTable({
         DT::datatable(df_tabela_perg_filt[,1:14],
+                      extensions=c("Responsive", "Buttons"),
                       options = list(autoWidth = T,
-                                     extensions="Responsive",
-                                     columnDefs = list(list(visible=FALSE, targets=c(10, 11, 12, 13, 14)),
-                                                       list(width = '200px', targets = c(1, 3))),
+                                     columnDefs = list(list(visible=FALSE, targets=c(10, 11, 12, 13, 14))),
                                      rowCallback = DT::JS(
                                          "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
                                          "var full_text_author = aData[10]",
