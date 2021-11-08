@@ -1,8 +1,23 @@
-.well{
+
+#sidebar_g { /*.well*/
     background-color: white;
-    height: 1250px;
+    height: 1250px !important;
     margin: 10px;
     border: 0px;
+}
+#sidebar_t { /*.well*/
+    background-color: white;
+    height: 882px !important;
+    margin: 10px;
+    border: 0px;
+}
+ @media screen and (max-width: 1400px) {
+    #sidebar_t { /*.well*/
+        background-color: white;
+        height: 1528px !important;
+        margin: 10px;
+        border: 0px;
+    }
 }
 #idAno{
     background-color: white !important;

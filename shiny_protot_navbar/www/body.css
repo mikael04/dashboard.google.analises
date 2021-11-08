@@ -10,7 +10,12 @@
 .nav-tabs{
     border-bottom: 1px solid transparent;
 }
-
+/* Posicionando o dividor "/" */ 
+.abas_divisor {
+    position: absolute;
+    top: 910px;
+    left: 90px;
+}
 /* Mudando a cor do tabpanel não selecionado */
 .tabbable ul li a{
     color: black;
@@ -58,8 +63,8 @@
 /* Seletor abas - Mudando posição botão de gráficos */
 .sel_aba{
     position: absolute;
-    left: 150px;
-    top: 80px;
+    left: 200px;
+    top: 90px;
 }
 /* PrettyInput, mudando tamanho e cores */
 /* Cor */
@@ -128,4 +133,9 @@
 }
 .btn-default{
     color: black;
+}
+
+/* Fonte da tabela de artigos */
+.datatables {
+    font-size: 12px;
 }

@@ -7,3 +7,6 @@ body{
 .modal-backdrop {
     background-color: gray;
  }
+.modal-dialog {
+     width: fit-content !important;
+}

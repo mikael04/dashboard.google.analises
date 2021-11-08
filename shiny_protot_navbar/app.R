@@ -19,6 +19,7 @@ source("mod_arvore_busca.R")
 source("mod_evol_pub_tipo.R")
 source("mod_paises_pub_2.R")
 source("mod_tabela_artg.R")
+source("mod_map_pub.R")
 source("fct_no_sel.R")
 source("fct_filtrar_dim.R")
 source("fct_tratar_ano_sel.R")
@@ -36,20 +37,11 @@ ui <- tagList(
     tags$link(rel = "stylesheet", type = "text/css", href = "body.css"),
     tags$link(rel = "stylesheet", type = "text/css", href = "footer.css"),
     # includeCSS("www/geral.css"),
-    tags$script(src = "change_color.js"),
+    tags$script(src = "mudar_aba.js"),
     tags$head(
         tags$head(
             tags$style(
                 HTML("
-          .datatables {
-              font-size: 1.5vw;
-          }
-
-          @media screen and (min-width: 1024px) {
-              .datatables {
-                  font-size: 12px;
-              }
-          }
         ")
             )
         )
@@ -81,8 +73,9 @@ ui <- tagList(
                  fluidRow(
                      tabsetPanel(type = "tabs",
                                  id = "tabs_dash",
-                                 tabPanel("Plots",
+                                 tabPanel("Gráficos",
                                           id="plots",
+                                          value = "plots",
                                           sidebarLayout(
                                               sidebarPanel(
                                                   id = "sidebar_g",
@@ -164,7 +157,7 @@ ui <- tagList(
                                                           fluidRow(
                                                               column(
                                                                   width = 12,
-                                                                  plotOutput("distPlot3")
+                                                                  mod_map_pub_ui("map_pub_1")
                                                               )
                                                           ),
                                                           br(),
@@ -188,8 +181,9 @@ ui <- tagList(
                                                        icon = icon("sync"),
                                                        style = "fill")
                                  ),
-                                 tabPanel("Table",
+                                 tabPanel("Tabela",
                                           id = "table",
+                                          value = "table",
                                           sidebarLayout(
                                               sidebarPanel(
                                                   id = "sidebar_t",
@@ -261,7 +255,9 @@ ui <- tagList(
                                          bigger = T,
                                          width = NULL
                                      )
-                                )
+                                ),
+                                div(class = "abas_divisor",
+                                    span("/"))
                                  
                      )
                  )
@@ -297,7 +293,7 @@ server <- function(input, output, session) {
     # df_dim_au_co_jo <- fst::read_fst("../dados/app/df_dimensions_tabelas_clean.fst") |> 
     #     dplyr::rename(date = date_normal)
     # df_tabela_base_plus_categ <- fst::read_fst("../dados/app/df_tabela_base_plus_categ.fst")
-    # df_perguntas <- data.table::fread("../dados/perguntas_full_clean.csv")
+    df_perguntas <- data.table::fread("../dados/perguntas_full_clean.csv")
     # # dplyr::glimpse(df_tabela_base_plus_categ)
     # select_test <- F
     # first_plot <- reactiveVal(value = T)
@@ -379,6 +375,9 @@ server <- function(input, output, session) {
     #     
     #     
     # })
+    r_aux <- "COVID19"
+    df_tabela_base_filtros <- fst::read_fst("data-raw/app/df_tabela_base_filtros.fst")
+    mod_map_pub_server("map_pub_1", r_aux, df_tabela_base_filtros, teste = F, debug = T)
     
     
     output$distPlot1 <- renderPlot({
@@ -411,18 +410,55 @@ server <- function(input, output, session) {
     # tree <- dfToTree(df, c("EIXO", "TOPICS", "QUERIES", "QUESTIONS"))
     # output$tree <- renderTree({tree})
     #### 1.1.3.1 Módulo de perguntas ----
-    # mod_arvore_busca_server("arvore_busca_1", df_perguntas, debug)
-    # #### 1.1.3.2  Botão (abrir modal) de selecionar perguntas ----
-    # observeEvent(input$sel_perg, {
-    #     mod_arvore_busca_server("arvore_busca_1", df_perguntas, debug)
-    #     showModal(modalDialog(
-    #         mod_arvore_busca_ui("arvore_busca_1"),
-    #         ## árvore (colapsible tree) em nós
-    #         # mod_arvore_ui("arvore_1"),
-    #         footer = tagList(actionButton("select_node", "Selecionar")),
-    #         easyClose = TRUE
-    #     ))
-    # })
+    mod_arvore_busca_server("arvore_busca_1", df_perguntas, debug)
+    #### 1.1.3.2  Botão (abrir modal) de selecionar perguntas ----
+    observeEvent(input$sel_perg, {
+        mod_arvore_busca_server("arvore_busca_1", df_perguntas, debug)
+        showModal(modalDialog(
+            mod_arvore_busca_ui("arvore_busca_1"),
+            ## árvore (colapsible tree) em nós
+            # mod_arvore_ui("arvore_1"),
+            footer = tagList(actionButton("select_node", "Selecionar")),
+            easyClose = TRUE
+        ))
+    })
+    
+    #### 1.1.3.2  Botão (fechar modal) de selecionar perguntas ----
+    observeEvent(input$select_node, {
+        ## pega o nó selecionado
+        no_sel <- func_ret_no_sel(input$`arvore_busca_1-tree`, debug)
+        ## me diz qual nível é o nó selecionado (1 eixo, 2 topic, 3 querie, 4 question)
+        df_node_hierarchy <- func_get_node_hierarchy(df_perguntas, no_sel, debug)
+        node_tier <- func_get_node_tier(df_perguntas, no_sel, debug)
+        # mod_arvore_busca_nosel_server("arvore_busca_nosel_1", no_sel, node_tier, debug)
+        # df_dim_au_co_jo <- df_dim_au_co_jo_()
+        removeModal()
+        # browser()
+        output$eixo_sel <- renderText({
+            paste0("EIXO: ", df_node_hierarchy$EIXO)
+        })
+        output$topico_sel <- renderText({
+            if(node_tier > 1){
+                paste0("TÓPICO: ", df_node_hierarchy$TOPICS)
+            }else{
+                paste0("TÓPICO: NÃO SELECIONADo")
+            }
+        })
+        output$consulta_sel <- renderText({
+            if(node_tier > 2){
+                paste0("CONSULTA: ", df_node_hierarchy$QUERIES)
+            }else{
+                paste0("CONSULTA: NÃO SELECIONADA")
+            }
+        })
+        output$pergunta_sel <- renderText({
+            if(node_tier > 3){
+                paste0("PERGUNTA: ", df_node_hierarchy$QUESTIONS)
+            }else{
+                paste0("PERGUNTA: NÃO SELECIONADA")
+            }
+        })
+    })
     
     df_tabela_perg_filt <- fst::read_fst("../dados/df_tabela_perg_filt.fst")
     
@@ -512,13 +548,27 @@ server <- function(input, output, session) {
     ## Mudar a cor de background
     observeEvent(input$tabs_dash, {
         # browser()
-        if(input$tabs_dash == "Plots"){
-            session$sendCustomMessage("background-color", "#ecf0f5")
+        if(input$tabs_dash == "plots"){
+            shinyWidgets::updatePrettySwitch(session, "sel_aba",
+                                             value = F)
         } else {
-            session$sendCustomMessage("background-color", "#faf6f6")
-            # session$sendCustomMessage("change-colors")
+            # session$sendCustomMessage("background-color", "#faf6f6")
+            shinyWidgets::updatePrettySwitch(session, "sel_aba",
+                                             value = T)
         }
-    })
+    }, ignoreInit = T)
+    observeEvent(input$sel_aba, {
+        # browser()
+        if(input$sel_aba){
+            updateTabsetPanel(session, "tabs_dash",
+                              selected = "table")
+            session$sendCustomMessage("switch_change", T)
+        }else{
+            updateTabsetPanel(session, "tabs_dash",
+                              selected = "plots")
+            session$sendCustomMessage("switch_change", F)
+        }
+    }, ignoreInit = T)
 }
 
 # Run the application 

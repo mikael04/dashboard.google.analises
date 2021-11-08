@@ -36,64 +36,11 @@ ui <- tagList(
     tags$link(rel = "stylesheet", type = "text/css", href = "body.css"),
     tags$link(rel = "stylesheet", type = "text/css", href = "footer.css"),
     # includeCSS("www/geral.css"),
+    tags$script(src = "mudar_aba.js"),
     tags$head(
-        tags$script("
-          Shiny.addCustomMessageHandler('background-color', function(color) {
-            document.body.style.backgroundColor = color;
-          });
-          $(document).ready(function() {
-            console.log('pronto');
-            $('#tabs_dash li a').on('click', function() {
-                aba_anterior = $(this).text()
-                console.log('Clickando Aba (anterior) 1', aba_anterior);
-                console.log('Clickando  6', $(this).text());
-                //if(aba_anterior == aba_aux){ //Nesse caso, o usuário apenas clicou na mesma aba já selecionada
-                //}else{
-                    if(aba_anterior == 'Table'){ // Tabela
-                        // Aba de navegação topo
-                        $('.navbar-default .navbar-nav li a').css({'background-color': '#EADDDD'})
-                        $('.navbar-default .navbar-nav .active a').css({'background-color': '#660909'})
-                        
-                        // Aba de navegação (Gráfico/Tabela)
-                        //$('').css({'background-color': '#660909'})
-          
-                        // Footer
-                        $('.footer').css({'background-color': '#660909'})
-                        
-                        //$('.navbar-default .navbar-nav .active a').css({'background-color': '#660909'})
-                        
-                        //$('.navbar-default .navbar-nav .active a').css({'background-color': '#660909'})
-                        $('.well').css({'height': '850px'})
-                    }else{ // Plots
-                        // Aba de navegação topo
-                        $('.navbar-default .navbar-nav a').css({'background-color': '#DEEBF0'})
-                        $('.navbar-default .navbar-nav .active a').css({'background-color': '#64C1C7'})
-                        
-                        // Aba de navegação (Gráfico/Tabela)
-                        //$('.tabbable ul li a').css({'background-color': '#64C1C7'})
-          
-                        // Footer
-                        $('.footer').css({'background-color': '#64C1C7'})
-                        
-                    }
-                //}
-                
-            })
-            
-          });
-        "),
         tags$head(
             tags$style(
                 HTML("
-          .datatables {
-              font-size: 1.5vw;
-          }
-
-          @media screen and (min-width: 1024px) {
-              .datatables {
-                  font-size: 12px;
-              }
-          }
         ")
             )
         )
@@ -125,8 +72,9 @@ ui <- tagList(
                  fluidRow(
                      tabsetPanel(type = "tabs",
                                  id = "tabs_dash",
-                                 tabPanel("Plots",
+                                 tabPanel("Gráficos",
                                           id="plots",
+                                          value = "plots",
                                           sidebarLayout(
                                               sidebarPanel(
                                                   id = "sidebar_g",
@@ -232,8 +180,9 @@ ui <- tagList(
                                                                    icon = icon("sync"),
                                                                    style = "fill")
                                  ),
-                                 tabPanel("Table",
+                                 tabPanel("Tabela",
                                           id = "table",
+                                          value = "table",
                                           sidebarLayout(
                                               sidebarPanel(
                                                   id = "sidebar_t",
@@ -278,6 +227,15 @@ ui <- tagList(
                                                           )
                                                       ),
                                                       br(),
+                                                      fluidRow(
+                                                          div(class = "selecionados",
+                                                              textOutput("eixo_sel"),
+                                                              textOutput("topico_sel"),
+                                                              textOutput("consulta_sel"),
+                                                              textOutput("pergunta_sel"),
+                                                              br()
+                                                          )
+                                                      ),
                                                       div(class="dt-responsive",
                                                           DT::DTOutput("tabela_perg")
                                                       )
@@ -287,7 +245,18 @@ ui <- tagList(
                                           actionButton(inputId = "att_tab_filtros_perg",
                                                        label = "Atualizar",
                                                        icon = icon("sync"))
-                                 )
+                                 ),
+                                 div(class = "sel_aba",
+                                     prettySwitch(
+                                         inputId = "sel_aba",
+                                         label = "", 
+                                         fill = TRUE,
+                                         bigger = T,
+                                         width = NULL
+                                     )
+                                 ),
+                                 div(class = "abas_divisor",
+                                     span("/"))
                                  
                      )
                  )
@@ -323,7 +292,7 @@ server <- function(input, output, session) {
     # df_dim_au_co_jo <- fst::read_fst("../dados/app/df_dimensions_tabelas_clean.fst") |> 
     #     dplyr::rename(date = date_normal)
     # df_tabela_base_plus_categ <- fst::read_fst("../dados/app/df_tabela_base_plus_categ.fst")
-    # df_perguntas <- data.table::fread("../dados/perguntas_full_clean.csv")
+    df_perguntas <- data.table::fread("../dados/perguntas_full_clean.csv")
     # # dplyr::glimpse(df_tabela_base_plus_categ)
     # select_test <- F
     # first_plot <- reactiveVal(value = T)
@@ -422,21 +391,70 @@ server <- function(input, output, session) {
     output$distPlot5 <- renderPlot({
         shinipsum::random_ggplot("bar")
     })
+    output$eixo_sel <- renderText({
+        paste0("EIXO: ")
+    })
+    output$topico_sel <- renderText({
+        paste0("TÓPICO: ")
+    })
+    output$consulta_sel <- renderText({
+        paste0("CONSULTA: ")
+    })
+    output$pergunta_sel <- renderText({
+        paste0("PERGUNTA: ")
+    })
     # tree <- dfToTree(df, c("EIXO", "TOPICS", "QUERIES", "QUESTIONS"))
     # output$tree <- renderTree({tree})
     #### 1.1.3.1 Módulo de perguntas ----
-    # mod_arvore_busca_server("arvore_busca_1", df_perguntas, debug)
-    # #### 1.1.3.2  Botão (abrir modal) de selecionar perguntas ----
-    # observeEvent(input$sel_perg, {
-    #     mod_arvore_busca_server("arvore_busca_1", df_perguntas, debug)
-    #     showModal(modalDialog(
-    #         mod_arvore_busca_ui("arvore_busca_1"),
-    #         ## árvore (colapsible tree) em nós
-    #         # mod_arvore_ui("arvore_1"),
-    #         footer = tagList(actionButton("select_node", "Selecionar")),
-    #         easyClose = TRUE
-    #     ))
-    # })
+    mod_arvore_busca_server("arvore_busca_1", df_perguntas, debug)
+    #### 1.1.3.2  Botão (abrir modal) de selecionar perguntas ----
+    observeEvent(input$sel_perg, {
+        mod_arvore_busca_server("arvore_busca_1", df_perguntas, debug)
+        showModal(modalDialog(
+            mod_arvore_busca_ui("arvore_busca_1"),
+            ## árvore (colapsible tree) em nós
+            # mod_arvore_ui("arvore_1"),
+            footer = tagList(actionButton("select_node", "Selecionar")),
+            easyClose = TRUE
+        ))
+    })
+    
+    #### 1.1.3.2  Botão (fechar modal) de selecionar perguntas ----
+    observeEvent(input$select_node, {
+        ## pega o nó selecionado
+        no_sel <- func_ret_no_sel(input$`arvore_busca_1-tree`, debug)
+        ## me diz qual nível é o nó selecionado (1 eixo, 2 topic, 3 querie, 4 question)
+        df_node_hierarchy <- func_get_node_hierarchy(df_perguntas, no_sel, debug)
+        node_tier <- func_get_node_tier(df_perguntas, no_sel, debug)
+        # mod_arvore_busca_nosel_server("arvore_busca_nosel_1", no_sel, node_tier, debug)
+        # df_dim_au_co_jo <- df_dim_au_co_jo_()
+        removeModal()
+        # browser()
+        output$eixo_sel <- renderText({
+            paste0("EIXO: ", df_node_hierarchy$EIXO)
+        })
+        output$topico_sel <- renderText({
+            if(node_tier > 1){
+                paste0("TÓPICO: ", df_node_hierarchy$TOPICS)
+            }else{
+                paste0("TÓPICO: NÃO SELECIONADo")
+            }
+        })
+        output$consulta_sel <- renderText({
+            if(node_tier > 2){
+                paste0("CONSULTA: ", df_node_hierarchy$QUERIES)
+            }else{
+                paste0("CONSULTA: NÃO SELECIONADA")
+            }
+        })
+        output$pergunta_sel <- renderText({
+            if(node_tier > 3){
+                paste0("PERGUNTA: ", df_node_hierarchy$QUESTIONS)
+            }else{
+                paste0("PERGUNTA: NÃO SELECIONADA")
+            }
+        })
+    })
     
     df_tabela_perg_filt <- fst::read_fst("../dados/df_tabela_perg_filt.fst")
     
@@ -456,10 +474,9 @@ server <- function(input, output, session) {
     
     output$tabela_perg <- DT::renderDataTable({
         DT::datatable(df_tabela_perg_filt[,1:14],
+                      extensions=c("Responsive", "Buttons"),
                       options = list(autoWidth = T,
-                                     extensions="Responsive",
-                                     columnDefs = list(list(visible=FALSE, targets=c(10, 11, 12, 13, 14)),
-                                                       list(width = '200px', targets = c(1, 3))),
+                                     columnDefs = list(list(visible=FALSE, targets=c(10, 11, 12, 13, 14))),
                                      rowCallback = DT::JS(
                                          "function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {",
                                          "var full_text_author = aData[10]",
@@ -527,13 +544,27 @@ server <- function(input, output, session) {
     ## Mudar a cor de background
     observeEvent(input$tabs_dash, {
         # browser()
-        if(input$tabs_dash == "Plots"){
-            session$sendCustomMessage("background-color", "#ecf0f5")
+        if(input$tabs_dash == "plots"){
+            shinyWidgets::updatePrettySwitch(session, "sel_aba",
+                                             value = F)
         } else {
-            session$sendCustomMessage("background-color", "#faf6f6")
-            # session$sendCustomMessage("change-colors")
+            # session$sendCustomMessage("background-color", "#faf6f6")
+            shinyWidgets::updatePrettySwitch(session, "sel_aba",
+                                             value = T)
         }
-    })
+    }, ignoreInit = T)
+    observeEvent(input$sel_aba, {
+        # browser()
+        if(input$sel_aba){
+            updateTabsetPanel(session, "tabs_dash",
+                              selected = "table")
+            session$sendCustomMessage("switch_change", T)
+        }else{
+            updateTabsetPanel(session, "tabs_dash",
+                              selected = "plots")
+            session$sendCustomMessage("switch_change", F)
+        }
+    }, ignoreInit = T)
 }
 
 # Run the application 
