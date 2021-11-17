@@ -6,27 +6,30 @@
     width: 1200px;
 }
 
-/* Removendo a borda de baixo*/
-.nav-tabs{
-    border-bottom: 1px solid transparent;
-}
 /* Posicionando o dividor "/" */ 
 .abas_divisor {
     position: absolute;
-    top: 910px;
+    top: 91px;
     left: 90px;
+}
+
+/* Tab Panel */
+
+/* Removendo a borda de baixo */
+.nav-tabs{
+    border-bottom: 1px solid transparent;
 }
 /* Mudando a cor do tabpanel não selecionado */
 .tabbable ul li a{
     color: black;
 }
-/* Mudando a cor da aba selecionada*/
+/* Mudando a cor da aba selecionada */
 .nav-tabs>li.active>a{
     background-color: transparent !important;
     color: black;
     border: 1px solid transparent;
 }
-/* Mudando a cor do mouseover*/
+/* Mudando a cor do mouseover */
 .nav-tabs>li.active>a, .nav-tabs>li.active>a:hover, .nav-tabs>li.active>a:focus {
     color: black;
     cursor: default;
@@ -34,7 +37,7 @@
     border: 1px solid transparent;
     border-bottom-color: transparent;
 }
-/* Mudando a cor do mouseover*/
+/* Mudando a cor do mouseover */
 .nav-tabs>li>a, .nav-tabs>li>a:hover, .nav-tabs>li>a:focus {
     color: black;
     cursor: default;
@@ -42,6 +45,7 @@
     border: 1px solid transparent;
     border-bottom-color: transparent;
 }
+/* Finalizando Tab Panel */
 
 /* Atualizar - Mudando posição e cor do botão de gráficos */
 #att_grap_filtros_perg{

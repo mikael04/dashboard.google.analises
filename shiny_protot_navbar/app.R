@@ -36,6 +36,7 @@ ui <- tagList(
     tags$link(rel = "stylesheet", type = "text/css", href = "sidebar.css"),
     tags$link(rel = "stylesheet", type = "text/css", href = "body.css"),
     tags$link(rel = "stylesheet", type = "text/css", href = "footer.css"),
+    tags$link(rel = "stylesheet", type = "text/css", href = "sobre.css"),
     # includeCSS("www/geral.css"),
     tags$script(src = "mudar_aba.js"),
     tags$head(
@@ -68,6 +69,7 @@ ui <- tagList(
         #selected = "dashboard",
         # theme = "navbar.css",
         #fluid = T,
+        selected = "Sobre",
         tabPanel("Dashboard",
                  id = "dashboard",
                  fluidRow(
@@ -157,7 +159,8 @@ ui <- tagList(
                                                           fluidRow(
                                                               column(
                                                                   width = 12,
-                                                                  mod_map_pub_ui("map_pub_1")
+                                                                  plotOutput("distPlot3")
+                                                                  # mod_map_pub_ui("map_pub_1")
                                                               )
                                                           ),
                                                           br(),
@@ -263,8 +266,105 @@ ui <- tagList(
                  )
                  
         ),
-        tabPanel("Sobre", id = "sobre")
-    ),
+        tabPanel("Sobre",
+                 id = "sobre",
+                 type="tabs",
+                 fluidRow(
+                     tabsetPanel(id = "sobre_painel",
+                                 selected = "Equipe",
+                                 type="tabs",
+                                 tabPanel(
+                                     "O projeto",
+                                     id = "projeto",
+                                     div(class="sobre_projeto",
+                                     fluidRow(
+                                         column(width = 12,
+                                                div(class = "sobre_proj_title",
+                                                    "O PROJETO"
+                                                ),
+                                                # box(textOutput("title")),
+                                                br(),
+                                                box(textOutput("text1")),
+                                                box(plotOutput("distPlot7"))
+                                         ),
+                                         
+                                         column(width = 12,
+                                                box(plotOutput("distPlot8")),
+                                                box(plotOutput("distPlot9"))
+                                         )
+                                     )
+                                     )
+                                     
+                                 ),
+                                 tabPanel(
+                                     "Metodologia",
+                                     id = "metodologia"
+                                 ),
+                                 tabPanel(
+                                     "Equipe",
+                                     id = "equipe",
+                                     div(class="sobre_equipe",
+                                         fluidRow(
+                                             div(class = "sobre_equipe_title",
+                                                 "Equipe"
+                                             )
+                                         ),
+                                         fluidRow(
+                                             column(width = 4,
+                                                    style = "background-color: #64C1C7;",
+                                                    column(width = 6,
+                                                           div(class="foto_curr",
+                                                               img(class = "foto", src="eu.jpg", align = "left"),
+                                                               shinyWidgets::actionBttn(
+                                                                   inputId="mikael",
+                                                                   label = "Curriculo Lattes"
+                                                               ))),
+                                                    column(width = 6,
+                                                           div(class = "equipe_nome_title",
+                                                               span("Mikael")
+                                                           ),
+                                                           div(class="equipe_texto_apres",
+                                                               span("Formado em Engenharia de Computação (UFSM)
+                                                             Graduando de Estatística"))
+                                                           ),
+                                             ),
+                                             column(width = 4,
+                                                      style = "background-color: #64C1C7;",
+                                                      column(width = 6,
+                                                             div(class="foto_curr",
+                                                                 img(class = "foto", src="eu.jpg", align = "left"),
+                                                                 shinyWidgets::actionBttn(
+                                                                     inputId="mikael",
+                                                                     label = "Curriculo Lattes"
+                                                                 ))),
+                                                      column(width = 6,
+                                                             div(class="texto_apres",
+                                                                 span("Formado em Engenharia de Computação (UFSM)
+                                                             Graduando de Estatística"))
+                                                      ),
+                                             ),
+                                             column(width = 4,
+                                                    style = "background-color: #64C1C7;",
+                                                    column(width = 6,
+                                                           div(class="foto_curr",
+                                                               img(class = "foto", src="eu.jpg", align = "left"),
+                                                               shinyWidgets::actionBttn(
+                                                                   inputId="mikael",
+                                                                   label = "Curriculo Lattes"
+                                                               ))),
+                                                    column(width = 6,
+                                                           div(class="texto_apres",
+                                                               span("Formado em Engenharia de Computação (UFSM)
+                                                             Graduando de Estatística"))
+                                                    ),
+                                             )
+                                         )
+                                     )
+                                 ),
+                     )
+                 )
+        )
+        ),
     
     tags$footer(class = "footer",
                 div(class = "text",
@@ -376,8 +476,8 @@ server <- function(input, output, session) {
     #     
     # })
     r_aux <- "COVID19"
-    df_tabela_base_filtros <- fst::read_fst("data-raw/app/df_tabela_base_filtros.fst")
-    mod_map_pub_server("map_pub_1", r_aux, df_tabela_base_filtros, teste = F, debug = T)
+    # df_tabela_base_filtros <- fst::read_fst("data-raw/app/df_tabela_base_filtros.fst")
+    # mod_map_pub_server("map_pub_1", r_aux, df_tabela_base_filtros, teste = F, debug = T)
     
     
     output$distPlot1 <- renderPlot({
@@ -395,6 +495,52 @@ server <- function(input, output, session) {
     output$distPlot5 <- renderPlot({
         shinipsum::random_ggplot("bar")
     })
+    output$distPlot6 <- renderPlot({
+        shinipsum::random_ggplot("bar")
+    })
+    output$distPlot7 <- renderPlot({
+        shinipsum::random_ggplot("bar")
+    })
+    output$distPlot8 <- renderPlot({
+        shinipsum::random_ggplot("bar")
+    })
+    output$distPlot9 <- renderPlot({
+        shinipsum::random_ggplot("bar")
+    })
+    output$title <- renderText({
+        "O PROJETO"
+    })
+    output$text1 <- renderText({ "Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        Sed purus enim, dictum ut orci non, porta dapibus lorem.
+        Nunc at luctus ipsum, vitae dictum eros.
+        Nulla laoreet massa ac dolor suscipit aliquet.
+        Cras posuere felis quis tellus convallis, sed ultricies arcu hendrerit.
+        Vestibulum efficitur turpis ultrices, tincidunt ante vel, imperdiet libero.
+        Sed nunc nulla, blandit eget lectus ac, pellentesque varius enim.
+        Nunc tortor lectus, tempus vitae ex at, pellentesque blandit ante.
+        Integer odio diam, pulvinar sed laoreet eget, sagittis at elit.
+        Maecenas tincidunt lacus urna, in pellentesque massa dapibus viverra.
+        Praesent efficitur odio eget arcu eleifend tempus. 
+        Donec rhoncus dolor eget urna porta, id consequat ante elementum.
+        Sed pretium, mi venenatis tincidunt cursus, mauris tellus consectetur nunc, vitae consectetur erat dolor ac felis.
+        Pellentesque suscipit ornare odio, at consectetur velit volutpat a.
+        Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
+        Phasellus mattis quam orci, nec aliquam elit pulvinar ut.
+        Aliquam ac erat vehicula, suscipit eros ut, auctor quam.
+        In arcu ante, porta nec egestas vitae, dignissim sed leo.
+        Vestibulum magna velit, iaculis suscipit facilisis viverra, luctus semper mi.
+        Curabitur tincidunt ante mi, et posuere enim volutpat eget. Aenean mollis ante quam.
+        Nam augue orci, pretium in metus eget, bibendum posuere turpis. 
+        Nullam sed posuere nisi, a feugiat magna.
+        Curabitur iaculis urna ac magna iaculis sodales. 
+        Sed eu facilisis diam, quis elementum tellus. 
+        Ut at lacus et velit rhoncus feugiat. 
+        Etiam in metus malesuada, feugiat nisl id, lacinia neque. 
+        Vestibulum varius lorem est, nec auctor tortor finibus in. 
+        Cras a pellentesque libero, sed semper lectus.
+        Mauris mauris erat, volutpat eu lacinia quis, pretium ut felis. 
+        Maecenas tristique, urna eu dignissim lobortis, ex massa mattis urna, in fringilla augue ante eleifend leo. 
+        Vestibulum eget dignissim magna. Phasellus a mauris eu nisl consequat bibendum." })
     output$eixo_sel <- renderText({
         paste0("EIXO: ")
     })
@@ -410,7 +556,7 @@ server <- function(input, output, session) {
     # tree <- dfToTree(df, c("EIXO", "TOPICS", "QUERIES", "QUESTIONS"))
     # output$tree <- renderTree({tree})
     #### 1.1.3.1 Módulo de perguntas ----
-    mod_arvore_busca_server("arvore_busca_1", df_perguntas, debug)
+    # mod_arvore_busca_server("arvore_busca_1", df_perguntas, debug)
     #### 1.1.3.2  Botão (abrir modal) de selecionar perguntas ----
     observeEvent(input$sel_perg, {
         mod_arvore_busca_server("arvore_busca_1", df_perguntas, debug)
@@ -423,6 +569,28 @@ server <- function(input, output, session) {
         ))
     })
     
+    df_perguntas_g <- data.table::fread("../dados/perguntas_teste.csv")
+    # df_perguntas <- data.table::fread("../dados/perguntas_teste.csv")
+    observeEvent(input$ref_perg, {
+        mod_arvore_busca_server("arvore_busca_2", df_perguntas_g, debug)
+        showModal(modalDialog(
+            mod_arvore_busca_ui("arvore_busca_2"),
+            ## árvore (colapsible tree) em nós
+            # mod_arvore_ui("arvore_1"),
+            footer = tagList(actionButton("select_node_graph", "Selecionar")),
+            easyClose = TRUE
+        ))
+    })
+    observeEvent(input$select_node, {
+        ## pega o nó selecionado
+        no_sel <- func_ret_no_sel(input$`arvore_busca_1-tree`, debug)
+        ## me diz qual nível é o nó selecionado (1 eixo, 2 topic, 3 querie, 4 question)
+        df_node_hierarchy <- func_get_node_hierarchy(df_perguntas, no_sel, debug)
+        node_tier <- func_get_node_tier(df_perguntas, no_sel, debug)
+        # mod_arvore_busca_nosel_server("arvore_busca_nosel_1", no_sel, node_tier, debug)
+        # df_dim_au_co_jo <- df_dim_au_co_jo_()
+        removeModal()
+    })
     #### 1.1.3.2  Botão (fechar modal) de selecionar perguntas ----
     observeEvent(input$select_node, {
         ## pega o nó selecionado

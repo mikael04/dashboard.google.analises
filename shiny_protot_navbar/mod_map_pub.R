@@ -41,7 +41,7 @@ mod_map_pub_server <- function(id, r, df_count_base_filtros, teste, debug){
       df_count_base_filtros <- df_count_base_filtros |>
         dplyr::filter(country != "NoCountry") |> 
         dplyr::group_by(country) |> 
-        dplyr::mutate(count_paises = n()) |> 
+        dplyr::mutate(count_paises = dplyr::n()) |> 
         dplyr::distinct(country, .keep_all = T) |> 
         dplyr::ungroup() |> 
         dplyr::arrange(count_paises) |>
@@ -65,7 +65,7 @@ mod_map_pub_server <- function(id, r, df_count_base_filtros, teste, debug){
       
       m <- leaflet(map_count,
                    options = list(zoomControl = T,
-                                  minZoom = 1, maxZoom = 3,
+                                  minZoom = 1.3, maxZoom = 3,
                                   dragging = T, noWrap = T,
                                   worldCopyJump = F,
                                   maxBounds = list(
@@ -73,7 +73,7 @@ mod_map_pub_server <- function(id, r, df_count_base_filtros, teste, debug){
                                     list(150, 310)
                                   ))) %>% 
         addTiles()  %>% 
-        setView( lat=0, lng=22 , zoom=1) %>%
+        setView( lat=0, lng=80 , zoom=1.3) %>%
         addPolygons( stroke=FALSE ,
                      fillOpacity = 0.5, smoothFactor = 0.5,
                      fillColor = ~mypalette(count),

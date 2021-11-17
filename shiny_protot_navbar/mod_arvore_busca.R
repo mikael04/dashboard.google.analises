@@ -33,7 +33,8 @@ mod_arvore_busca_server <- function(id, df_perguntas, debug){
     ns <- session$ns
     # df_ordered <- df |>
     #   dplyr::arrange(QUESTIONS)
-    tree <- dfToTree(df_perguntas, c("EIXO", "TOPICS", "QUERIES", "QUESTIONS"))
+    tree <- dfToTree(df_perguntas, c("EIXO", "TOPICO", "CONSULTA", "SUBCONSULTA", "PERGUNTA"))
+    # shinyTree::shinyTree()
     output$tree <- renderTree({tree})
     # print(paste0("Estamos na busca, já fez a árvore indo pra UI"))
     # output selected node

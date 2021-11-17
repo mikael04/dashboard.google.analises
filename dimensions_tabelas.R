@@ -109,7 +109,34 @@ df_dimensions_type_date <- df_dimensions |>
   dplyr::mutate(date = lubridate::floor_date(lubridate::as_date(date_normal), "month")) |> 
   dplyr::select(id, date, type)
 
+### 2.3 Tabelas para filtros laterais (ano, países, tipo de artigo) ----
 
+#### 2.3.1 Países ----
+distinct_countries <- df_dimensions_country |> 
+  dplyr::distinct(country) |> 
+  dplyr::arrange(country)
+
+distinct_countries <- distinct_countries |> 
+  dplyr::mutate(country = dplyr::if_else(is.na(country), "NÃO DEFINIDO", country))
+
+data.table::fwrite(distinct_countries, "dados/app/filtros_paises.csv")
+
+#### 2.3.1 Tipos ----
+distinct_tipos <- df_dimensions_type_date |> 
+  dplyr::distinct(type) |> 
+  as.data.frame()
+
+data.table::fwrite(distinct_tipos, "dados/app/filtros_tipos.csv")
+
+#### 2.3.1 Anos ----
+distinct_anos <- df_dimensions_type_date |>
+  dplyr::mutate(date = year(lubridate::floor_date(lubridate::as_date(date), "year"))) |> 
+  dplyr::distinct(date) |> 
+  as.data.frame()
+
+data.table::fwrite(distinct_anos, "dados/app/filtros_anos.csv")
+
+rm(distinct_anos, distinct_countries, distinct_tipos)
 ## 3 Tabela base - Países, data, tipo de artigo   ---------------------------------
 ### 3.0 Gráficos ----
   # - Mapa de publicações
@@ -501,3 +528,4 @@ library(googleLanguageR)
 #   dplyr::mutate(language = gl_translate_detect(first_author_ln))
 
 # stringi::stri_trans_general("Zażółć gęślą jaźń", "Latin-ASCII")
+

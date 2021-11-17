@@ -33,10 +33,10 @@
     color: black !important;
     background-color: white !important;
 }
-#filtro_grap{
-    color: #64C1C7;
+.title_graph{
+    color: #64C1C7 !important;
 }
-#filtro_tab{
+.title_tab{
     color: #660909;
 }
 #ref_perg{
