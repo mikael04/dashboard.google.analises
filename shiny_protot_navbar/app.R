@@ -38,6 +38,7 @@ ui <- tagList(
     tags$link(rel = "stylesheet", type = "text/css", href = "footer.css"),
     tags$link(rel = "stylesheet", type = "text/css", href = "sobre.css"),
     # includeCSS("www/geral.css"),
+    shinyjs::useShinyjs(),
     tags$script(src = "mudar_aba.js"),
     tags$head(
         tags$head(
@@ -69,7 +70,7 @@ ui <- tagList(
         #selected = "dashboard",
         # theme = "navbar.css",
         #fluid = T,
-        selected = "Sobre",
+        selected = "Dashboard",
         tabPanel("Dashboard",
                  id = "dashboard",
                  fluidRow(
@@ -78,6 +79,9 @@ ui <- tagList(
                                  tabPanel("Gráficos",
                                           id="plots",
                                           value = "plots",
+                                          fluidRow(
+                                              div(class="plots_first_row")
+                                          ),
                                           sidebarLayout(
                                               sidebarPanel(
                                                   id = "sidebar_g",
@@ -90,8 +94,12 @@ ui <- tagList(
                                                               selectize = T),
                                                   selectInput("countries", "Selecione o país:", choices = c("TODOS", "Brazil", "Argentina", "Chile", "United States", "Uruguai")),
                                                   selectInput("article_type", "Selecione o tipo de publicação:", choices = c("TODOS", "article", "book", "chapter", "monography", "preprint")),
-                                                  shinyWidgets::actionBttn("ref_perg", label = "Refinar pesquisa",
-                                                               icon = icon("search-plus", style = "fill"))
+                                                  # shinyWidgets::actionBttn("ref_perg", label = "Refinar pesquisa",
+                                                  #              icon = icon("search-plus", style = "fill"))
+                                                  shinyWidgets::actionBttn(inputId = "att_grap_filtros_perg",
+                                                                           label = "Atualizar",
+                                                                           icon = icon("sync"),
+                                                                           style = "fill")
                                                   # shinyWidgets::actionBttn("ref_perg", label = "Refinar pesquisa",
                                                   #                          icon = icon("search-plus"), style = "material-flat")
                                               ),
@@ -179,14 +187,13 @@ ui <- tagList(
                                                   
                                               )
                                           ),
-                                          shinyWidgets::actionBttn(inputId = "att_grap_filtros_perg",
-                                                       label = "Atualizar",
-                                                       icon = icon("sync"),
-                                                       style = "fill")
                                  ),
                                  tabPanel("Tabela",
                                           id = "table",
                                           value = "table",
+                                          fluidRow(
+                                              div(class="table_first_row")
+                                          ),
                                           sidebarLayout(
                                               sidebarPanel(
                                                   id = "sidebar_t",
@@ -199,7 +206,12 @@ ui <- tagList(
                                                               choices = c("TODOS", 2020, 2021),
                                                               selectize = T),
                                                   selectInput("countries_tab", "Selecione o país:", choices = c("TODOS", "Brazil", "Argentina", "Chile", "United States", "Uruguai")),
-                                                  selectInput("article_type_tab", "Selecione o tipo de publicação:", choices = c("TODOS", "article", "book", "chapter", "monography", "preprint"))
+                                                  selectInput("article_type_tab", "Selecione o tipo de publicação:", choices = c("TODOS", "article", "book", "chapter", "monography", "preprint")),
+                                                  shinyWidgets::actionBttn(inputId = "att_tab_filtros_perg",
+                                                               label = "Atualizar",
+                                                               icon = icon("sync"),
+                                                               style = "fill"
+                                                  )
                                                   # )
                                               ),
                                               mainPanel(
@@ -245,10 +257,7 @@ ui <- tagList(
                                                   )
                                                   )
                                               )
-                                          ),
-                                          actionButton(inputId = "att_tab_filtros_perg",
-                                                       label = "Atualizar",
-                                                       icon = icon("sync"))
+                                          )
                                  ),
                                  div(class = "sel_aba",
                                      prettySwitch(
@@ -311,52 +320,58 @@ ui <- tagList(
                                          ),
                                          fluidRow(
                                              column(width = 4,
-                                                    style = "background-color: #64C1C7;",
                                                     column(width = 6,
                                                            div(class="foto_curr",
                                                                img(class = "foto", src="eu.jpg", align = "left"),
                                                                shinyWidgets::actionBttn(
                                                                    inputId="mikael",
-                                                                   label = "Curriculo Lattes"
+                                                                   label = "Curriculo Lattes",
+                                                                   style = "material-flat"
                                                                ))),
                                                     column(width = 6,
                                                            div(class = "equipe_nome_title",
                                                                span("Mikael")
                                                            ),
                                                            div(class="equipe_texto_apres",
-                                                               span("Formado em Engenharia de Computação (UFSM)
-                                                             Graduando de Estatística"))
+                                                               span("Formado em Engenharia de Computação (UFSM) e graduando de Estatística. \n\n
+                                                                    Bolsista do projeto Google IA, atuando na área de análise de dados e desenvolvimento de painéis."))
                                                            ),
                                              ),
                                              column(width = 4,
-                                                      style = "background-color: #64C1C7;",
-                                                      column(width = 6,
-                                                             div(class="foto_curr",
-                                                                 img(class = "foto", src="eu.jpg", align = "left"),
-                                                                 shinyWidgets::actionBttn(
-                                                                     inputId="mikael",
-                                                                     label = "Curriculo Lattes"
-                                                                 ))),
-                                                      column(width = 6,
-                                                             div(class="texto_apres",
-                                                                 span("Formado em Engenharia de Computação (UFSM)
-                                                             Graduando de Estatística"))
-                                                      ),
-                                             ),
-                                             column(width = 4,
-                                                    style = "background-color: #64C1C7;",
                                                     column(width = 6,
                                                            div(class="foto_curr",
                                                                img(class = "foto", src="eu.jpg", align = "left"),
                                                                shinyWidgets::actionBttn(
                                                                    inputId="mikael",
-                                                                   label = "Curriculo Lattes"
+                                                                   label = "Curriculo Lattes",
+                                                                   style = "material-flat"
                                                                ))),
                                                     column(width = 6,
-                                                           div(class="texto_apres",
-                                                               span("Formado em Engenharia de Computação (UFSM)
-                                                             Graduando de Estatística"))
-                                                    ),
+                                                           div(class = "equipe_nome_title",
+                                                               span("Mikael")
+                                                           ),
+                                                           div(class="equipe_texto_apres",
+                                                               span("Formado em Engenharia de Computação (UFSM) e graduando de Estatística. \n\n
+                                                                    Bolsista do projeto Google IA, atuando na área de análise de dados e desenvolvimento de painéis."))
+                                                    )
+                                             ),
+                                             column(width = 4,
+                                                    column(width = 6,
+                                                           div(class="foto_curr",
+                                                               img(class = "foto", src="eu.jpg", align = "left"),
+                                                               shinyWidgets::actionBttn(
+                                                                   inputId="mikael",
+                                                                   label = "Curriculo Lattes",
+                                                                   style = "material-flat"
+                                                               ))),
+                                                    column(width = 6,
+                                                           div(class = "equipe_nome_title",
+                                                               span("Mikael")
+                                                           ),
+                                                           div(class="equipe_texto_apres",
+                                                               span("Formado em Engenharia de Computação (UFSM) e graduando de Estatística. \n\n
+                                                                    Bolsista do projeto Google IA, atuando na área de análise de dados e desenvolvimento de painéis."))
+                                                    )
                                              )
                                          )
                                      )
@@ -737,6 +752,9 @@ server <- function(input, output, session) {
             session$sendCustomMessage("switch_change", F)
         }
     }, ignoreInit = T)
+    
+    ## Adicionar link currículo lattes
+    shinyjs::onclick("mikael", runjs("window.open('http://google.com', '_blank')"))
 }
 
 # Run the application 

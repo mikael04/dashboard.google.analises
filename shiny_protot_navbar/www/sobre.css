@@ -37,6 +37,7 @@
     padding:15px 1px 1px 15px;
 }
 /* Equipe */
+/* Card */
 .sobre_equipe{
     background:white;
 }
@@ -54,6 +55,37 @@
 .img{
     top: 50%;
     left: 50%;
-    -ms-transform: translate(-50%, -50%);
+    -ms-transform: translateX(-50%, -50%);
     transform: translateX(-50%);
 }
+.bttn{
+    left: 50%;
+    -ms-transform: translateX(-50%, -50%);
+    transform: translateX(-50%);
+}
+.foto_curr>.bttn-material-flat.bttn-default {
+    margin-top: 4px;
+    margin-bottom: 4px;
+    color: white;
+    background-color: #64C1C7;
+}
+@media screen and (max-width: 1400px) {
+    .foto_curr>.bttn-material-flat.bttn-default { /*botões de curriculo*/
+        width: 120px;
+        height: 50px;
+        font-size: 14px;
+        margin-top: 2px;
+        margin-bottom: 2px;
+    }
+}
+.equipe_nome_title{
+    font-weight: bold;
+    color:#660909;
+    font-size: large;
+    padding:15px 1px 15px 15px;
+}
+.equipe_texto_apres{
+    font-size: 13px;
+    text-align:initial;
+}
+/*Fim do card */

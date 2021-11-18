@@ -6,15 +6,43 @@
     width: 1200px;
 }
 
+/* Tab Panel */
+
+
+/* Posição  do tabpanel */
+#tabs_dash{
+    margin-left: 29px;
+    font-size: large;
+}
 /* Posicionando o dividor "/" */ 
 .abas_divisor {
     position: absolute;
-    top: 91px;
-    left: 90px;
+    top: 92px;
+    left: 137px;
+    font-size: large;
 }
-
-/* Tab Panel */
-
+/* Seletor abas - Mudando posição botão de alternar gráficos e tabela */
+.sel_aba{
+    position: absolute;
+    left: 100px;
+    top: 130px;
+}
+/* Posição  do tabpanel */
+@media screen and (max-width: 1400px) {
+    #tabs_dash{
+        margin-left: 1px;
+        font-size: medium;
+    }
+    .abas_divisor {
+        top:92px;
+        left: 100px;
+        font-size: medium;
+    }
+    .sel_aba{
+        left: 73px;
+        top: 130px;
+    }
+}
 /* Removendo a borda de baixo */
 .nav-tabs{
     border-bottom: 1px solid transparent;
@@ -47,28 +75,26 @@
 }
 /* Finalizando Tab Panel */
 
+.plots_first_row{
+    height:180px;
+    width:100%;
+    ;background-color:transparent;
+}
+.table_first_row{
+    height:180px;
+    width:100%;
+    background-color:transparent;
+}
+
 /* Atualizar - Mudando posição e cor do botão de gráficos */
 #att_grap_filtros_perg{
-    position: absolute;
-    right:1%;
-    top: 80px;
     background-color: #64C1C7;
-    color: #660909;
     color: white;
 }
 /* Atualizar - Mudando posição e cor do botão de tabelas */
 #att_tab_filtros_perg{
-    position: absolute;
-    right:1%;
-    top: 80px;
     background-color: #660909;
     color: white;
-}
-/* Seletor abas - Mudando posição botão de gráficos */
-.sel_aba{
-    position: absolute;
-    left: 200px;
-    top: 90px;
 }
 /* PrettyInput, mudando tamanho e cores */
 /* Cor */
@@ -130,7 +156,6 @@
 .selecionados{
     padding-left: 30px;    
 }
-
 .dataTables_wrapper{
     padding-right: 10px;
     padding-left: 10px;
