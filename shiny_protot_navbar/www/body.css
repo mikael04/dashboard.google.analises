@@ -5,10 +5,7 @@
 #dropdown_state{
     width: 1200px;
 }
-
 /* Tab Panel */
-
-
 /* Posição  do tabpanel */
 #tabs_dash{
     margin-left: 29px;
@@ -24,7 +21,7 @@
 /* Seletor abas - Mudando posição botão de alternar gráficos e tabela */
 .sel_aba{
     position: absolute;
-    left: 100px;
+    left: 108px;
     top: 130px;
 }
 /* Posição  do tabpanel */
@@ -59,7 +56,7 @@
 }
 /* Mudando a cor do mouseover */
 .nav-tabs>li.active>a, .nav-tabs>li.active>a:hover, .nav-tabs>li.active>a:focus {
-    color: black;
+    color: #64C1C7;
     cursor: default;
     background-color: transparent;
     border: 1px solid transparent;
@@ -74,18 +71,17 @@
     border-bottom-color: transparent;
 }
 /* Finalizando Tab Panel */
-
+/* Abaixo do tabpanel, linha para seletor de perguntas e perguntas selecionadas*/
 .plots_first_row{
-    height:180px;
+    height:150px;
     width:100%;
     ;background-color:transparent;
 }
 .table_first_row{
-    height:180px;
+    height:150px;
     width:100%;
     background-color:transparent;
 }
-
 /* Atualizar - Mudando posição e cor do botão de gráficos */
 #att_grap_filtros_perg{
     background-color: #64C1C7;
@@ -130,31 +126,46 @@
 }
 
 /* Fim do seletor de abas */
+.background-top-perguntas{
+    background-color: transparent;
+    margin-top: -60px;
+}
 .background-table{
     background-color: white;
     margin-top: 10px;
 }
-#sel_perg{
+/* Botão de selecionar eixo/tópico/consulta/pergunta */
+#sel_perg_plots{
+    background-color: #64C1C7;
+    color: white;
+    margin-left: 30px;
+}
+#sel_perg_table{
     background-color: #660909;
     color: white;
-    margin-left: 10px;
+    margin-left: 30px;
 }
 #sel_estrategia{
     float: right;
+    margin-top: 10px;
+    height: 0px;
 }
 #sel_estrategia .control-label{
     color: #660909 !important;
+    position: absolute;
+    left: -50px; 
 }
 #sel_estrategia :after{
     background-color:#660909;
-    }
+}
 .awesome-radio{
-    padding-right: 10px;
+    padding-right: 20px;
     padding-left: 10px;
     color: black !important;
 }
 .selecionados{
-    padding-left: 30px;    
+    padding-left: 30px;
+    height: 80px;    
 }
 .dataTables_wrapper{
     padding-right: 10px;
@@ -167,4 +178,85 @@
 /* Fonte da tabela de artigos */
 .datatables {
     font-size: 12px;
+    padding-top:5px;
+}
+
+/* Falso botão de refinar pesquisa */
+/* Plots */
+.refine-icon-plots{
+    color: #64C1C7;
+    font-size: 2.5em;
+    margin-top: -5px;
+}
+.refine-text-plots{
+    color: #64C1C7;
+    background-color: transparent;
+    font-size: 14px;
+    width: 120px;
+    margin-top: 0px;
+}
+/* Tabelas */
+.refine-icon-table{
+    color: #660909;
+    font-size: 2.5em;
+    margin-top: -5px;
+}
+.refine-text-table{
+    color: #660909;
+    background-color: transparent;
+    font-size: 14px;
+    width: 120px;
+    margin-top: 0px;
+}
+/* TODA PRIMEIRA LINHA DE REFINAR PESQUISA SELECIONAR EIXO E ESCOLHER ESTRATÉGIA DE BUSCA */
+@media screen and (max-width: 1400px) {
+    /* para telas menores @768p */
+    /* Plots */
+    .refine-icon-plots{
+        font-size: 2em;
+        margin-top: 0px;
+        margin-left: -10px;
+    }
+    .refine-text-plots{
+        position:absolute;
+        top: -42px;
+        left:38px;
+        width: 85px;
+        font-size: 13px;
+        margin-top: 2px;
+    }
+    #sel_perg_plots{
+        margin-left: 10px;
+    }
+    /* Tabelas */
+    .refine-icon-table{
+        font-size: 2em;
+        margin-top: 0px;
+        margin-left: -10px;
+    }
+    .refine-text-table{
+        position:absolute;
+        top: -42px;
+        left:38px;
+        width: 85px;
+        font-size: 13px;
+        margin-top: 2px;
+    }
+    #sel_perg_table{
+        margin-left: 10px;
+    }
+    /* diminuindo margem do botão de selecionar pergunta pra caber tudo */
+    
+    #sel_estrategia .control-label{
+        left:-130px;
+    }
+    .awesome-radio{
+        padding-right: 5px;
+        padding-left: 5px;
+        color: black !important;
+    }
+}
+/* Segunda linha, com eixo, tópico, consulta e pergunta selecionados */
+.sec_row{
+    margin-top: 5px;    
 }

@@ -61,9 +61,11 @@ ui <- tagList(
         ),
         #tags$link(rel = "stylesheet", href = "https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"),
         
-        div(img(src='marca_ric_covid.svg',style="margin-top: 0px; padding-right:5px;padding-bottom:5px", width = 380)) |>
+        div(img(src='marca_ric_covid.svg',style="margin-top: 0px; padding-right:5px;padding-bottom:5px", width = 380),
+            ## div para logo beta
+            div(img(src='beta.png', width = 30)) |>
+                tagAppendAttributes(class = 'logo_beta')) |>
             tagAppendAttributes(class = 'logo'),
-        
         #theme = "journal",
         windowTitle = "Repositório de informações sobre COVID-19",
         id = "navbar",
@@ -76,11 +78,70 @@ ui <- tagList(
                  fluidRow(
                      tabsetPanel(type = "tabs",
                                  id = "tabs_dash",
+                                 selected="plots",
                                  tabPanel("Gráficos",
                                           id="plots",
                                           value = "plots",
                                           fluidRow(
-                                              div(class="plots_first_row")
+                                              div(class="plots_first_row",
+                                                  div(class = "background-top-perguntas",
+                                                      fluidRow(
+                                                          br(),
+                                                          column(
+                                                              width = 2
+                                                          ),
+                                                          column(
+                                                              width = 1,
+                                                              # actionBttn(inputId = "refine_pesquisa",
+                                                              #            icon = icon("search"),
+                                                              #            label = "Refine sua pesquisa",
+                                                              #            style='simple'),
+                                                              column(
+                                                                  width=4,
+                                                                  div(class='refine-icon-plots',
+                                                                      icon('search-plus')),
+                                                              ),
+                                                              column(
+                                                                  width=8,
+                                                                  div(class='refine-text-plots',
+                                                                      span("REFINE SUA PESQUISA"))
+                                                              )
+                                                          ),
+                                                          column(
+                                                              width = 4,
+                                                              actionButton(inputId =  "sel_perg_plots",
+                                                                           label = "Selecione: EIXO / TÓPICO / CONSULTA / PERGUNTA")
+                                                          ),
+                                                          column(
+                                                              width = 1
+                                                          ),
+                                                          column(
+                                                              width = 3,
+                                                              # radioButtons(inputId = "sel_estrategia",
+                                                              #              label = "Escolha a estratégia de busca",
+                                                              #              choices = c("Título", "Título e Abstract"))
+                                                          ),
+                                                          column(
+                                                              width = 1
+                                                          )
+                                                      ),
+                                                      fluidRow(
+                                                          class="sec_row",
+                                                          column(
+                                                              width = 2
+                                                          ),
+                                                          column(
+                                                              width = 10,
+                                                              div(class = "selecionados",
+                                                                  textOutput("eixo_sel_plots"),
+                                                                  textOutput("topico_sel_plots"),
+                                                                  textOutput("consulta_sel_plots"),
+                                                                  br(),
+                                                                  br()
+                                                              )
+                                                          )
+                                                      ))
+                                                  )
                                           ),
                                           sidebarLayout(
                                               sidebarPanel(
@@ -167,8 +228,8 @@ ui <- tagList(
                                                           fluidRow(
                                                               column(
                                                                   width = 12,
-                                                                  plotOutput("distPlot3")
-                                                                  # mod_map_pub_ui("map_pub_1")
+                                                                  # plotOutput("distPlot3")
+                                                                  mod_map_pub_ui("map_pub_1")
                                                               )
                                                           ),
                                                           br(),
@@ -192,8 +253,75 @@ ui <- tagList(
                                           id = "table",
                                           value = "table",
                                           fluidRow(
-                                              div(class="table_first_row")
-                                          ),
+                                              div(class="table_first_row",
+                                                  div(class = "background-top-perguntas",
+                                                      fluidRow(
+                                                          br(),
+                                                          column(
+                                                              width = 2
+                                                          ),
+                                                          column(
+                                                              width = 1,
+                                                              # actionBttn(inputId = "refine_pesquisa",
+                                                              #            icon = icon("search"),
+                                                              #            label = "Refine sua pesquisa",
+                                                              #            style='simple'),
+                                                              column(
+                                                                  width=4,
+                                                                  div(class='refine-icon-table',
+                                                                      icon('search-plus')),
+                                                              ),
+                                                              column(
+                                                                  width=8,
+                                                                  div(class='refine-text-table',
+                                                                      span("REFINE SUA PESQUISA"))
+                                                              )
+                                                          ),
+                                                          column(
+                                                              width = 4,
+                                                              actionButton(inputId =  "sel_perg_table",
+                                                                           label = "Selecione: EIXO / TÓPICO / CONSULTA / PERGUNTA")
+                                                          ),
+                                                          column(
+                                                              width = 1
+                                                          ),
+                                                          column(
+                                                              width = 3,
+                                                              # radioButtons(inputId = "sel_estrategia",
+                                                              #              label = "Escolha a estratégia de busca",
+                                                              #              choices = c("Título", "Título e Abstract"))
+                                                              awesomeRadio(
+                                                                  inputId = "sel_estrategia",
+                                                                  label = "Escolha a estratégia de busca", 
+                                                                  choices = c("Título", "Título e Abstract"),
+                                                                  selected = "Título",
+                                                                  inline = TRUE, 
+                                                                  status = "success"
+                                                              )
+                                                          ),
+                                                          column(
+                                                              width = 1
+                                                          )
+                                                      ),
+                                                      fluidRow(
+                                                          class="sec_row",
+                                                          column(
+                                                              width = 2
+                                                          ),
+                                                          column(
+                                                              width = 10,
+                                                              div(class = "selecionados",
+                                                                  textOutput("eixo_sel_tab"),
+                                                                  textOutput("topico_sel_tab"),
+                                                                  textOutput("consulta_sel_tab"),
+                                                                  textOutput("pergunta_sel_tab"),
+                                                                  br()
+                                                              )
+                                                          )
+                                                      ))
+                                              )
+                                         ),
+                                         fluidRow(
                                           sidebarLayout(
                                               sidebarPanel(
                                                   id = "sidebar_t",
@@ -216,48 +344,12 @@ ui <- tagList(
                                               ),
                                               mainPanel(
                                                   width = 10,
-                                                  div(class = "background-table",
-                                                  fluidRow(
-                                                      br(),
-                                                      column(
-                                                          width = 5,
-                                                          actionButton(inputId =  "sel_perg",
-                                                                       label = "Selecione: EIXO / TÓPICO / CONSULTA / PERGUNTA")
-                                                      ),
-                                                      column(
-                                                          width = 2
-                                                      ),
-                                                      column(
-                                                          width = 3,
-                                                          # radioButtons(inputId = "sel_estrategia",
-                                                          #              label = "Escolha a estratégia de busca",
-                                                          #              choices = c("Título", "Título e Abstract"))
-                                                          awesomeRadio(
-                                                              inputId = "sel_estrategia",
-                                                              label = "Escolha a estratégia de busca", 
-                                                              choices = c("Título", "Título e Abstract"),
-                                                              selected = "Título",
-                                                              inline = TRUE, 
-                                                              status = "success"
-                                                          )
-                                                      )
-                                                  ),
-                                                  br(),
-                                                  fluidRow(
-                                                      div(class = "selecionados",
-                                                      textOutput("eixo_sel"),
-                                                      textOutput("topico_sel"),
-                                                      textOutput("consulta_sel"),
-                                                      textOutput("pergunta_sel"),
-                                                      br()
-                                                      )
-                                                  ),
-                                                  div(class="dt-responsive",
+                                                  div(class="dt-responsive background-table",
                                                       DT::DTOutput("tabela_perg")
-                                                  )
                                                   )
                                               )
                                           )
+                                         )
                                  ),
                                  div(class = "sel_aba",
                                      prettySwitch(
@@ -556,16 +648,28 @@ server <- function(input, output, session) {
         Mauris mauris erat, volutpat eu lacinia quis, pretium ut felis. 
         Maecenas tristique, urna eu dignissim lobortis, ex massa mattis urna, in fringilla augue ante eleifend leo. 
         Vestibulum eget dignissim magna. Phasellus a mauris eu nisl consequat bibendum." })
-    output$eixo_sel <- renderText({
+    output$eixo_sel_tab <- renderText({
         paste0("EIXO: ")
     })
-    output$topico_sel <- renderText({
+    output$topico_sel_tab <- renderText({
         paste0("TÓPICO: ")
     })
-    output$consulta_sel <- renderText({
+    output$consulta_sel_tab <- renderText({
         paste0("CONSULTA: ")
     })
-    output$pergunta_sel <- renderText({
+    output$pergunta_sel_tab <- renderText({
+        paste0("PERGUNTA: ")
+    })
+    output$eixo_sel_plots <- renderText({
+        paste0("EIXO: ")
+    })
+    output$topico_sel_plots <- renderText({
+        paste0("TÓPICO: ")
+    })
+    output$consulta_sel_plots <- renderText({
+        paste0("CONSULTA: ")
+    })
+    output$pergunta_sel_plots <- renderText({
         paste0("PERGUNTA: ")
     })
     # tree <- dfToTree(df, c("EIXO", "TOPICS", "QUERIES", "QUESTIONS"))
@@ -617,24 +721,24 @@ server <- function(input, output, session) {
         # df_dim_au_co_jo <- df_dim_au_co_jo_()
         removeModal()
         # browser()
-        output$eixo_sel <- renderText({
+        output$eixo_sel_tab <- renderText({
             paste0("EIXO: ", df_node_hierarchy$EIXO)
         })
-        output$topico_sel <- renderText({
+        output$topico_sel_tab <- renderText({
             if(node_tier > 1){
                 paste0("TÓPICO: ", df_node_hierarchy$TOPICS)
             }else{
                 paste0("TÓPICO: NÃO SELECIONADo")
             }
         })
-        output$consulta_sel <- renderText({
+        output$consulta_sel_tab <- renderText({
             if(node_tier > 2){
                 paste0("CONSULTA: ", df_node_hierarchy$QUERIES)
             }else{
                 paste0("CONSULTA: NÃO SELECIONADA")
             }
         })
-        output$pergunta_sel <- renderText({
+        output$pergunta_sel_tab <- renderText({
             if(node_tier > 3){
                 paste0("PERGUNTA: ", df_node_hierarchy$QUESTIONS)
             }else{

@@ -16,6 +16,12 @@
   margin-right: auto;
   width: 90%;
 }
+.logo_beta{
+  position: absolute;
+  top: 32px;
+  left: 410px;
+  
+}
 .sidebar-menu{
   width: 20%;
   padding-inline-start: 10px;
@@ -64,3 +70,4 @@
   height: 60px;
   text-align: center;
 }
+
