@@ -63,6 +63,8 @@
 #navbar{
   width: 50%;
   height: 60px;
+  position: relative;
+  left:15px; /*compensar os 15px de margem do container fluid */
 }
 
 #navbar li{

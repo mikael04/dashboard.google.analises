@@ -1,7 +1,8 @@
 
 #sidebar_g { /*.well*/
     background-color: white;
-    height: 1250px !important;
+    height: 1261px !important;
+    width: 91.5% !important;
     margin-top: 10px;
     margin-left: 10px;
     border: 0px;
@@ -9,6 +10,7 @@
 #sidebar_t { /*.well*/
     background-color: white;
     height: 882px !important;
+    width: 90% !important;
     margin-top: 10px;
     margin-left: 25px;
     margin-right: -10px;
@@ -43,4 +45,37 @@
 #ref_perg{
     background-color: #64C1C7;
     color: white;
+}
+#dropdown_graph{
+    background-color: white !important;
+    width: 100%;
+    text-align: left;
+}
+#dropdown_graph span{
+    position:relative;
+    left:66%;
+    font-size: 9px;
+    color: #660909;
+}
+#dropdown_table{
+    background-color: white !important;
+    width: 100%;
+    text-align: left;
+}
+#dropdown_table span{
+    position:relative;
+    left:66%;
+    font-size: 9px;
+    color: #660909;
+}
+@media screen and (max-width: 1400px) {
+    #sidebar_g { /*.well*/
+        width: 92% !important;
+    }
+    #dropdown_graph span { /*.well*/
+        left:40%;
+    }
+    #dropdown_table span { /*.well*/
+        left:40%;
+    }
 }

@@ -9,7 +9,9 @@ write <- T
 ## Gerar apenas as que serão usadas pelo app, se F vai gerar todas
 ## Quando for gerar para o app, vai mandar para pasta dados/app/
 write_app <- T
-## Escrever em formato .RDS, testar performance
+## Escrever os primeiros plots em formato svg
+write_first_plots <- F
+## Escrever gráficos de visão inicial
 write_rds <- F
 ## Se remove = T, vai removendo bases e variáveis que não serão mais usadas,
 ## para usar menos RAM durante a execução

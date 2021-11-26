@@ -133,9 +133,10 @@
 .background-table{
     background-color: white;
     margin-top: 10px;
+    margin-left: -15px
 }
 /* Botão de selecionar eixo/tópico/consulta/pergunta */
-#sel_perg_plots{
+#sel_perg_graphs{
     background-color: #64C1C7;
     color: white;
     margin-left: 30px;
@@ -225,7 +226,7 @@
         font-size: 13px;
         margin-top: 2px;
     }
-    #sel_perg_plots{
+    #sel_perg_graphs{
         margin-left: 10px;
     }
     /* Tabelas */
@@ -259,4 +260,15 @@
 /* Segunda linha, com eixo, tópico, consulta e pergunta selecionados */
 .sec_row{
     margin-top: 5px;    
+}
+
+/* Conteúdo de gráficos */
+.graphs-box{
+    background-color: white;
+    margin-left:-15px;
+    margin-top: 10px;
+}
+.margin-box{
+    margin-left: 5px;
+    margin-right: 15px;
 }

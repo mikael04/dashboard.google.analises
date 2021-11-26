@@ -1104,17 +1104,18 @@ DT::datatable(df_tabela_perg_filt[,1:15],
 )
 
 
+# ## 4.0 Tratar banco de dados de perguntas ----
 # library(readxl)
-# xl_data <- "dados/perguntas_full_16_11.xlsx"
+# xl_data <- "dados/arvore_perguntas_versoes.xlsx"
 # 
 # # Before reading data, we will return the names of the sheets for later use:
-# excel_sheets(path = xl_data)
+# readxl::excel_sheets(path = xl_data)
 # 
 # # We will now read in just the quakes data. First, specifying by sheet name, then by number
 # 
-# arvore <- read_excel(path = xl_data, sheet = "arvore_app_4")
+# arvore <- readxl::read_excel(path = xl_data, sheet = "arvore_app_5")
 # 
-# data.table::fwrite(arvore, "dados/perguntas_full_16_11.csv")
+# data.table::fwrite(arvore, "dados/arvore_perguntas_16_11.csv")
 
 
 

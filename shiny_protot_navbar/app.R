@@ -73,405 +73,541 @@ ui <- tagList(
         # theme = "navbar.css",
         #fluid = T,
         selected = "Dashboard",
-        tabPanel("Dashboard",
-                 id = "dashboard",
-                 fluidRow(
-                     tabsetPanel(type = "tabs",
-                                 id = "tabs_dash",
-                                 selected="plots",
-                                 tabPanel("Gráficos",
-                                          id="plots",
-                                          value = "plots",
-                                          fluidRow(
-                                              div(class="plots_first_row",
-                                                  div(class = "background-top-perguntas",
-                                                      fluidRow(
-                                                          br(),
-                                                          column(
-                                                              width = 2
-                                                          ),
-                                                          column(
-                                                              width = 1,
-                                                              # actionBttn(inputId = "refine_pesquisa",
-                                                              #            icon = icon("search"),
-                                                              #            label = "Refine sua pesquisa",
-                                                              #            style='simple'),
-                                                              column(
-                                                                  width=4,
-                                                                  div(class='refine-icon-plots',
-                                                                      icon('search-plus')),
-                                                              ),
-                                                              column(
-                                                                  width=8,
-                                                                  div(class='refine-text-plots',
-                                                                      span("REFINE SUA PESQUISA"))
-                                                              )
-                                                          ),
-                                                          column(
-                                                              width = 4,
-                                                              actionButton(inputId =  "sel_perg_plots",
-                                                                           label = "Selecione: EIXO / TÓPICO / CONSULTA / PERGUNTA")
-                                                          ),
-                                                          column(
-                                                              width = 1
-                                                          ),
-                                                          column(
-                                                              width = 3,
-                                                              # radioButtons(inputId = "sel_estrategia",
-                                                              #              label = "Escolha a estratégia de busca",
-                                                              #              choices = c("Título", "Título e Abstract"))
-                                                          ),
-                                                          column(
-                                                              width = 1
-                                                          )
-                                                      ),
-                                                      fluidRow(
-                                                          class="sec_row",
-                                                          column(
-                                                              width = 2
-                                                          ),
-                                                          column(
-                                                              width = 10,
-                                                              div(class = "selecionados",
-                                                                  textOutput("eixo_sel_plots"),
-                                                                  textOutput("topico_sel_plots"),
-                                                                  textOutput("consulta_sel_plots"),
-                                                                  br(),
-                                                                  br()
-                                                              )
-                                                          )
-                                                      ))
-                                                  )
+        tabPanel(
+            "Dashboard",
+            id = "dashboard",
+            fluidRow(
+                tabsetPanel(
+                    type = "tabs",
+                    id = "tabs_dash",
+                    selected="plots",
+                    tabPanel(
+                        "Gráficos",
+                        id="plots",
+                        value = "plots",
+                        fluidRow(
+                            div(
+                                class="plots_first_row",
+                                div(
+                                    class = "background-top-perguntas",
+                                    fluidRow(
+                                      br(),
+                                      column(
+                                          width = 2
+                                      ),
+                                      column(
+                                          width = 1,
+                                          # actionBttn(inputId = "refine_pesquisa",
+                                          #            icon = icon("search"),
+                                          #            label = "Refine sua pesquisa",
+                                          #            style='simple'),
+                                          column(
+                                              width=4,
+                                              div(class='refine-icon-plots',
+                                                  icon('search-plus')),
                                           ),
-                                          sidebarLayout(
-                                              sidebarPanel(
-                                                  id = "sidebar_g",
-                                                  div(id="filtro_grap",
-                                                      tags$h4("FILTROS")
-                                                  ),
-                                                  width = 2,
-                                                  selectInput("date", "Selecione o ano:",
-                                                              choices = c("TODOS", 2020, 2021),
-                                                              selectize = T),
-                                                  selectInput("countries", "Selecione o país:", choices = c("TODOS", "Brazil", "Argentina", "Chile", "United States", "Uruguai")),
-                                                  selectInput("article_type", "Selecione o tipo de publicação:", choices = c("TODOS", "article", "book", "chapter", "monography", "preprint")),
-                                                  # shinyWidgets::actionBttn("ref_perg", label = "Refinar pesquisa",
-                                                  #              icon = icon("search-plus", style = "fill"))
-                                                  shinyWidgets::actionBttn(inputId = "att_grap_filtros_perg",
-                                                                           label = "Atualizar",
-                                                                           icon = icon("sync"),
-                                                                           style = "fill")
-                                                  # shinyWidgets::actionBttn("ref_perg", label = "Refinar pesquisa",
-                                                  #                          icon = icon("search-plus"), style = "material-flat")
-                                              ),
-                                              mainPanel(
-                                                  width = 10,
-                                                  #### 1.1.2.1 Linha de perguntas ----
-                                                  # fluidRow(
-                                                  #     div(id="perguntas",
-                                                  #         # actionButton("toggleSidebar", "Toggle sidebar"),
-                                                  #         tags$h4("PERGUNTAS"),
-                                                  #         column(3,
-                                                  #                actionButton(
-                                                  #                    inputId = "sel_perg",
-                                                  #                    label = "SELECIONE O ASSUNTO OU PERGUNTA",
-                                                  #                    # inputId = ns("dropdown"),
-                                                  #                    icon = icon("question"),
-                                                  #                    circle = FALSE
-                                                  #                )
-                                                  #                # selectInput("idPerg",
-                                                  #                #             "SELECIONE O ASSUNTO OU PERGUNTA",
-                                                  #                #             )
-                                                  #                #  dropdownButton(
-                                                  #                #     label = "Selecione o assunto ou pergunta",
-                                                  #                #     width = "100%",
-                                                  #                #     # inputId = ns("dropdown"),
-                                                  #                #     inputId = "dropdown",
-                                                  #                #     icon = icon("question"),
-                                                  #                #     circle = FALSE,
-                                                  #                #     tags$div(
-                                                  #                #         # actionButton(inputId = ns("toggle2"),
-                                                  #                #         actionButton(inputId = "toggle2",
-                                                  #                #                      label = "Selecionar")
-                                                  #                #     ),
-                                                  #                #     tags$div(style = "margin:10px",
-                                                  #                #              column(2, align="center",
-                                                  #                #                     #mod_arvore_busca_nosel_ui("arvore_busca_nosel_1"),
-                                                  #                #                     # mod_arvore_busca_ui(ns("arvore_busca_1")),
-                                                  #                #                     shinyTree("tree",
-                                                  #                #                               search=TRUE, searchtime = 1000,
-                                                  #                #                               theme="proton", themeIcons = FALSE, themeDots = T)
-                                                  #                #              )
-                                                  #                #     )
-                                                  #                # )
-                                                  #         ),
-                                                  #         column(7,
-                                                  #                # mod_arvore_busca_nosel_ui(ns("arvore_busca_nosel_1")
-                                                  #                htmlOutput("Pergunta/tema selecionado X"),
-                                                  #         ),
-                                                  #     )
-                                                  # ),
-                                                  div(class="graphs-box",
-                                                      fluidRow(
-                                                          br(),
-                                                          fluidRow(
-                                                              column(
-                                                                  width = 6,
-                                                                  plotOutput("distPlot1")
-                                                              ),
-                                                              column(
-                                                                  width = 6,
-                                                                  plotOutput("distPlot2")
-                                                              )
-                                                          ),
-                                                          br(),
-                                                          fluidRow(
-                                                              column(
-                                                                  width = 12,
-                                                                  # plotOutput("distPlot3")
-                                                                  mod_map_pub_ui("map_pub_1")
-                                                              )
-                                                          ),
-                                                          br(),
-                                                          fluidRow(
-                                                              column(
-                                                                  width = 6,
-                                                                  plotOutput("distPlot4")
-                                                              ),
-                                                              column(
-                                                                  width = 6,
-                                                                  plotOutput("distPlot5")
-                                                              )
-                                                          )
-                                                      )
-                                                  )
-                                                  
-                                              )
-                                          ),
-                                 ),
-                                 tabPanel("Tabela",
-                                          id = "table",
-                                          value = "table",
-                                          fluidRow(
-                                              div(class="table_first_row",
-                                                  div(class = "background-top-perguntas",
-                                                      fluidRow(
-                                                          br(),
-                                                          column(
-                                                              width = 2
-                                                          ),
-                                                          column(
-                                                              width = 1,
-                                                              # actionBttn(inputId = "refine_pesquisa",
-                                                              #            icon = icon("search"),
-                                                              #            label = "Refine sua pesquisa",
-                                                              #            style='simple'),
-                                                              column(
-                                                                  width=4,
-                                                                  div(class='refine-icon-table',
-                                                                      icon('search-plus')),
-                                                              ),
-                                                              column(
-                                                                  width=8,
-                                                                  div(class='refine-text-table',
-                                                                      span("REFINE SUA PESQUISA"))
-                                                              )
-                                                          ),
-                                                          column(
-                                                              width = 4,
-                                                              actionButton(inputId =  "sel_perg_table",
-                                                                           label = "Selecione: EIXO / TÓPICO / CONSULTA / PERGUNTA")
-                                                          ),
-                                                          column(
-                                                              width = 1
-                                                          ),
-                                                          column(
-                                                              width = 3,
-                                                              # radioButtons(inputId = "sel_estrategia",
-                                                              #              label = "Escolha a estratégia de busca",
-                                                              #              choices = c("Título", "Título e Abstract"))
-                                                              awesomeRadio(
-                                                                  inputId = "sel_estrategia",
-                                                                  label = "Escolha a estratégia de busca", 
-                                                                  choices = c("Título", "Título e Abstract"),
-                                                                  selected = "Título",
-                                                                  inline = TRUE, 
-                                                                  status = "success"
-                                                              )
-                                                          ),
-                                                          column(
-                                                              width = 1
-                                                          )
-                                                      ),
-                                                      fluidRow(
-                                                          class="sec_row",
-                                                          column(
-                                                              width = 2
-                                                          ),
-                                                          column(
-                                                              width = 10,
-                                                              div(class = "selecionados",
-                                                                  textOutput("eixo_sel_tab"),
-                                                                  textOutput("topico_sel_tab"),
-                                                                  textOutput("consulta_sel_tab"),
-                                                                  textOutput("pergunta_sel_tab"),
-                                                                  br()
-                                                              )
-                                                          )
-                                                      ))
-                                              )
-                                         ),
-                                         fluidRow(
-                                          sidebarLayout(
-                                              sidebarPanel(
-                                                  id = "sidebar_t",
-                                                  # div(class="sidebar",
-                                                  div(id="filtro_tab",
-                                                      tags$h4("FILTROS")
-                                                  ),
-                                                  width = 2,
-                                                  selectInput("date_tab", "Selecione o ano:",
-                                                              choices = c("TODOS", 2020, 2021),
-                                                              selectize = T),
-                                                  selectInput("countries_tab", "Selecione o país:", choices = c("TODOS", "Brazil", "Argentina", "Chile", "United States", "Uruguai")),
-                                                  selectInput("article_type_tab", "Selecione o tipo de publicação:", choices = c("TODOS", "article", "book", "chapter", "monography", "preprint")),
-                                                  shinyWidgets::actionBttn(inputId = "att_tab_filtros_perg",
-                                                               label = "Atualizar",
-                                                               icon = icon("sync"),
-                                                               style = "fill"
-                                                  )
-                                                  # )
-                                              ),
-                                              mainPanel(
-                                                  width = 10,
-                                                  div(class="dt-responsive background-table",
-                                                      DT::DTOutput("tabela_perg")
-                                                  )
-                                              )
+                                          column(
+                                              width=8,
+                                              div(class='refine-text-plots',
+                                                  span("REFINE SUA PESQUISA"))
                                           )
-                                         )
-                                 ),
-                                 div(class = "sel_aba",
-                                     prettySwitch(
-                                         inputId = "sel_aba",
-                                         label = "", 
-                                         fill = TRUE,
-                                         bigger = T,
-                                         width = NULL
-                                     )
+                                      ),
+                                      column(
+                                          width = 4,
+                                          actionButton(inputId =  "sel_perg_plots",
+                                                       label = "Selecione: EIXO / TÓPICO / CONSULTA / PERGUNTA")
+                                      ),
+                                      column(
+                                          width = 1
+                                      ),
+                                      column(
+                                          width = 3,
+                                          # radioButtons(inputId = "sel_estrategia",
+                                          #              label = "Escolha a estratégia de busca",
+                                          #              choices = c("Título", "Título e Abstract"))
+                                      ),
+                                      column(
+                                          width = 1
+                                      )
+                                    ),
+                                    fluidRow(
+                                        class="sec_row",
+                                        column(
+                                            width = 2
+                                        ),
+                                        column(
+                                            width = 10,
+                                            div(
+                                                class = "selecionados",
+                                                textOutput("eixo_sel_plots"),
+                                                textOutput("topico_sel_plots"),
+                                                textOutput("consulta_sel_plots"),
+                                                br(),
+                                                br()
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        ),
+                        sidebarLayout(
+                            sidebarPanel(
+                                id = "sidebar_g",
+                                div(
+                                    id="filtro_grap",
+                                    tags$h4("FILTROS")
                                 ),
-                                div(class = "abas_divisor",
-                                    span("/"))
+                                width = 2,
+                                ## ****************** ##
+                                ## Teste              ##
+                                ## ****************** ##
+                                selectInput("date", "Selecione o ano:",
+                                            choices = c("TODOS", 2020, 2021),
+                                            selectize = T),
+                                selectInput("countries", "Selecione o país:", choices = c("TODOS", "Brazil", "Argentina", "Chile", "United States", "Uruguai")),
+                                selectInput("article_type", "Selecione o tipo de publicação:", choices = c("TODOS", "article", "book", "chapter", "monography", "preprint")),
+                                ## ****************** ##
+                                
+                                # ## ****************** ##
+                                # ## Produção           ##
+                                # ## ****************** ##
+                                # selectizeInput(
+                                #     'article_type_grap', ('Selecione o(s) tipo(s) de publicação(ões):'), choices = filtro_types,
+                                #     multiple = TRUE, options = list(maxItems = 5)
+                                # ),
+                                # selectizeInput(
+                                #     'year_grap', ('Selecione o(s) ano(s):'), choices = filtro_years,
+                                #     multiple = TRUE, options = list(maxItems = 1)
+                                # ),
+                                # tags$div(
+                                #     class = "country_filter",
+                                #     tags$p("Selecione o(s) país(es)")),
+                                # dropdown(
+                                #     label = ("TODOS"),
+                                #     # inputId = ns("dropdown"),
+                                #     inputId = "dropdown_graph",
+                                #     circle = FALSE,
+                                #     pickerInput(
+                                #         'continents_grap', 'Selecione o(s) continente(s)', choices =  selection_continents,
+                                #         selected = "TODOS",
+                                #         multiple = TRUE
+                                #     ),
+                                #     selectizeInput(
+                                #         'countries_grap', 'Selecione o(s) país(es)', choices =  filtro_countries,
+                                #         multiple = TRUE
+                                #     )
+                                # ),
+                                # shinyWidgets::actionBttn(
+                                #     inputId = "att_grap_filtros_perg",
+                                #     label = "Atualizar",
+                                #     icon = icon("sync"),
+                                #     style = "fill"
+                                # )
+                                # ## ****************** ##
+                            ),
+                            mainPanel(
+                                width = 10,
+                                div(
+                                    class="graphs-box",
+                                    ## ****************** ##
+                                    ## Teste              ##
+                                    ## ****************** ##
+                                    fluidRow(
+                                        br(),
+                                        fluidRow(
+                                            column(
+                                                width = 6,
+                                                plotOutput("distPlot1")
+                                            ),
+                                            column(
+                                                width = 6,
+                                                plotOutput("distPlot2")
+                                            )
+                                        ),
+                                        br(),
+                                        fluidRow(
+                                            column(
+                                                width = 12,
+                                                # plotOutput("distPlot3")
+                                                mod_map_pub_ui("map_pub_1")
+                                            )
+                                        ),
+                                        br(),
+                                        fluidRow(
+                                            column(
+                                                width = 6,
+                                                plotOutput("distPlot4")
+                                            ),
+                                            column(
+                                                width = 6,
+                                                plotOutput("distPlot5")
+                                            )
+                                        )
+                                    )
+                                    ## ****************** ##
+                                    
+                                    # ## ****************** ##
+                                    # ## Produção           ##
+                                    # ## ****************** ##
+                                    # fluidRow(
+                                    #     br(),
+                                    #     fluidRow(
+                                    #         column(
+                                    #             width = 6,
+                                    #             shinycssloaders::withSpinner(mod_evol_pub_tipo_ui("evol_pub_tipo_1"))
+                                    #         ),
+                                    #         column(
+                                    #             width = 6,
+                                    #             shinycssloaders::withSpinner(mod_paises_pub_2_ui("paises_pub_2_1"))
+                                    #         )
+                                    #     ),
+                                    #     br(),
+                                    #     fluidRow(
+                                    #         column(
+                                    #             width = 6,
+                                    #             # shinycssloaders::withSpinner(mod_map_pub_ui("map_pub_1"))
+                                    #             shinycssloaders::withSpinner(plotOutput("distPlot1"))
+                                    #         ),
+                                    #         column(
+                                    #             width = 6,
+                                    #             # shinycssloaders::withSpinner(mod_categ_pub_ui("categ_pub_1"))
+                                    #             shinycssloaders::withSpinner(plotOutput("distPlot3"))
+                                    #         )
+                                    #         # column(
+                                    #         #   width = 12,
+                                    #         #   shinycssloaders::withSpinner(mod_map_pub_ui("map_pub_1"))
+                                    #         # )
+                                    #     ),
+                                    #     br(),
+                                    #     fluidRow(
+                                    #         column(
+                                    #             width = 6,
+                                    #             plotOutput("distPlot2")
+                                    #         ),
+                                    #         column(
+                                    #             width = 6,
+                                    #             # shinycssloaders::withSpinner(mod_artigos_autores_ui(("artigos_autores_1")))
+                                    #             shinycssloaders::withSpinner(plotOutput("distPlot4"))
+                                    #         )
+                                    #     )
+                                    # )
+                                    # ## ****************** ##
+                                )
+                                  
+                            )
+                        ),
+                    ),
+                    tabPanel("Tabela",
+                            id = "table",
+                            value = "table",
+                            fluidRow(
+                                div(
+                                    class="table_first_row",
+                                    div(
+                                        class = "background-top-perguntas",
+                                        fluidRow(
+                                            br(),
+                                            column(
+                                                width = 2
+                                            ),
+                                            column(
+                                                width = 1,
+                                                # actionBttn(inputId = "refine_pesquisa",
+                                                #            icon = icon("search"),
+                                                #            label = "Refine sua pesquisa",
+                                                #            style='simple'),
+                                                column(
+                                                    width=4,
+                                                    div(class='refine-icon-table',
+                                                        icon('search-plus')),
+                                                ),
+                                                column(
+                                                    width=8,
+                                                    div(
+                                                        class='refine-text-table',
+                                                        span("REFINE SUA PESQUISA"))
+                                                )
+                                            ),
+                                            column(
+                                                width = 4,
+                                                actionButton(
+                                                    inputId =  "sel_perg_table",
+                                                    label = "Selecione: EIXO / TÓPICO / CONSULTA / PERGUNTA")
+                                            ),
+                                            column(
+                                                width = 1
+                                            ),
+                                            column(
+                                                width = 3,
+                                                # radioButtons(inputId = "sel_estrategia",
+                                                #              label = "Escolha a estratégia de busca",
+                                                #              choices = c("Título", "Título e Abstract"))
+                                                awesomeRadio(
+                                                    inputId = "sel_estrategia",
+                                                    label = "Escolha a estratégia de busca", 
+                                                    choices = c("Título", "Título e Abstract"),
+                                                    selected = "Título",
+                                                    inline = TRUE, 
+                                                    status = "success"
+                                                )
+                                            ),
+                                            column(
+                                                width = 1
+                                            )
+                                        ),
+                                        fluidRow(
+                                            class="sec_row",
+                                            column(
+                                                width = 2
+                                            ),
+                                            column(
+                                                width = 10,
+                                                div(
+                                                    class = "selecionados",
+                                                    textOutput("eixo_sel_tab"),
+                                                    textOutput("topico_sel_tab"),
+                                                    textOutput("consulta_sel_tab"),
+                                                    textOutput("pergunta_sel_tab"),
+                                                    br()
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            ),
+                            fluidRow(
+                                sidebarLayout(
+                                    sidebarPanel(
+                                        id = "sidebar_t",
+                                        # div(class="sidebar",
+                                        div(
+                                            id="filtro_tab",
+                                            tags$h4("FILTROS")
+                                        ),
+                                        width = 2,
+                                        
+                                        ## ****************** ##
+                                        ## Teste              ##
+                                        ## ****************** ##
+                                        selectInput(
+                                            "date_tab", "Selecione o ano:",
+                                            choices = c("TODOS", 2020, 2021),
+                                            selectize = T),
+                                        selectInput("countries_tab", "Selecione o país:", choices = c("TODOS", "Brazil", "Argentina", "Chile", "United States", "Uruguai")),
+                                        selectInput("article_type_tab", "Selecione o tipo de publicação:", choices = c("TODOS", "article", "book", "chapter", "monography", "preprint")),
+                                        ## ****************** ##
+                                        
+                                        # ## ****************** ##
+                                        # ## Produção           ##
+                                        # ## ****************** ##
+                                        # selectizeInput(
+                                        #     'article_type_tab', ('Selecione o(s) tipo(s) de publicação(ões):'), choices = filtro_types,
+                                        #     multiple = TRUE, options = list(maxItems = 5)
+                                        # ),
+                                        # selectizeInput(
+                                        #     'year_tab', ('Selecione o(s) ano(s):'), choices = filtro_years,
+                                        #     multiple = TRUE, options = list(maxItems = 1)
+                                        # ),
+                                        # tags$div(
+                                        #     class = "country_filter",
+                                        #     tags$p("Selecione o(s) país(es)")
+                                        # ),
+                                        # dropdown(
+                                        #     label = ("TODOS"),
+                                        #     inputId = "dropdown_tab",
+                                        #     circle = FALSE,
+                                        #     pickerInput(
+                                        #         'continents_tab', 'Selecione o(s) continente(s)', choices =  selection_continents,
+                                        #         selected = "TODOS",
+                                        #         multiple = TRUE
+                                        #     ),
+                                        #     selectizeInput(
+                                        #         'countries_tab', 'Selecione o(s) país(es)', choices =  filtro_countries,
+                                        #         multiple = TRUE
+                                        #     )
+                                        # ),
+                                        # ## ****************** ##
+                                        shinyWidgets::actionBttn(
+                                            inputId = "att_tab_filtros_perg",
+                                            label = "Atualizar",
+                                            icon = icon("sync"),
+                                            style = "fill"
+                                        )
+                                    ),
+                                    mainPanel(
+                                        width = 10,
+                                        div(
+                                            class="dt-responsive background-table",
+                                            ## ****************** ##
+                                            ## Teste              ##
+                                            ## ****************** ##
+                                            DT::DTOutput("tabela_perg")
+                                            ## ****************** ##
+                                            
+                                            # ## ****************** ##
+                                            # ## Produção           ##
+                                            # ## ****************** ##
+                                            # mod_tabela_artg_ui("tabela_artg_1")
+                                            # ## ****************** ##
+                                        )
+                                    )
+                                )
+                            )
+                    ),
+                    div(
+                        class = "sel_aba",
+                        prettySwitch(
+                            inputId = "sel_aba",
+                            label = "", 
+                            fill = TRUE,
+                            bigger = T,
+                            width = NULL
+                        )
+                    ),
+                    div(class = "abas_divisor",
+                        span("/"))
                                  
-                     )
-                 )
+                )
+            )
                  
         ),
-        tabPanel("Sobre",
-                 id = "sobre",
-                 type="tabs",
-                 fluidRow(
-                     tabsetPanel(id = "sobre_painel",
-                                 selected = "Equipe",
-                                 type="tabs",
-                                 tabPanel(
-                                     "O projeto",
-                                     id = "projeto",
-                                     div(class="sobre_projeto",
-                                     fluidRow(
-                                         column(width = 12,
-                                                div(class = "sobre_proj_title",
-                                                    "O PROJETO"
-                                                ),
-                                                # box(textOutput("title")),
-                                                br(),
-                                                box(textOutput("text1")),
-                                                box(plotOutput("distPlot7"))
-                                         ),
-                                         
-                                         column(width = 12,
-                                                box(plotOutput("distPlot8")),
-                                                box(plotOutput("distPlot9"))
-                                         )
-                                     )
-                                     )
+        tabPanel(
+            "Sobre",
+            id = "sobre",
+            type="tabs",
+            fluidRow(
+                tabsetPanel(
+                    id = "sobre_painel",
+                    selected = "Equipe",
+                    type="tabs",
+                    tabPanel(
+                        "O projeto",
+                        id = "projeto",
+                        div(
+                            class="sobre_projeto",
+                            fluidRow(
+                                column(
+                                    width = 12,
+                                    div(
+                                        class = "sobre_proj_title",
+                                        "O PROJETO"
+                                    ),
+                                    # box(textOutput("title")),
+                                    br(),
+                                    box(textOutput("text1")),
+                                    box(plotOutput("distPlot7"))
+                                    ),
+                                    column(
+                                        width = 12,
+                                        box(plotOutput("distPlot8")),
+                                        box(plotOutput("distPlot9"))
+                                    )
+                                )
+                        )
                                      
-                                 ),
-                                 tabPanel(
-                                     "Metodologia",
-                                     id = "metodologia"
-                                 ),
-                                 tabPanel(
-                                     "Equipe",
-                                     id = "equipe",
-                                     div(class="sobre_equipe",
-                                         fluidRow(
-                                             div(class = "sobre_equipe_title",
-                                                 "Equipe"
-                                             )
-                                         ),
-                                         fluidRow(
-                                             column(width = 4,
-                                                    column(width = 6,
-                                                           div(class="foto_curr",
-                                                               img(class = "foto", src="eu.jpg", align = "left"),
-                                                               shinyWidgets::actionBttn(
-                                                                   inputId="mikael",
-                                                                   label = "Curriculo Lattes",
-                                                                   style = "material-flat"
-                                                               ))),
-                                                    column(width = 6,
-                                                           div(class = "equipe_nome_title",
-                                                               span("Mikael")
-                                                           ),
-                                                           div(class="equipe_texto_apres",
-                                                               span("Formado em Engenharia de Computação (UFSM) e graduando de Estatística. \n\n
-                                                                    Bolsista do projeto Google IA, atuando na área de análise de dados e desenvolvimento de painéis."))
-                                                           ),
-                                             ),
-                                             column(width = 4,
-                                                    column(width = 6,
-                                                           div(class="foto_curr",
-                                                               img(class = "foto", src="eu.jpg", align = "left"),
-                                                               shinyWidgets::actionBttn(
-                                                                   inputId="mikael",
-                                                                   label = "Curriculo Lattes",
-                                                                   style = "material-flat"
-                                                               ))),
-                                                    column(width = 6,
-                                                           div(class = "equipe_nome_title",
-                                                               span("Mikael")
-                                                           ),
-                                                           div(class="equipe_texto_apres",
-                                                               span("Formado em Engenharia de Computação (UFSM) e graduando de Estatística. \n\n
-                                                                    Bolsista do projeto Google IA, atuando na área de análise de dados e desenvolvimento de painéis."))
-                                                    )
-                                             ),
-                                             column(width = 4,
-                                                    column(width = 6,
-                                                           div(class="foto_curr",
-                                                               img(class = "foto", src="eu.jpg", align = "left"),
-                                                               shinyWidgets::actionBttn(
-                                                                   inputId="mikael",
-                                                                   label = "Curriculo Lattes",
-                                                                   style = "material-flat"
-                                                               ))),
-                                                    column(width = 6,
-                                                           div(class = "equipe_nome_title",
-                                                               span("Mikael")
-                                                           ),
-                                                           div(class="equipe_texto_apres",
-                                                               span("Formado em Engenharia de Computação (UFSM) e graduando de Estatística. \n\n
-                                                                    Bolsista do projeto Google IA, atuando na área de análise de dados e desenvolvimento de painéis."))
-                                                    )
-                                             )
-                                         )
-                                     )
-                                 ),
-                     )
-                 )
+                    ),
+                    tabPanel(
+                        "Metodologia",
+                        id = "metodologia"
+                    ),
+                    tabPanel(
+                        "Equipe",
+                        id = "equipe",
+                        div(
+                            class="sobre_equipe",
+                            fluidRow(
+                                div(class = "sobre_equipe_title",
+                                    "Equipe"
+                                )
+                            ),
+                            fluidRow(
+                                column(
+                                    width = 4,
+                                    column(
+                                        width = 6,
+                                        div(
+                                            class="foto_curr",
+                                            img(class = "foto", src="eu.jpg", align = "left"),
+                                            shinyWidgets::actionBttn(
+                                               inputId="mikael",
+                                               label = "Curriculo Lattes",
+                                               style = "material-flat"
+                                            )
+                                        )
+                                    ),
+                                        column(
+                                            width = 6,
+                                               div(
+                                                   class = "equipe_nome_title",
+                                                   span("Mikael")
+                                               ),
+                                               div(
+                                                   class="equipe_texto_apres",
+                                                   span("Formado em Engenharia de Computação (UFSM) e graduando de Estatística. \n\n
+                                                        Bolsista do projeto Google IA, atuando na área de análise de dados e desenvolvimento de painéis."))
+                                               ),
+                                ),
+                                column(
+                                    width = 4,
+                                    column(
+                                        width = 6,
+                                           div(
+                                               class="foto_curr",
+                                               img(class = "foto", src="eu.jpg", align = "left"),
+                                               shinyWidgets::actionBttn(
+                                                   inputId="mikael",
+                                                   label = "Curriculo Lattes",
+                                                   style = "material-flat"
+                                               )
+                                            )
+                                    ),
+                                    column(
+                                        width = 6,
+                                        div(
+                                            class = "equipe_nome_title",
+                                            span("Mikael")
+                                        ),
+                                        div(
+                                            class="equipe_texto_apres",
+                                            span("Formado em Engenharia de Computação (UFSM) e graduando de Estatística. \n\n
+                                                    Bolsista do projeto Google IA, atuando na área de análise de dados e desenvolvimento de painéis.")
+                                        )
+                                    )
+                                ),
+                                column(
+                                    width = 4,
+                                    column(
+                                        width = 6,
+                                        div(
+                                            class="foto_curr",
+                                            img(class = "foto", src="eu.jpg", align = "left"),
+                                            shinyWidgets::actionBttn(
+                                                inputId="mikael",
+                                                label = "Curriculo Lattes",
+                                                style = "material-flat"
+                                            )
+                                        )
+                                    ),
+                                    column(
+                                        width = 6,
+                                        div(
+                                            class = "equipe_nome_title",
+                                            span("Mikael")
+                                           ),
+                                           div(
+                                               class="equipe_texto_apres",
+                                               span("Formado em Engenharia de Computação (UFSM) e graduando de Estatística. \n\n
+                                                    Bolsista do projeto Google IA, atuando na área de análise de dados e desenvolvimento de painéis.")
+                                            )
+                                    )
+                                )
+                            )
+                        )
+                    ),
+                )
+            )
         )
-        ),
+    ),
     
     tags$footer(class = "footer",
                 div(class = "text",
@@ -500,7 +636,7 @@ server <- function(input, output, session) {
     # df_dim_au_co_jo <- fst::read_fst("../dados/app/df_dimensions_tabelas_clean.fst") |> 
     #     dplyr::rename(date = date_normal)
     # df_tabela_base_plus_categ <- fst::read_fst("../dados/app/df_tabela_base_plus_categ.fst")
-    df_perguntas <- data.table::fread("../dados/perguntas_full_clean.csv")
+    df_perguntas <- data.table::fread("../dados/arvore_perguntas_16_11.csv")
     # # dplyr::glimpse(df_tabela_base_plus_categ)
     # select_test <- F
     # first_plot <- reactiveVal(value = T)
@@ -677,10 +813,21 @@ server <- function(input, output, session) {
     #### 1.1.3.1 Módulo de perguntas ----
     # mod_arvore_busca_server("arvore_busca_1", df_perguntas, debug)
     #### 1.1.3.2  Botão (abrir modal) de selecionar perguntas ----
-    observeEvent(input$sel_perg, {
+    observeEvent(input$sel_perg_plots, {
         mod_arvore_busca_server("arvore_busca_1", df_perguntas, debug)
         showModal(modalDialog(
             mod_arvore_busca_ui("arvore_busca_1"),
+            ## árvore (colapsible tree) em nós
+            # mod_arvore_ui("arvore_1"),
+            footer = tagList(actionButton("select_node", "Selecionar")),
+            easyClose = TRUE
+        ))
+    })
+    
+    observeEvent(input$sel_perg_table, {
+        mod_arvore_busca_server("arvore_busca_2", df_perguntas, debug)
+        showModal(modalDialog(
+            mod_arvore_busca_ui("arvore_busca_2"),
             ## árvore (colapsible tree) em nós
             # mod_arvore_ui("arvore_1"),
             footer = tagList(actionButton("select_node", "Selecionar")),
