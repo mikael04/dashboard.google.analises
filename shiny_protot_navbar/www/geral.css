@@ -1,0 +1,12 @@
+body{
+    color:black !important; 
+}
+#sidebar{
+    text-align: left !important;
+}
+.modal-backdrop {
+    background-color: gray;
+ }
+.modal-dialog {
+     width: fit-content !important;
+}

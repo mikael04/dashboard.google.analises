@@ -1,0 +1,274 @@
+#perguntas{
+    text-align: left !important;
+    color: #64C1C7;
+}
+#dropdown_state{
+    width: 1200px;
+}
+/* Tab Panel */
+/* Posição  do tabpanel */
+#tabs_dash{
+    margin-left: 29px;
+    font-size: large;
+}
+/* Posicionando o dividor "/" */ 
+.abas_divisor {
+    position: absolute;
+    top: 92px;
+    left: 137px;
+    font-size: large;
+}
+/* Seletor abas - Mudando posição botão de alternar gráficos e tabela */
+.sel_aba{
+    position: absolute;
+    left: 108px;
+    top: 130px;
+}
+/* Posição  do tabpanel */
+@media screen and (max-width: 1400px) {
+    #tabs_dash{
+        margin-left: 1px;
+        font-size: medium;
+    }
+    .abas_divisor {
+        top:92px;
+        left: 100px;
+        font-size: medium;
+    }
+    .sel_aba{
+        left: 73px;
+        top: 130px;
+    }
+}
+/* Removendo a borda de baixo */
+.nav-tabs{
+    border-bottom: 1px solid transparent;
+}
+/* Mudando a cor do tabpanel não selecionado */
+.tabbable ul li a{
+    color: black;
+}
+/* Mudando a cor da aba selecionada */
+.nav-tabs>li.active>a{
+    background-color: transparent !important;
+    color: black;
+    border: 1px solid transparent;
+}
+/* Mudando a cor do mouseover */
+.nav-tabs>li.active>a, .nav-tabs>li.active>a:hover, .nav-tabs>li.active>a:focus {
+    color: #64C1C7;
+    cursor: default;
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-bottom-color: transparent;
+}
+/* Mudando a cor do mouseover */
+.nav-tabs>li>a, .nav-tabs>li>a:hover, .nav-tabs>li>a:focus {
+    color: black;
+    cursor: default;
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-bottom-color: transparent;
+}
+/* Finalizando Tab Panel */
+/* Abaixo do tabpanel, linha para seletor de perguntas e perguntas selecionadas*/
+.plots_first_row{
+    height:150px;
+    width:100%;
+    ;background-color:transparent;
+}
+.table_first_row{
+    height:150px;
+    width:100%;
+    background-color:transparent;
+}
+/* Atualizar - Mudando posição e cor do botão de gráficos */
+#att_grap_filtros_perg{
+    background-color: #64C1C7;
+    color: white;
+}
+/* Atualizar - Mudando posição e cor do botão de tabelas */
+#att_tab_filtros_perg{
+    background-color: #660909;
+    color: white;
+}
+/* PrettyInput, mudando tamanho e cores */
+/* Cor */
+.pretty.p-switch.p-fill input:checked~.state:before{
+    border-color: transparent;
+    background-color: #BE9797!important;
+}
+/* Tamanho da "caixa de seleção" e cor padrão */
+.pretty.p-switch .state:before{
+    width: 4em !important;
+    background-color: #B5DDE2;
+    border: 1px solid transparent;
+}
+
+/* posição do seletor (lado direito)*/
+.pretty.p-switch.p-fill input:checked~.state label:after{
+    left: 2.5em;
+}
+/* cor da parte não selecionada #B5DDE2 */
+/* Mudando cor do botão ao inicar*/
+.pretty.p-switch .state label:after {
+    background-color: #64C1C7 !important;
+    border: 1px solid transparent;
+}
+
+/* Mudando cor do botão ao selecionar (mudar seletor)*/
+.pretty.p-switch.p-fill input:checked ~ .state label:after {
+    background-color: #660909 !important;
+}
+/* Aumentando a área para selecionar o switch */
+.pretty.p-switch input {
+    min-width: 4em;
+}
+
+/* Fim do seletor de abas */
+.background-top-perguntas{
+    background-color: transparent;
+    margin-top: -60px;
+}
+.background-table{
+    background-color: white;
+    margin-top: 10px;
+    margin-left: -15px
+}
+/* Botão de selecionar eixo/tópico/consulta/pergunta */
+#sel_perg_graphs{
+    background-color: #64C1C7;
+    color: white;
+    margin-left: 30px;
+}
+#sel_perg_table{
+    background-color: #660909;
+    color: white;
+    margin-left: 30px;
+}
+#sel_estrategia{
+    float: right;
+    margin-top: 10px;
+    height: 0px;
+}
+#sel_estrategia .control-label{
+    color: #660909 !important;
+    position: absolute;
+    left: -50px; 
+}
+#sel_estrategia :after{
+    background-color:#660909;
+}
+.awesome-radio{
+    padding-right: 20px;
+    padding-left: 10px;
+    color: black !important;
+}
+.selecionados{
+    padding-left: 30px;
+    height: 80px;    
+}
+.dataTables_wrapper{
+    padding-right: 10px;
+    padding-left: 10px;
+}
+.btn-default{
+    color: black;
+}
+
+/* Fonte da tabela de artigos */
+.datatables {
+    font-size: 12px;
+    padding-top:5px;
+}
+
+/* Falso botão de refinar pesquisa */
+/* Plots */
+.refine-icon-plots{
+    color: #64C1C7;
+    font-size: 2.5em;
+    margin-top: -5px;
+}
+.refine-text-plots{
+    color: #64C1C7;
+    background-color: transparent;
+    font-size: 14px;
+    width: 120px;
+    margin-top: 0px;
+}
+/* Tabelas */
+.refine-icon-table{
+    color: #660909;
+    font-size: 2.5em;
+    margin-top: -5px;
+}
+.refine-text-table{
+    color: #660909;
+    background-color: transparent;
+    font-size: 14px;
+    width: 120px;
+    margin-top: 0px;
+}
+/* TODA PRIMEIRA LINHA DE REFINAR PESQUISA SELECIONAR EIXO E ESCOLHER ESTRATÉGIA DE BUSCA */
+@media screen and (max-width: 1400px) {
+    /* para telas menores @768p */
+    /* Plots */
+    .refine-icon-plots{
+        font-size: 2em;
+        margin-top: 0px;
+        margin-left: -10px;
+    }
+    .refine-text-plots{
+        position:absolute;
+        top: -42px;
+        left:38px;
+        width: 85px;
+        font-size: 13px;
+        margin-top: 2px;
+    }
+    #sel_perg_graphs{
+        margin-left: 10px;
+    }
+    /* Tabelas */
+    .refine-icon-table{
+        font-size: 2em;
+        margin-top: 0px;
+        margin-left: -10px;
+    }
+    .refine-text-table{
+        position:absolute;
+        top: -42px;
+        left:38px;
+        width: 85px;
+        font-size: 13px;
+        margin-top: 2px;
+    }
+    #sel_perg_table{
+        margin-left: 10px;
+    }
+    /* diminuindo margem do botão de selecionar pergunta pra caber tudo */
+    
+    #sel_estrategia .control-label{
+        left:-130px;
+    }
+    .awesome-radio{
+        padding-right: 5px;
+        padding-left: 5px;
+        color: black !important;
+    }
+}
+/* Segunda linha, com eixo, tópico, consulta e pergunta selecionados */
+.sec_row{
+    margin-top: 5px;    
+}
+
+/* Conteúdo de gráficos */
+.graphs-box{
+    background-color: white;
+    margin-left:-15px;
+    margin-top: 10px;
+}
+.margin-box{
+    margin-left: 5px;
+    margin-right: 15px;
+}

@@ -1,0 +1,81 @@
+
+#sidebar_g { /*.well*/
+    background-color: white;
+    height: 1261px !important;
+    width: 91.5% !important;
+    margin-top: 10px;
+    margin-left: 10px;
+    border: 0px;
+}
+#sidebar_t { /*.well*/
+    background-color: white;
+    height: 882px !important;
+    width: 90% !important;
+    margin-top: 10px;
+    margin-left: 25px;
+    margin-right: -10px;
+    border: 0px;
+}
+ @media screen and (max-width: 1400px) {
+    #sidebar_t { /*.well*/
+        background-color: white;
+        height: 1528px !important;
+    }
+}
+#idAno{
+    background-color: white !important;
+}
+#idPais{
+    background-color: white !important;
+}
+#idPub{
+    background-color: white !important;
+}
+
+.selectize-dropdown, .selectize-input, .selectize-input input{
+    color: black !important;
+    background-color: white !important;
+}
+.title_graph{
+    color: #64C1C7 !important;
+}
+.title_tab{
+    color: #660909;
+}
+#ref_perg{
+    background-color: #64C1C7;
+    color: white;
+}
+#dropdown_graph{
+    background-color: white !important;
+    width: 100%;
+    text-align: left;
+}
+#dropdown_graph span{
+    position:relative;
+    left:66%;
+    font-size: 9px;
+    color: #660909;
+}
+#dropdown_table{
+    background-color: white !important;
+    width: 100%;
+    text-align: left;
+}
+#dropdown_table span{
+    position:relative;
+    left:66%;
+    font-size: 9px;
+    color: #660909;
+}
+@media screen and (max-width: 1400px) {
+    #sidebar_g { /*.well*/
+        width: 92% !important;
+    }
+    #dropdown_graph span { /*.well*/
+        left:40%;
+    }
+    #dropdown_table span { /*.well*/
+        left:40%;
+    }
+}

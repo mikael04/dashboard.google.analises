@@ -1,0 +1,91 @@
+/* Mudando a cor da aba selecionada no painel SOBRE */
+#sobre_painel{
+    padding:1px;
+    border-bottom:2px solid #64C1C7;
+}
+#sobre_painel>li.active>a{
+    background-color: #64C1C7 !important;
+}
+/* Mudando a cor do mouseover */
+#sobre_painel>li.active>a, #sobre_painel>li.active>a:hover, #sobre_painel>li.active>a:focus {
+    color: white;
+    cursor: default;
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-bottom-color: transparent;
+}
+/* Mudando a cor do mouseover */
+#sobre_painel>li>a, #sobre_painel>li>a:hover, #sobre_painel>li>a:focus {
+    color: #64C1C7;
+    cursor: default;
+    background-color: white;
+    border: 1px solid transparent;
+    border-bottom-color: transparent;
+}
+#sobre_painel>li{
+    padding-right: 10px;
+}
+/* Começando abas */
+/* Projeto */
+.sobre_projeto{
+    background:white;
+}
+.sobre_proj_title{
+    font-weight: bold;
+    color:#660909;
+    font-size: large;
+    padding:15px 1px 1px 15px;
+}
+/* Equipe */
+/* Card */
+.sobre_equipe{
+    background:white;
+}
+.sobre_equipe_title{
+    font-weight: bold;
+    color:#660909;
+    font-size: large;
+    padding:15px 1px 1px 15px;
+}
+.foto{
+    border-radius: 15px;
+    width:95%;
+    padding: 5px 10px 5px 10px;
+}
+.img{
+    top: 50%;
+    left: 50%;
+    -ms-transform: translateX(-50%, -50%);
+    transform: translateX(-50%);
+}
+.bttn{
+    left: 50%;
+    -ms-transform: translateX(-50%, -50%);
+    transform: translateX(-50%);
+}
+.foto_curr>.bttn-material-flat.bttn-default {
+    margin-top: 4px;
+    margin-bottom: 4px;
+    color: white;
+    background-color: #64C1C7;
+}
+@media screen and (max-width: 1400px) {
+    .foto_curr>.bttn-material-flat.bttn-default { /*botões de curriculo*/
+        width: 120px;
+        height: 50px;
+        font-size: 14px;
+        margin-top: 2px;
+        margin-bottom: 2px;
+    }
+}
+.equipe_nome_title{
+    font-weight: bold;
+    color:#660909;
+    font-size: large;
+    padding:15px 1px 15px 15px;
+}
+.equipe_texto_apres{
+    font-size: 13px;
+    text-align:initial;
+}
+/*Fim do card */

@@ -1,0 +1,32 @@
+html {
+    position: relative;
+    min-height: 100%;
+  }
+  body {
+    margin-bottom: 100px; /* tamanho do footer + 20px */
+  }
+  .footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    font-size: 14px;
+    height: 80px; /* Set the fixed height of the footer here */
+    background-color: #64C1C7;
+    color: white;
+    line-height: 1.8;
+    padding: 20px 10px 10px 10px;
+    z-index: 2;
+  }
+  .text{
+    width: 65%;
+    right: 0%;
+  }
+  .marcas_svg{
+    width: 35%;
+    /* right: 65%; */
+    position: absolute;
+    left: 65%;
+    top: 0%;
+    padding: 20px;
+    filter: invert(100%) sepia(0%) saturate(1691%) hue-rotate(141deg) brightness(115%) contrast(100%);
+  }
