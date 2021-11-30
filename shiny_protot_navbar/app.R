@@ -22,6 +22,7 @@ source("mod_tabela_artg.R")
 source("mod_map_pub.R")
 source("fct_no_sel.R")
 source("fct_filtrar_dim.R")
+source("fct_map_pub.R")
 source("fct_tratar_ano_sel.R")
 source("fct_tratar_pais_sel.R")
 source("fct_tratar_tipo_pub_sel.R")
@@ -720,7 +721,7 @@ server <- function(input, output, session) {
     # })
     r_aux <- "COVID19"
     # df_tabela_base_filtros <- fst::read_fst("data-raw/app/df_tabela_base_filtros.fst")
-    # mod_map_pub_server("map_pub_1", r_aux, df_tabela_base_filtros, teste = F, debug = T)
+    mod_map_pub_server("map_pub_1", r_aux, df_tabela_base_filtros, teste = F, first_plot = T, debug = T)
     
     
     output$distPlot1 <- renderPlot({

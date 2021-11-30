@@ -23,12 +23,12 @@ mod_map_pub_ui <- function(id){
 #' map_pub Server Functions
 #'
 #' @noRd 
-mod_map_pub_server <- function(id, r, df_count_base_filtros, teste, debug){
+mod_map_pub_server <- function(id, r, df_count_base_filtros, teste, first_plot, debug){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
     # browser()
     if(teste){
-      # df_count_base_filtros <- fst::read.fst("data-raw/app/df_count_base_filtros.fst") |>
+      df_count_base_filtros <- fst::read.fst("../dados/app/df_count_base_filtros.fst")
       df_count_base_filtros <- df_count_base_filtros |> 
         dplyr::filter(country != "NoCountry") |> 
         dplyr::group_by(country) |> 
@@ -38,14 +38,19 @@ mod_map_pub_server <- function(id, r, df_count_base_filtros, teste, debug){
         dplyr::arrange(desc(count)) |>
         dplyr::ungroup()
     }else{
-      df_count_base_filtros <- df_count_base_filtros |>
-        dplyr::filter(country != "NoCountry") |> 
-        dplyr::group_by(country) |> 
-        dplyr::mutate(count_paises = dplyr::n()) |> 
-        dplyr::distinct(country, .keep_all = T) |> 
-        dplyr::ungroup() |> 
-        dplyr::arrange(count_paises) |>
-        dplyr::select(NAME = country, count = count_paises)
+      if(isolate(first_plot)){
+        # browser()
+        df_count_base_filtros <- data.table::fread("../dados/app/first_plots/df_mod_map_pub_first_plot.csv")
+      }else{
+        df_count_base_filtros <- df_count_base_filtros |>
+          dplyr::filter(country != "NoCountry") |> 
+          dplyr::group_by(country) |> 
+          dplyr::mutate(count_paises = n()) |> 
+          dplyr::distinct(country, .keep_all = T) |> 
+          dplyr::ungroup() |> 
+          dplyr::arrange(count_paises) |>
+          dplyr::select(NAME = country, count = count_paises)
+      }
     }
     output$mapa_pub <- leaflet::renderLeaflet({
       ## Test
@@ -65,7 +70,7 @@ mod_map_pub_server <- function(id, r, df_count_base_filtros, teste, debug){
       
       m <- leaflet(map_count,
                    options = list(zoomControl = T,
-                                  minZoom = 1.3, maxZoom = 3,
+                                  minZoom = 1, maxZoom = 3,
                                   dragging = T, noWrap = T,
                                   worldCopyJump = F,
                                   maxBounds = list(
@@ -73,7 +78,7 @@ mod_map_pub_server <- function(id, r, df_count_base_filtros, teste, debug){
                                     list(150, 310)
                                   ))) %>% 
         addTiles()  %>% 
-        setView( lat=0, lng=80 , zoom=1.3) %>%
+        setView( lat=0, lng=22 , zoom=1) %>%
         addPolygons( stroke=FALSE ,
                      fillOpacity = 0.5, smoothFactor = 0.5,
                      fillColor = ~mypalette(count),

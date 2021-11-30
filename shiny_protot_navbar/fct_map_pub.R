@@ -9,7 +9,7 @@
 func_create_spdf_w_col_name <- function(df_count_ordered, col_name, debug){
   ## Lendo SPDF base
   world_spdf <- rgdal::readOGR( 
-    dsn= "shiny_protot_navbar/world_shape_file/TM_WORLD_BORDERS_SIMPL-0.3.shp" , 
+    dsn= "world_shape_file/TM_WORLD_BORDERS_SIMPL-0.3.shp" , 
     layer = "TM_WORLD_BORDERS_SIMPL-0.3",
     verbose = F
   )
