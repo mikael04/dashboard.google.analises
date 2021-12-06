@@ -15,6 +15,7 @@ library(shinipsum)
 library(shinyTree)
 library(shinyWidgets)
 library(ggplot2)
+library(dplyr)
 source("mod_arvore_busca.R")
 source("mod_evol_pub_tipo.R")
 source("mod_paises_pub_2.R")
@@ -167,6 +168,13 @@ ui <- tagList(
                                             selectize = T),
                                 selectInput("countries", "Selecione o país:", choices = c("TODOS", "Brazil", "Argentina", "Chile", "United States", "Uruguai")),
                                 selectInput("article_type", "Selecione o tipo de publicação:", choices = c("TODOS", "article", "book", "chapter", "monography", "preprint")),
+                                br(),
+                                shinyWidgets::actionBttn(
+                                    inputId = "att_grap_filtros_perg",
+                                    label = "Atualizar",
+                                    icon = icon("sync"),
+                                    style = "fill"
+                                )
                                 ## ****************** ##
                                 
                                 # ## ****************** ##
@@ -721,7 +729,7 @@ server <- function(input, output, session) {
     # })
     r_aux <- "COVID19"
     # df_tabela_base_filtros <- fst::read_fst("data-raw/app/df_tabela_base_filtros.fst")
-    mod_map_pub_server("map_pub_1", r_aux, df_tabela_base_filtros, teste = F, first_plot = T, debug = T)
+    proxymap <- mod_map_pub_server("map_pub_1", first_plot, debug)
     
     
     output$distPlot1 <- renderPlot({
@@ -1005,6 +1013,15 @@ server <- function(input, output, session) {
         }
     }, ignoreInit = T)
     
+    observeEvent(input$att_grap_filtros_perg, {
+        # ns <- session$ns
+        paises_alterados <- c("Brazil", "Micronesia", "Bermudas", "Vanuatu", "Cuba", "Iceland")
+        df_count_base_filtros <- data.table::fread("../dados/app/first_plots/df_mod_map_pub_first_plot.csv")
+        df_count_base_filtros <- df_count_base_filtros |> 
+            dplyr::mutate(count = if_else(NAME %in% paises_alterados, as.integer(150), count))
+        mod_map_pub_server("mapa_pub_1", proxymap, mytext, mypalette, map_count, first_plot,
+                           df_count_base_filtros, debug)
+    })
     ## Adicionar link currículo lattes
     shinyjs::onclick("mikael", runjs("window.open('http://google.com', '_blank')"))
 }

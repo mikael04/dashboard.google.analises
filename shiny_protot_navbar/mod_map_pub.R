@@ -23,84 +23,57 @@ mod_map_pub_ui <- function(id){
 #' map_pub Server Functions
 #'
 #' @noRd 
-mod_map_pub_server <- function(id, r, df_count_base_filtros, teste, first_plot, debug){
+mod_map_pub_server <- function(id, first_plot, debug){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
-    # browser()
-    if(teste){
-      df_count_base_filtros <- fst::read.fst("../dados/app/df_count_base_filtros.fst")
-      df_count_base_filtros <- df_count_base_filtros |> 
-        dplyr::filter(country != "NoCountry") |> 
-        dplyr::group_by(country) |> 
-        dplyr::mutate(count_paises = sum(count)) |> 
-        dplyr::distinct(country, .keep_all = T) |> 
-        dplyr::select(NAME = country, count = count_paises) |> 
-        dplyr::arrange(desc(count)) |>
-        dplyr::ungroup()
-    }else{
-      if(isolate(first_plot)){
-        # browser()
-        df_count_base_filtros <- data.table::fread("../dados/app/first_plots/df_mod_map_pub_first_plot.csv")
-      }else{
-        df_count_base_filtros <- df_count_base_filtros |>
-          dplyr::filter(country != "NoCountry") |> 
-          dplyr::group_by(country) |> 
-          dplyr::mutate(count_paises = n()) |> 
-          dplyr::distinct(country, .keep_all = T) |> 
-          dplyr::ungroup() |> 
-          dplyr::arrange(count_paises) |>
-          dplyr::select(NAME = country, count = count_paises)
-      }
-    }
+    
+    ## Gerando o mapa inicial, apenas layout
+    map_count <- func_create_spdf_w_col_name(df_count_base_filtros, "count", debug)
+    
+    m <- leaflet(map_count,
+                 options = list(zoomControl = T,
+                                minZoom = 1, maxZoom = 3,
+                                dragging = T, noWrap = T,
+                                worldCopyJump = F,
+                                maxBounds = list(
+                                  list(-150, -310),
+                                  list(150, 310)
+                                ))) %>% 
+      addTiles()  %>% 
+      setView( lat=0, lng=22 , zoom=1)
+    
+    # here I pass map as reactive
+    passMap = reactive({input$mapa_pub})
+    
+    proxymap <- reactive(leafletProxy('mapa_pub'))
+    
+    mod_alterar_mapa_server(input$att_grap_filtros_perg, proxymap, df_count_base_filtros, map_count, debug)
+    
+    
+    # if(isolate(first_plot)){
+    #   # browser()
+    #   df_count_base_filtros <- data.table::fread("../dados/app/first_plots/df_mod_map_pub_first_plot.csv")
+    # }else{
+    #   df_count_base_filtros <- df_count_base_filtros |>
+    #     dplyr::filter(country != "NoCountry") |> 
+    #     dplyr::group_by(country) |> 
+    #     dplyr::mutate(count_paises = n()) |> 
+    #     dplyr::distinct(country, .keep_all = T) |> 
+    #     dplyr::ungroup() |> 
+    #     dplyr::arrange(count_paises) |>
+    #     dplyr::select(NAME = country, count = count_paises)
+    #   
+    # }
+    # 
     output$mapa_pub <- leaflet::renderLeaflet({
       ## Test
+      # browser()
       #map_count <- func_create_spdf_w_col_name(df_count_base_filtros, "count", TRUE)
-      map_count <- func_create_spdf_w_col_name(df_count_base_filtros, "count", debug)
-      ## Criando breaks e paleta de cores
-      mybins <- c(0,100,1000,5000,10000,25000,50000,100000, 1000000)
-      mypalette <- leaflet::colorBin( palette="YlOrBr", domain=map_count@data$count, na.color="transparent", bins=mybins)
-      
-      # Criando texto tooltip
-      mytext <- paste(
-        "Pais: ", map_count@data$NAME,"<br/>", 
-        # i18n$t("Publicações: "), map_count@data$count,
-        ("Publicações: "), map_count@data$count,
-        sep="") %>%
-        lapply(htmltools::HTML)
-      
-      m <- leaflet(map_count,
-                   options = list(zoomControl = T,
-                                  minZoom = 1, maxZoom = 3,
-                                  dragging = T, noWrap = T,
-                                  worldCopyJump = F,
-                                  maxBounds = list(
-                                    list(-150, -310),
-                                    list(150, 310)
-                                  ))) %>% 
-        addTiles()  %>% 
-        setView( lat=0, lng=22 , zoom=1) %>%
-        addPolygons( stroke=FALSE ,
-                     fillOpacity = 0.5, smoothFactor = 0.5,
-                     fillColor = ~mypalette(count),
-                     color = "white",
-                     weight = 0.3,
-                     label = mytext,
-                     labelOptions = labelOptions(
-                       style = list("font-weight" = "normal", padding = "3px 8px"), 
-                       textsize = "13px", 
-                       direction = "auto"
-                     )
-        ) %>%
-        addEasyButton(easyButton(
-          icon="fa-globe", title="Zoom to Level 1",
-          onClick=JS("function(btn, map){ map.setZoom(1); }"))) %>%
-        # addProviderTiles(options = providerTileOptions(noWrap = TRUE)) %>%
-        # addLegend(pal = mypalette, values = ~count, opacity=0.9, title = i18n$t("Publications"), position = "topright" )
-        addLegend(pal = mypalette, values = ~count, opacity=0.9, title = "Publications", position = "topright" )
-      
       m
+      
     })
   })
+  # proxymap
 }
 
 ## To be copied in the UI

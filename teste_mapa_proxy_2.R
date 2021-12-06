@@ -208,7 +208,7 @@ mod_map_server <- function(id, first_plot){
         m
       })
       
-       
+      
       
       mod_btn_server("other", proxymap, mytext, mypalette, map_count, first_plot,
                      df_count_base_filtros)  
@@ -234,7 +234,7 @@ ui <- fluidPage(
 
 server <- function(input, output, session){
   first_plot <- reactiveValues(value = TRUE)
-
+  
   mod_map_server("mapa", T)
   observeEvent(input$btn_rem, {
     mod_map_server("mapa", F)

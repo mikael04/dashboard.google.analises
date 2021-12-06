@@ -8,16 +8,17 @@
 
 func_create_spdf_w_col_name <- function(df_count_ordered, col_name, debug){
   ## Lendo SPDF base
-  world_spdf <- rgdal::readOGR( 
-    dsn= "world_shape_file/TM_WORLD_BORDERS_SIMPL-0.3.shp" , 
-    layer = "TM_WORLD_BORDERS_SIMPL-0.3",
-    verbose = F
-  )
+  # world_spdf <- rgdal::readOGR( 
+  #   dsn= "data-raw/world_shape_file/TM_WORLD_BORDERS_SIMPL-0.3.shp" , 
+  #   layer = "TM_WORLD_BORDERS_SIMPL-0.3",
+  #   verbose = F
+  # )
+  world_spdf <- base::readRDS("../dados/world_spdf.RDS")
   ## Renomeando colunas de world_spdf (esse dataframe tem todos os países)
   country_names <- as.data.frame(world_spdf@data$NAME) %>%
     dplyr::rename(NAME = 'world_spdf@data$NAME')
   ## Fazendo juncão para adicionar países que não possuem (NA)
-  df_count_ordered <- right_join(df_count_ordered, country_names, by=c("NAME"))
+  df_count_ordered <- dplyr::right_join(df_count_ordered, country_names, by=c("NAME"))
   ## Alterando valores de NA para 0
   df_count_ordered$count[is.na(df_count_ordered$count)] = 0
   

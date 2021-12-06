@@ -1121,11 +1121,17 @@ DT::datatable(df_tabela_perg_filt[,1:15],
 
 
 
+# ## 5.0 Contando eixos/tópicos/consultas/perguntas ----
 
+df_perguntas <- data.table::fread("dados/arvore_perguntas_16_11.csv")
 
+df_perguntas_1 <- df_perguntas |> 
+  dplyr::filter(EIXO == "Virus and Pathogenesis")
 
-
-
+unique(df_perguntas$EIXO)
+unique(df_perguntas_1$TOPICO)
+unique(df_perguntas_1$CONSULTA)
+unique(df_perguntas_1$PERGUNTA)
 
 
 
