@@ -26,8 +26,17 @@ mod_map_pub_ui <- function(id){
 mod_map_pub_server <- function(id, first_plot, debug){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
-    
+    # browser()
     ## Gerando o mapa inicial, apenas layout
+    df_count_base_filtros <- fst::read.fst("../dados/app/df_count_base_filtros.fst")
+      df_count_base_filtros <- df_count_base_filtros |>
+        dplyr::filter(country != "NoCountry") |>
+        dplyr::group_by(country) |>
+        dplyr::mutate(count_paises = sum(count)) |>
+        dplyr::distinct(country, .keep_all = T) |>
+        dplyr::select(NAME = country, count = count_paises) |>
+        dplyr::arrange(desc(count)) |>
+        dplyr::ungroup()
     map_count <- func_create_spdf_w_col_name(df_count_base_filtros, "count", debug)
     
     m <- leaflet(map_count,

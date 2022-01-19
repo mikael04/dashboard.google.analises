@@ -16,6 +16,7 @@ library(shinyTree)
 library(shinyWidgets)
 library(ggplot2)
 library(dplyr)
+library(leaflet)
 source("mod_arvore_busca.R")
 source("mod_evol_pub_tipo.R")
 source("mod_paises_pub_2.R")
@@ -53,10 +54,10 @@ ui <- tagList(
     navbarPage(
         theme = bslib::bs_theme(
             version = 3,
-            bg = "#ecf0f5", fg = "#660909", primary = "#000000",
+            # bg = "#ecf0f5", fg = "#660909", primary = "#000000",
             # bg = "#324C63", fg = "#660909", primary = "#000000",
             # bslib also makes it easy to import CSS fonts
-            base_font = bslib::font_google("Comfortaa")
+            # base_font = bslib::font_google("Comfortaa")
             # base_font = bslib::font_link("Comfortaa", href = "https://fonts.googleapis.com/css2?family=Comfortaa&display=swap"),
             # code_font = bslib::font_link("Comfortaa", href = "https://fonts.googleapis.com/css2?family=Comfortaa&display=swap"),
             # heading_font = bslib::font_link("Comfortaa", href = "https://fonts.googleapis.com/css2?family=Comfortaa&display=swap")
@@ -218,89 +219,91 @@ ui <- tagList(
                                 width = 10,
                                 div(
                                     class="graphs-box",
-                                    ## ****************** ##
-                                    ## Teste              ##
-                                    ## ****************** ##
-                                    fluidRow(
-                                        br(),
-                                        fluidRow(
-                                            column(
-                                                width = 6,
-                                                plotOutput("distPlot1")
-                                            ),
-                                            column(
-                                                width = 6,
-                                                plotOutput("distPlot2")
-                                            )
-                                        ),
-                                        br(),
-                                        fluidRow(
-                                            column(
-                                                width = 12,
-                                                # plotOutput("distPlot3")
-                                                mod_map_pub_ui("map_pub_1")
-                                            )
-                                        ),
-                                        br(),
-                                        fluidRow(
-                                            column(
-                                                width = 6,
-                                                plotOutput("distPlot4")
-                                            ),
-                                            column(
-                                                width = 6,
-                                                plotOutput("distPlot5")
-                                            )
-                                        )
-                                    )
-                                    ## ****************** ##
-                                    
                                     # ## ****************** ##
-                                    # ## Produção           ##
+                                    # ## Teste              ##
                                     # ## ****************** ##
                                     # fluidRow(
                                     #     br(),
                                     #     fluidRow(
                                     #         column(
                                     #             width = 6,
-                                    #             shinycssloaders::withSpinner(mod_evol_pub_tipo_ui("evol_pub_tipo_1"))
+                                    #             plotOutput("distPlot1")
                                     #         ),
-                                    #         column(
-                                    #             width = 6,
-                                    #             shinycssloaders::withSpinner(mod_paises_pub_2_ui("paises_pub_2_1"))
-                                    #         )
-                                    #     ),
-                                    #     br(),
-                                    #     fluidRow(
-                                    #         column(
-                                    #             width = 6,
-                                    #             # shinycssloaders::withSpinner(mod_map_pub_ui("map_pub_1"))
-                                    #             shinycssloaders::withSpinner(plotOutput("distPlot1"))
-                                    #         ),
-                                    #         column(
-                                    #             width = 6,
-                                    #             # shinycssloaders::withSpinner(mod_categ_pub_ui("categ_pub_1"))
-                                    #             shinycssloaders::withSpinner(plotOutput("distPlot3"))
-                                    #         )
-                                    #         # column(
-                                    #         #   width = 12,
-                                    #         #   shinycssloaders::withSpinner(mod_map_pub_ui("map_pub_1"))
-                                    #         # )
-                                    #     ),
-                                    #     br(),
-                                    #     fluidRow(
                                     #         column(
                                     #             width = 6,
                                     #             plotOutput("distPlot2")
+                                    #         )
+                                    #     ),
+                                    #     br(),
+                                    #     fluidRow(
+                                    #         column(
+                                    #             width = 12,
+                                    #             # plotOutput("distPlot3")
+                                    #             # mod_map_pub_ui("map_pub_1")
+                                    #         )
+                                    #     ),
+                                    #     br(),
+                                    #     fluidRow(
+                                    #         column(
+                                    #             width = 6,
+                                    #             plotOutput("distPlot4")
                                     #         ),
                                     #         column(
                                     #             width = 6,
-                                    #             # shinycssloaders::withSpinner(mod_artigos_autores_ui(("artigos_autores_1")))
-                                    #             shinycssloaders::withSpinner(plotOutput("distPlot4"))
+                                    #             plotOutput("distPlot5")
                                     #         )
                                     #     )
                                     # )
                                     # ## ****************** ##
+                                    
+                                    ## ****************** ##
+                                    ## Produção           ##
+                                    ## ****************** ##
+                                    fluidRow(
+                                        br(),
+                                        fluidRow(
+                                            column(
+                                                width = 6,
+                                                shinycssloaders::withSpinner(plotOutput("distPlot1"))
+                                                # shinycssloaders::withSpinner(mod_evol_pub_tipo_ui("evol_pub_tipo_1"))
+                                            ),
+                                            column(
+                                                width = 6,
+                                                shinycssloaders::withSpinner(plotOutput("distPlot2"))
+                                                # shinycssloaders::withSpinner(mod_paises_pub_2_ui("paises_pub_2_1"))
+                                            )
+                                        ),
+                                        br(),
+                                        fluidRow(
+                                            column(
+                                                width = 6,
+                                                # shinycssloaders::withSpinner(mod_map_pub_ui("map_pub_1"))
+                                                shinycssloaders::withSpinner(plotOutput("distPlot4"))
+                                            ),
+                                            column(
+                                                width = 6,
+                                                # shinycssloaders::withSpinner(mod_categ_pub_ui("categ_pub_1"))
+                                                shinycssloaders::withSpinner(plotOutput("distPlot3"))
+                                            )
+                                            # column(
+                                            #   width = 12,
+                                            #   shinycssloaders::withSpinner(mod_map_pub_ui("map_pub_1"))
+                                            # )
+                                        ),
+                                        br(),
+                                        fluidRow(
+                                            column(
+                                                width = 6,
+                                                plotOutput("distPlot5")
+                                            ),
+                                            column(
+                                                width = 6,
+                                                # shinycssloaders::withSpinner(mod_artigos_autores_ui(("artigos_autores_1")))
+                                                shinycssloaders::withSpinner(plotOutput("distPlot6"))
+                                            )
+                                        )
+                                    )
+                                    ## ****************** ##
                                 )
                                   
                             )
@@ -729,7 +732,7 @@ server <- function(input, output, session) {
     # })
     r_aux <- "COVID19"
     # df_tabela_base_filtros <- fst::read_fst("data-raw/app/df_tabela_base_filtros.fst")
-    proxymap <- mod_map_pub_server("map_pub_1", first_plot, debug)
+    # proxymap <- mod_map_pub_server("map_pub_1", first_plot, debug)
     
     
     output$distPlot1 <- renderPlot({
@@ -1019,8 +1022,8 @@ server <- function(input, output, session) {
         df_count_base_filtros <- data.table::fread("../dados/app/first_plots/df_mod_map_pub_first_plot.csv")
         df_count_base_filtros <- df_count_base_filtros |> 
             dplyr::mutate(count = if_else(NAME %in% paises_alterados, as.integer(150), count))
-        mod_map_pub_server("mapa_pub_1", proxymap, mytext, mypalette, map_count, first_plot,
-                           df_count_base_filtros, debug)
+        # mod_map_pub_server("mapa_pub_1", proxymap, mytext, mypalette, map_count, first_plot,
+        #                    df_count_base_filtros, debug)
     })
     ## Adicionar link currículo lattes
     shinyjs::onclick("mikael", runjs("window.open('http://google.com', '_blank')"))

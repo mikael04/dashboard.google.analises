@@ -17,7 +17,7 @@ write_rds <- F
 ## para usar menos RAM durante a execução
 remove <- F
 ## Se teste = T, vai rodar com base de dados de sample (1% da base)
-teste <- F
+teste <- T
 ## 1. Lendo arquivo de banco de dados  ---------------------------------
 ## Setup, lendo a base de dados (pode ser usado qualquer outro formato)
 # df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst") |> 
@@ -27,8 +27,10 @@ teste <- F
 
 # fst::write_fst(df_dimensions, "dados/dimensions_compressed_selected.fst")
 
-# df_dimensions <- fst::read_fst("dados/dimensions_compressed_selected.fst")
-df_dimensions <- arrow::read_parquet("dados/standard_dimensions_19092021_base_variaveis_selecionadas_19092021.parquet")
+df_dimensions <- fst::read_fst("dados/dimensions_compressed_selected.fst")
+# df_dimensions <- arrow::read_parquet("dados/standard_dimensions_19092021_base_variaveis_selecionadas_19092021.parquet")
+# df_dimensions <- arrow::read_parquet("dados/dimensions2812_gzip.parquet")
+# df_dimensions <- arrow::read_parquet("dados/base_merge_2812.parquet.gzip")
 df_dimensions <- tibble::as_tibble(df_dimensions) |> 
   dplyr::rename(authors_fn = authors,  authors_ln =  `authors/lastname`)
 
@@ -160,6 +162,7 @@ if(write){
       
     }else{
       fst::write.fst(df_tabela_base_filtros, "dados/app/df_tabela_base_filtros.fst") 
+      # data.table::fwrite(df_tabela_base_filtros, "dados/app/df_tabela_base_filtros.csv") 
     }
   }else{ ## Não está gerando para o app
     if(write_rds){
@@ -326,6 +329,11 @@ df_tabela_base_plus_name <- inner_join(df_tabela_base_filtros, df_dimensions_aut
 
 if(write){
   if(write_app){ ## Não precisa ser gerada para o app
+    if(write_rds){
+      
+    }else{
+      fst::write.fst(df_tabela_base_plus_name, "dados/app/df_tabela_base_plus_name.fst")
+    }
   }else{ ## Não está gerando para o app
     if(write_rds){
       
@@ -615,4 +623,21 @@ if(write_first_plots){
   
   ##***************************************************##
 }
+
+## 7. Cálculo de publicações por eixo, tópico, subtópico e pergunta ----
+
+filename <-"dados/arvore_busca.xlsx"
+
+sheets <- openxlsx::getSheetNames(filename)
+SheetList <- lapply(sheets,openxlsx::read.xlsx,xlsxFile=filename)
+names(SheetList) <- sheets
+sheets
+col <- 4
+df_arvore <- as.data.frame(SheetList[col]) |>
+  dplyr::select(TOPICO = cli_perguntas.TOPICO,
+                SUBTOPICO = cli_perguntas.CONSULTA, 
+                PERGUNTA = cli_perguntas.PERGUNTA) |> 
+  dplyr::mutate(TOPICO = dplyr::if_else(is.na(TOPICO), "Outras perguntas neste eixo", TOPICO)) |> 
+  dplyr::mutate(SUBTOPICO = dplyr::if_else(is.na(SUBTOPICO), "Outras perguntas neste tópico", SUBTOPICO)) 
+
 
