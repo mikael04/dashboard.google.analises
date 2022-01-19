@@ -17,7 +17,7 @@ write_rds <- F
 ## para usar menos RAM durante a execução
 remove <- F
 ## Se teste = T, vai rodar com base de dados de sample (1% da base)
-teste <- F
+teste <- T
 ## 1. Lendo arquivo de banco de dados  ---------------------------------
 ## Setup, lendo a base de dados (pode ser usado qualquer outro formato)
 # df_dimensions <- fst::read_fst("dados/dimensions_compressed.fst") |> 
@@ -27,8 +27,10 @@ teste <- F
 
 # fst::write_fst(df_dimensions, "dados/dimensions_compressed_selected.fst")
 
-# df_dimensions <- fst::read_fst("dados/dimensions_compressed_selected.fst")
-df_dimensions <- arrow::read_parquet("dados/standard_dimensions_19092021_base_variaveis_selecionadas_19092021.parquet")
+df_dimensions <- fst::read_fst("dados/dimensions_compressed_selected.fst")
+# df_dimensions <- arrow::read_parquet("dados/standard_dimensions_19092021_base_variaveis_selecionadas_19092021.parquet")
+# df_dimensions <- arrow::read_parquet("dados/dimensions2812_gzip.parquet")
+# df_dimensions <- arrow::read_parquet("dados/base_merge_2812.parquet.gzip")
 df_dimensions <- tibble::as_tibble(df_dimensions) |> 
   dplyr::rename(authors_fn = authors,  authors_ln =  `authors/lastname`)
 
@@ -139,7 +141,7 @@ distinct_anos <- df_dimensions_type_date |>
 data.table::fwrite(distinct_anos, "dados/app/filtros_anos.csv")
 
 rm(distinct_anos, distinct_countries, distinct_tipos)
-## 3 Tabela base - Países, data, tipo de artigo   ---------------------------------
+## 3. Tabela base - Países, data, tipo de artigo   ---------------------------------
 ### 3.0 Gráficos ----
   # - Mapa de publicações
   # - Publicações no tempo
@@ -160,6 +162,7 @@ if(write){
       
     }else{
       fst::write.fst(df_tabela_base_filtros, "dados/app/df_tabela_base_filtros.fst") 
+      # data.table::fwrite(df_tabela_base_filtros, "dados/app/df_tabela_base_filtros.csv") 
     }
   }else{ ## Não está gerando para o app
     if(write_rds){
@@ -195,7 +198,7 @@ if(write){
 if(remove){
   rm(df_count_base_filtros, df_dimensions_country, df_dimensions_type_date)
 }
-## 4 Junções com as demais variáveis ---------------------------------
+## 4. Junções com as demais variáveis ---------------------------------
 ### 4.0 Gráficos ----
     # - Publicações por categoria;
     # - Autores mais citados;
@@ -326,11 +329,16 @@ df_tabela_base_plus_name <- inner_join(df_tabela_base_filtros, df_dimensions_aut
 
 if(write){
   if(write_app){ ## Não precisa ser gerada para o app
+    if(write_rds){
+      
+    }else{
+      fst::write.fst(df_tabela_base_plus_name, "dados/app/df_tabela_base_plus_name.fst")
+    }
   }else{ ## Não está gerando para o app
     if(write_rds){
       
     }else{
-      fst::write.fst(df_tabela_base_plus_name, "dados/df_tabela_base_plus_name.fst")
+      fst::write.fst(df_tabela_base_plus_name, "dados/app/df_tabela_base_plus_name.fst")
     }
   }
 }
@@ -370,7 +378,7 @@ if(write){
 if(remove){
   rm(df_dimensions_authors, df_tabela_base_plus_name, df_count_base_plus_name)
 }
-## 5 Tabela de resposta   ---------------------------------
+## 5. Tabela de resposta   ---------------------------------
   
 source("fct_manip_string_nome_pais_journal.R")
 
@@ -530,4 +538,106 @@ library(googleLanguageR)
 #   dplyr::mutate(language = gl_translate_detect(first_author_ln))
 
 # stringi::stri_trans_general("Zażółć gęślą jaźń", "Latin-ASCII")
+# 6. Gráficos iniciais ----
+library(dplyr)
+
+if(write_first_plots){
+  ##***************************************************##
+  ### 6.1 Mod paises pub ----
+  df_count_base_plus_categ_filtros <- fst::read.fst("dados/app/df_count_base_plus_categ.fst")
+  # df_tabela_base_filtros <- fst::read_fst("dados/app/df_tabela_base_filtros.fst")
+  
+  # df_mod_paises_pub_first_plot <- df_tabela_base_filtros |>
+  df_mod_paises_pub_first_plot <- df_count_base_plus_categ_filtros |> 
+    dplyr::filter(!is.na(country) & country != "NoCountry") |>
+    dplyr::group_by(country) |>
+    dplyr::summarise(Count = sum(count)) |>
+    dplyr::arrange(desc(Count)) |>
+    dplyr::slice_head(n = 20) |>
+    dplyr::ungroup() |> 
+    dplyr::rename(Paises = country)
+  
+  data.table::fwrite(df_mod_paises_pub_first_plot, "dados/first_plots/df_mod_paises_pub_first_plot.csv")
+  ##***************************************************##
+  
+  ##***************************************************##
+  ### 6.2 Mod map pub ----
+  
+  df_mod_map_pub_first_plot <- df_count_base_plus_categ_filtros |>
+    dplyr::filter(country != "NoCountry") |> 
+    dplyr::group_by(country) |> 
+    dplyr::mutate(count_paises = sum(count)) |> 
+    dplyr::distinct(country, .keep_all = T) |> 
+    dplyr::ungroup() |> 
+    dplyr::arrange(count_paises) |>
+    dplyr::select(NAME = country, count = count_paises)
+  
+  data.table::fwrite(df_mod_map_pub_first_plot, "dados/first_plots/df_mod_map_pub_first_plot.csv")
+  
+  ##***************************************************##
+  ### 6.3 Mod evol pub tipo ----
+  
+  df_mod_evol_pub_tipo_first_plot <- df_count_base_plus_categ_filtros |>
+    dplyr::filter(!is.na(date)) |>
+    # dplyr::mutate(date_normal = format(as.Date(date_normal), "%Y-%m")) |>
+    dplyr::group_by(date, type) |>
+    dplyr::summarise(count_date_type = sum(count)) |>
+    # dplyr::distinct(date, .keep_all = T) |>
+    dplyr::ungroup() |> 
+    dplyr::rename(count = count_date_type)
+  
+  data.table::fwrite(df_mod_evol_pub_tipo_first_plot, "dados/first_plots/df_mod_evol_pub_tipo_first_plot.csv")
+  
+  ##***************************************************##
+  
+  ##***************************************************##
+  ### 6.4 Mod categ pub ----
+  
+  df_mod_categ_pub_first_plot <- df_count_base_plus_categ_filtros |>
+    dplyr::filter(!categ == "00") |> 
+    dplyr::group_by(categ) |> 
+    dplyr::mutate(count_ = sum(count)) |> 
+    dplyr::distinct(count_, .keep_all = T) |> 
+    dplyr::ungroup() |> 
+    dplyr::select(-count, -id, -date, -type, -country ) |>
+    dplyr::rename(Count = count_, Category = categ_name)
+  
+  data.table::fwrite(df_mod_categ_pub_first_plot, "dados/first_plots/df_mod_categ_pub_first_plot.csv")
+  
+  ##***************************************************##
+  
+  ##***************************************************##
+  ### 6.5 Mod artigos autores ----
+  
+  df_count_base_plus_name_filtros <- fst::read.fst("dados/app/df_count_base_plus_name.fst")
+  
+  df_mod_artg_aut_first_plot <- df_count_base_plus_name_filtros |>
+    dplyr::group_by(authors_ln) |> 
+    dplyr::summarise(count = sum(count)) |> 
+    dplyr::ungroup() |> 
+    dplyr::arrange(desc(count)) |>  
+    dplyr::rename(Autores = authors_ln, Count = count) |> 
+    dplyr::slice_head(n = 20)
+  
+  data.table::fwrite(df_mod_artg_aut_first_plot, "dados/first_plots/df_mod_artg_aut_first_plot.csv")
+  
+  ##***************************************************##
+}
+
+## 7. Cálculo de publicações por eixo, tópico, subtópico e pergunta ----
+
+filename <-"dados/arvore_busca.xlsx"
+
+sheets <- openxlsx::getSheetNames(filename)
+SheetList <- lapply(sheets,openxlsx::read.xlsx,xlsxFile=filename)
+names(SheetList) <- sheets
+sheets
+col <- 4
+df_arvore <- as.data.frame(SheetList[col]) |>
+  dplyr::select(TOPICO = cli_perguntas.TOPICO,
+                SUBTOPICO = cli_perguntas.CONSULTA, 
+                PERGUNTA = cli_perguntas.PERGUNTA) |> 
+  dplyr::mutate(TOPICO = dplyr::if_else(is.na(TOPICO), "Outras perguntas neste eixo", TOPICO)) |> 
+  dplyr::mutate(SUBTOPICO = dplyr::if_else(is.na(SUBTOPICO), "Outras perguntas neste tópico", SUBTOPICO)) 
+
 
